@@ -23,4 +23,7 @@ package:
 
 functions:
   toggle-switch:
-    handler: test.toggle
+    handler: handlers.corn_bulb
+    events:
+      - schedule:
+          rate: rate(1 minute)

@@ -10,9 +10,10 @@ ACCESS_KEY = os.environ['GOSUND_ACCESS_KEY']
 
 gosund = Gosund(USERNAME, PASSWORD, ACCESS_ID, ACCESS_KEY)
 light_bulb = gosund.get_device('eb46f5bc889a96fe4ecray')
+switch = gosund.get_device('3460050570039f61e488')
 
-def toggle(event, context):
-    light_bulb.switch()
+def turn_on_corn_bulb():
+    switch.turn_on()
 
-if __name__ == '__main__':
-    toggle({}, {})
+def turn_off_corn_bulb():
+    switch.turn_off()
