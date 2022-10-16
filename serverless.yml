@@ -1,0 +1,26 @@
+service: home-triggers
+
+frameworkVersion: '3'
+
+plugins:
+  - serverless-dotenv-plugin
+
+provider:
+  name: aws
+  runtime: python3.9
+  region: us-west-2
+  stage: prod
+  memorySize: 256
+  environment:
+    PYTHONPATH: vendor
+
+package:
+  patterns:
+    - '!node_modules'
+    - '!package-lock.json'
+    - '!package.json'
+    - '!env/'
+
+functions:
+  toggle-switch:
+    handler: test.toggle
