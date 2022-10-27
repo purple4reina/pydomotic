@@ -38,19 +38,25 @@ def test_isoweekday_trigger_does_not_fire(patch_datetime):
 
 def test_time_trigger_fires(patch_datetime):
     patch_datetime(test_time)
-    trigger = TimeTrigger(10, 20)
+    trigger = TimeTrigger((10, 20))
+    fires = trigger.check()
+    assert fires, 'trigger did not fire'
+
+def test_time_trigger_fires_multiple_times_given(patch_datetime):
+    patch_datetime(test_time)
+    trigger = TimeTrigger((11, 30), (10, 20))
     fires = trigger.check()
     assert fires, 'trigger did not fire'
 
 def test_time_trigger_does_not_fire_different_hour(patch_datetime):
     patch_datetime(test_time)
-    trigger = TimeTrigger(11, 20)
+    trigger = TimeTrigger((11, 20))
     fires = trigger.check()
     assert not fires, 'trigger fired'
 
 def test_time_trigger_does_not_fire_different_minute(patch_datetime):
     patch_datetime(test_time)
-    trigger = TimeTrigger(10, 30)
+    trigger = TimeTrigger((10, 30))
     fires = trigger.check()
     assert not fires, 'trigger fired'
 

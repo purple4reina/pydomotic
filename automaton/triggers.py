@@ -32,13 +32,15 @@ class IsoWeekdayTrigger(object):
 
 class TimeTrigger(object):
 
-    def __init__(self, hour, minute):
-        self.hour = hour
-        self.minute = minute
+    def __init__(self, *time_tuples):
+        self.time_tuples = time_tuples
 
     def check(self):
         now = datetime.datetime.now()
-        return now.hour == self.hour and now.minute == self.minute
+        for hour, minute in self.time_tuples:
+            if now.hour == hour and now.minute == minute:
+                return True
+        return False
 
     # TODO: __str__
 

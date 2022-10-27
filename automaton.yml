@@ -4,79 +4,91 @@ version: 1
 
 providers:
   gosund:
-    username: ${env:USERNAME}
-    password: ${env:PASSWORD}
-    access_id: ${env:ACCESS_ID}
-    access_key: ${env:ACCESS_KEY}
+    username: ${env:GOSUND_USERNAME}
+    password: ${env:GOSUND_PASSWORD}
+    access_id: ${env:GOSUND_ACCESS_ID}
+    access_key: ${env:GOSUND_ACCESS_KEY}
+  noop:
 
 devices:
   switch-A:
     description: air purifier
-    provider: gosund
+    provider: noop
     type: switch
     id: '3460050570039f61e488'
   bulb-A:
     description: party light
-    provider: gosund
+    provider: noop
     type: light-bulb
     id: 'eb46f5bc889a96fe4ecray'
   bulb-B:
     description: floor lamp 1
-    provider: gosund
+    provider: noop
     type: light-bulb
     id: '123abc'
   bulb-C:
     description: floor lamp 2
-    provider: gosund
+    provider: noop
     type: light-bulb
     id: 'abc123'
 
 automations:
-  - air-purifier:
-      enabled: true
-      components:
-        - if:
-            - AQI: >100
-          then:
-            - turn-on: switch-A
-          else:
-            - turn-off: switch-A
+  air-purifier:
+    enabled: true
+    components:
+      - if:
+          aqi: '>100'
+        then:
+          turn-on: switch-A
+        else:
+          turn-off: switch-A
 
-  - party-light:
-      enabled: true
-      components:
-        - if:
-            - weekday: friday,saturday
-            - time: 3:00pm
-          then:
-            - turn-on: bulb-A
-        - if:
-            - weekday: friday,saturday
-            - time: 8:00pm
-          then:
-            - turn-off: bulb-A
+  party-light:
+    enabled: true
+    components:
+      - if:
+          weekday: friday,saturday
+          time: 3:00pm
+        then:
+          turn-on: bulb-A
+      - if:
+          weekday: friday,saturday
+          time: 8:00pm
+        then:
+          turn-off: bulb-A
 
-  - floor-lamp:
-      enabled: false
-      components:
-        - if:
-            - time: 5:00pm
-          then:
-            - turn-on: bulb-B
-            - turn-on: bulb-C
-        - if:
-            - sunset: -2hrs
-          then:
-            - turn-on: bulb-B
-        - if:
-            - weekday: sunday,monday,tuesday,wednesday,thursday
-            - time: 9:00pm
-          then:
-            - turn-off: bulb-B
-            - turn-off: bulb-C
-        - if:
-            - weekday: friday,saturday
-            - time: 10:00pm
-          then:
-            - turn-off: bulb-B
-            - turn-off: bulb-C
+  floor-lamp:
+    enabled: true
+    components:
+      # turn on
+      - if:
+          sunset: -2hrs
+        then:
+          turn-on: bulb-B
+      - if:
+          time: 5:00pm
+        then:
+          turn-on: bulb-B
+          turn-on: bulb-C
+      # turn off weeknights
+      - if:
+          weekday: sunday,monday,tuesday,wednesday,thursday
+          time: 8:00pm
+        then:
+          turn-off: bulb-B
+      - if:
+          weekday: sunday,monday,tuesday,wednesday,thursday
+          time: 9:00pm
+        then:
+          turn-off: bulb-C
+      # turn off weekends
+      - if:
+          weekday: friday,saturday
+          time: 9:00pm
+        then:
+          turn-off: bulb-B
+      - if:
+          weekday: friday,saturday
+          time: 10:00pm
+        then:
+          turn-off: bulb-C

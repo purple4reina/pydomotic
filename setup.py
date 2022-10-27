@@ -42,7 +42,10 @@ setup(
         "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: Implementation :: PyPy",
     ],
-    install_requires=["gosundpy>=0.2.0"], # TODO: only if provider requested
+    install_requires=[
+        "gosundpy>=0.2.0",  # TODO: only if provider requested
+        "PyYAML==6.0",
+    ],
     packages=find_packages(),
     python_requires=">=3.7, <4",
 )
