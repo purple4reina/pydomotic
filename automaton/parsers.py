@@ -1,11 +1,13 @@
 import os
 import re
+import datetime
 import yaml
 
 from .actions import TurnOnAction, TurnOffAction
 from .components import Component
 from .providers.noop import NoopProvider
-from .triggers import AQITrigger, TimeTrigger, IsoWeekdayTrigger, RandomTrigger
+from .triggers import (AQITrigger, TimeTrigger, IsoWeekdayTrigger,
+        RandomTrigger, SunriseTrigger, SunsetTrigger)
 
 # TODO: add debug logging
 
@@ -104,6 +106,10 @@ def _parse_triggers(ifs):
             triggers.append(_parse_weekday_trigger(trigger_value))
         elif trigger_type == 'random':
             triggers.append(_parse_random_trigger(trigger_value))
+        elif trigger_type == 'sunrise':
+            triggers.append(_parse_sunrise_trigger(trigger_value))
+        elif trigger_type == 'sunset':
+            triggers.append(_parse_sunset_trigger(trigger_value))
         else:
             raise AutomatonConfigParsingError(
                     f'unknown trigger type "{trigger_type}"')
@@ -163,6 +169,19 @@ def _parse_weekday_trigger(value):
 def _parse_random_trigger(value):
     probability = float(value)
     return RandomTrigger(probability)
+
+def _parse_timedelta(value):
+    if isinstance(value, (int, float)):
+        return datetime.timedelta(minutes=int(value))
+    raise AutomatonConfigParsingError(
+            f'unknown time delta "{value}", expecting value like "2:15" '
+            'or integer minutes')
+
+def _parse_sunrise_trigger(value):
+    return SunriseTrigger(_parse_timedelta(value))
+
+def _parse_sunset_trigger(value):
+    return SunsetTrigger(_parse_timedelta(value))
 
 def _parse_actions(thens, devices):
     actions = []

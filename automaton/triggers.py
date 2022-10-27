@@ -53,3 +53,31 @@ class RandomTrigger(object):
         return random.random() < self.probability
 
     # TODO: __str__
+
+class SunTrigger(object):
+
+    # TODO: tests
+
+    def __init__(self, timedelta, sensor=None):
+        from .sensors import SunSensor
+        self.timedelta = timedelta
+        self.sensor = sensor or SunSensor()
+        self.sensor_method = getattr(self.sensor, self.sun_sensor_method)
+
+    def check(self):
+        sun_time = self.sensor_method()
+        check_time = sun_time + self.timedelta
+        now = datetime.datetime.now()
+        return now.hour == check_time.hour and now.minute == check_time.minute
+
+class SunriseTrigger(SunTrigger):
+
+    sun_sensor_method = 'get_sunrise'
+
+    # TODO: __str__
+
+class SunsetTrigger(SunTrigger):
+
+    sun_sensor_method = 'get_sunset'
+
+    # TODO: __str__

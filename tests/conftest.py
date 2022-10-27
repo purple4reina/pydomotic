@@ -102,3 +102,20 @@ def patch_random(monkeypatch):
             return num
         monkeypatch.setattr(random, 'random', _random)
     return patch
+
+class _MockSunSensor(object):
+    def __init__(self):
+        self.get_sunrise_called = False
+        self.get_sunset_called = False
+        self.sunrise = None
+        self.sunset = None
+    def get_sunrise(self):
+        self.get_sunrise_called = True
+        return self.sunrise
+    def get_sunset(self):
+        self.get_sunset_called = True
+        return self.sunset
+
+@pytest.fixture
+def mock_sun_sensor():
+    return _MockSunSensor()

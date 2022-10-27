@@ -62,7 +62,7 @@ automations:
     components:
       # turn on
       - if:
-          sunset: -2hrs
+          sunset: -2:00
         then:
           turn-on: bulb-B
       - if:
