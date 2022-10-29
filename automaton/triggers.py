@@ -13,11 +13,7 @@ class AQITrigger(object):
         aqi = self.sensor.get_aqi()
         return self.check_func(aqi)
 
-    def __str__(self):
-        # TODO: I don't like this
-        src = inspect.getsource(self.check_func).split(':')[-1].strip()
-        return f'<AQITrigger check_func={src}>'
-    __repr__ = __str__
+    # TODO: __str__
 
 class IsoWeekdayTrigger(object):
 
@@ -55,8 +51,6 @@ class RandomTrigger(object):
     # TODO: __str__
 
 class SunTrigger(object):
-
-    # TODO: tests
 
     def __init__(self, timedelta, sensor=None):
         from .sensors import SunSensor

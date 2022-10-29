@@ -14,14 +14,14 @@ from .triggers import (AQITrigger, TimeTrigger, IsoWeekdayTrigger,
 def parse_yaml(config_file):
     with open(config_file) as f:
         conf = yaml.safe_load(f)
-    providers = _parse_providers(conf)
-    devices = _parse_devices(conf, providers)
-    components = _parse_components(conf, devices)
+    providers = _parse_providers(conf.get('providers', {}))
+    devices = _parse_devices(conf.get('devices', {}), providers)
+    components = _parse_components(conf.get('automations', {}), devices)
     return components
 
-def _parse_providers(conf):
+def _parse_providers(providers_conf):
     providers = {}
-    for name, provider in conf.get('providers', {}).items():
+    for name, provider in providers_conf.items():
         if name == 'gosund':
             providers['gosund'] = _parse_gosund_provider(provider)
         elif name == 'noop':
@@ -44,7 +44,7 @@ def _parse_gosund_provider(provider):
     from .providers.gosund import GosundProvider
     return GosundProvider(username, password, access_id, access_key)
 
-_env_re = re.compile(r'\$\{env:(.*)\}')
+_env_re = re.compile(r'\$\{env:(.*?)\}')
 def _parse_string(string):
     def _replace_env(m):
         key = m.group(1)
@@ -55,9 +55,9 @@ def _parse_string(string):
         return val
     return _env_re.sub(_replace_env, string)
 
-def _parse_devices(conf, providers):
+def _parse_devices(devices_conf, providers):
     devices = {}
-    for name, device in conf.get('devices', {}).items():
+    for name, device in devices_conf.items():
         provider_name = device.get('provider')
         if provider_name is None:
             raise AutomatonConfigParsingError(
@@ -78,13 +78,13 @@ def _parse_devices(conf, providers):
                     f'unable to get device "{name}": {e}')
     return devices
 
-def _parse_components(conf, devices):
+def _parse_components(automations, devices):
     components = []
-    for name, automation in conf.get('automations', {}).items():
+    for name, automation in automations.items():
         if not automation.get('enabled', True):
             continue
         for component in automation.get('components', []):
-            ifs = component.get('if', [])
+            ifs = component.get('if', {})
             thens = component.get('then', {})
             elses = component.get('else', {})
             components.append(Component(
@@ -117,7 +117,7 @@ def _parse_triggers(ifs):
 
 def _parse_aqi_trigger(value):
     def _check_func(aqi):
-        return exec(f'aqi {value}')
+        return eval(f'aqi {value}')
     return AQITrigger(_check_func)
 
 _time_re = re.compile(r'(10|11|12|[1-9]):([0-5][0-9])\s*([ap]m)')
@@ -130,6 +130,8 @@ def _parse_time_trigger(value):
             raise AutomatonConfigParsingError(
                     f'unknown time "{time}", expecting time like "HH:MMam"')
         hour, minute = int(m.group(1)), int(m.group(2))
+        if hour == 12:
+            hour = 0
         if m.group(3) == 'pm':
             hour += 12
         times.append((hour, minute))
@@ -185,18 +187,20 @@ def _parse_sunset_trigger(value):
 
 def _parse_actions(thens, devices):
     actions = []
-    for action_type, device_name in thens.items():
-        device = devices.get(device_name)
-        if device is None:
-            raise AutomatonConfigParsingError(
-                    f'unknown device name "{device_name}"')
-        if action_type == 'turn-on':
-            actions.append(TurnOnAction(device))
-        elif action_type == 'turn-off':
-            actions.append(TurnOffAction(device))
-        else:
-            raise AutomatonConfigParsingError(
-                    f'unknown action type "{action_type}"')
+    for action_type, device_names in thens.items():
+        for device_name in device_names.split(','):
+            device_name = device_name.strip()
+            device = devices.get(device_name)
+            if device is None:
+                raise AutomatonConfigParsingError(
+                        f'unknown device name "{device_name}"')
+            if action_type == 'turn-on':
+                actions.append(TurnOnAction(device))
+            elif action_type == 'turn-off':
+                actions.append(TurnOffAction(device))
+            else:
+                raise AutomatonConfigParsingError(
+                        f'unknown action type "{action_type}"')
     return actions
 
 class AutomatonConfigParsingError(Exception):
