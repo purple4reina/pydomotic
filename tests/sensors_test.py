@@ -2,6 +2,10 @@ import pytest
 
 from automaton.sensors import AQISensor, AQISensorError
 
+@pytest.fixture(autouse=True)
+def reset_get_aqi_cache():
+    AQISensor.get_aqi.clear_cache()
+
 def test_aqi_sensor_get_aqi(patch_get_requests):
     data = [
             {
@@ -30,13 +34,13 @@ def test_aqi_sensor_get_aqi(patch_get_requests):
             },
     ]
     patch_get_requests(False, data)
-    sensor = AQISensor('api_key', 'latitude', 'longitude', cache_aqi=False)
+    sensor = AQISensor('api_key', 'latitude', 'longitude')
     actual = sensor.get_aqi()
     assert actual == 31, 'wrong aqi found'
 
 def test_aqi_sensor_get_aqi_raises(patch_get_requests):
     patch_get_requests(RuntimeError('oops'), [])
-    sensor = AQISensor('api_key', 'latitude', 'longitude', cache_aqi=False)
+    sensor = AQISensor('api_key', 'latitude', 'longitude')
     try:
         sensor.get_aqi()
     except AQISensorError as e:
@@ -47,7 +51,7 @@ def test_aqi_sensor_get_aqi_raises(patch_get_requests):
 
 def test_aqi_sensor_get_aqi_no_data(patch_get_requests):
     patch_get_requests(False, [])
-    sensor = AQISensor('api_key', 'latitude', 'longitude', cache_aqi=False)
+    sensor = AQISensor('api_key', 'latitude', 'longitude')
     try:
         sensor.get_aqi()
     except AQISensorError as e:

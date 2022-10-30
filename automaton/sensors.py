@@ -6,7 +6,7 @@ class AQISensor(object):
 
     aqi_url = 'https://www.airnowapi.org/aq/observation/latLong/current'
 
-    def __init__(self, api_key, latitude, longitude, cache_aqi=True):
+    def __init__(self, api_key, latitude, longitude):
         self.location = (latitude, longitude)
         self.params = {
                 'latitude': latitude,
@@ -14,9 +14,8 @@ class AQISensor(object):
                 'api_key': api_key,
                 'format': 'application/json',
         }
-        if cache_aqi:
-            self.get_aqi = cache_value(seconds=60*60)(self.get_aqi)
 
+    @cache_value(seconds=60*60)
     def get_aqi(self):
         try:
             resp = requests.get(self.aqi_url, params=self.params)

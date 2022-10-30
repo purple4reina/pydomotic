@@ -21,3 +21,9 @@ def test_cache_value(monkeypatch):
     for _ in range(3):
         actual = test_fn()
         assert actual == 2, 'wrong value returned'
+
+    test_fn.clear_cache()
+
+    for _ in range(3):
+        actual = test_fn()
+        assert actual == 3, 'wrong value returned'
