@@ -389,8 +389,11 @@ def test__parse_triggers(ifs, expect_classes):
 
 _test__parse_aqi_trigger = (
         ('<10', lambda a: a < 10),
+        ('< 10', lambda a: a < 10),
         ('==10', lambda a: a == 10),
+        ('== 10', lambda a: a == 10),
         ('>10', lambda a: a > 10),
+        ('> 10', lambda a: a > 10),
 )
 _test__parse_aqi_trigger_triggers_conf = {
         'location': {'latitude': 40.689, 'longitude': -74.044},
@@ -411,6 +414,25 @@ def test__parse_aqi_trigger(value, expect, mock_aqi_sensor):
         mock_aqi_sensor.aqi = i
         assert actual.check() == expect(i), (
                 f'wrong value returned by func at index {i}')
+
+_test__parse_aqi_trigger_cannot_run_aribtrary_code = (
+        '>purple',
+        '< green',
+        '=10',
+        '+10',
+        '- 10',
+        '> 10 ; print("hello world")',
+)
+
+@pytest.mark.parametrize('value',
+        _test__parse_aqi_trigger_cannot_run_aribtrary_code)
+def test__parse_aqi_trigger_cannot_run_aribtrary_code(value):
+    try:
+        _parse_aqi_trigger(value, _test__parse_aqi_trigger_triggers_conf)
+    except AutomatonConfigParsingError:
+        pass
+    else:
+        raise AssertionError('should have raised an exception')
 
 _test__parse_time_trigger = (
         ('12:00am', ((0, 0),), False),

@@ -40,11 +40,11 @@ automations:
     enabled: true
     components:
       - if:
-          aqi: '>100'
+          aqi: < 100
         then:
-          turn-on: switch-A
-        else:
           turn-off: switch-A
+        else:
+          turn-on: switch-A
 
   party-light:
     enabled: true

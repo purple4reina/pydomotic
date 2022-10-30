@@ -116,6 +116,7 @@ def _parse_triggers(ifs, triggers_conf={}):
                     f'unknown trigger type "{trigger_type}"')
     return triggers
 
+_aqi_value_re = re.compile(r'(<|>|==)\s*(\d+)')
 def _parse_aqi_trigger(value, triggers_conf={}):
     location = triggers_conf.get('location')
     if location is None:
@@ -134,8 +135,18 @@ def _parse_aqi_trigger(value, triggers_conf={}):
     if not api_key:
         raise AutomatonConfigParsingError('aqi api key required')
 
-    def _check_func(aqi):
-        return eval(f'aqi {value}')
+    m = _aqi_value_re.fullmatch(value)
+    if not m:
+        raise AutomatonConfigParsingError(
+                f'invalid aqi trigger value "{value}", expecting value like '
+                '">100", "<100", or "==100"')
+    num = int(m.group(2))
+    if m.group(1) == '>':
+        _check_func = lambda a: a > num
+    elif m.group(1) == '<':
+        _check_func = lambda a: a < num
+    elif m.group(1) == '==':
+        _check_func = lambda a: a == num
 
     return AQITrigger(_check_func, api_key=api_key, latitude=latitude,
             longitude=longitude)
