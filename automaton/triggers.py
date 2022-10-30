@@ -14,8 +14,6 @@ class AQITrigger(object):
         aqi = self.sensor.get_aqi()
         return self.check_func(aqi)
 
-    # TODO: __str__
-
 class IsoWeekdayTrigger(object):
 
     def __init__(self, *isoweekdays):
@@ -24,8 +22,6 @@ class IsoWeekdayTrigger(object):
     def check(self):
         now = datetime.datetime.now()
         return now.isoweekday() in self.isoweekdays
-
-    # TODO: __str__
 
 class TimeTrigger(object):
 
@@ -39,8 +35,6 @@ class TimeTrigger(object):
                 return True
         return False
 
-    # TODO: __str__
-
 class RandomTrigger(object):
 
     def __init__(self, probability):
@@ -48,8 +42,6 @@ class RandomTrigger(object):
 
     def check(self):
         return random.random() < self.probability
-
-    # TODO: __str__
 
 class SunTrigger(object):
 
@@ -69,10 +61,6 @@ class SunriseTrigger(SunTrigger):
 
     sun_sensor_method = 'get_sunrise'
 
-    # TODO: __str__
-
 class SunsetTrigger(SunTrigger):
 
     sun_sensor_method = 'get_sunset'
-
-    # TODO: __str__

@@ -40,8 +40,6 @@ class AQISensor(object):
                     f'unable to find aqi for location {self.location}')
         return aqi
 
-    # TODO: __str__
-
 class AQISensorError(Exception):
     pass
 
@@ -56,5 +54,3 @@ class SunSensor(object):
         # TODO: implement
         import datetime
         return datetime.datetime.now()
-
-    # TODO: __str__

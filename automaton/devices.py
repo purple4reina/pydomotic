@@ -4,8 +4,6 @@ class Device(object):
         self.name = name
         self.provider_device = provider_device
 
-    # TODO: __str__
-
 class DeviceOnOffMixin(object):
 
     def turn_on(self):
