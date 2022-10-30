@@ -90,7 +90,7 @@ def patch_datetime(monkeypatch):
     def patch(dt):
         class _datetime(datetime.datetime):
             @classmethod
-            def now(self):
+            def now(self, *args, **kwargs):
                 return dt
         monkeypatch.setattr(datetime, 'datetime', _datetime)
     return patch

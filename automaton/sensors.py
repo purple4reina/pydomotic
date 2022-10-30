@@ -1,3 +1,5 @@
+import astral
+import astral.sun
 import requests
 
 from .utils import cache_value
@@ -44,12 +46,11 @@ class AQISensorError(Exception):
 
 class SunSensor(object):
 
+    def __init__(self, latitude=0.0, longitude=0.0):
+        self.observer = astral.Observer(latitude=latitude, longitude=longitude)
+
     def get_sunrise(self):
-        # TODO: implement
-        import datetime
-        return datetime.datetime.now()
+        return astral.sun.sunrise(self.observer)
 
     def get_sunset(self):
-        # TODO: implement
-        import datetime
-        return datetime.datetime.now()
+        return astral.sun.sunset(self.observer)

@@ -43,6 +43,7 @@ setup(
         "Programming Language :: Python :: Implementation :: PyPy",
     ],
     install_requires=[
+        "astral>=3.0,<4.0",
         "gosundpy>=0.2.0",  # TODO: only if provider requested
         "PyYAML==6.0",
     ],

@@ -1,6 +1,9 @@
+import datetime
 import pytest
 
-from automaton.sensors import AQISensor, AQISensorError
+from automaton.sensors import AQISensor, AQISensorError, SunSensor
+
+test_time = datetime.datetime(1982, 2, 4, 10, 20)
 
 @pytest.fixture(autouse=True)
 def reset_get_aqi_cache():
@@ -59,3 +62,25 @@ def test_aqi_sensor_get_aqi_no_data(patch_get_requests):
         assert str(e) == exp_err, 'wrong error raised'
     else:
         raise AssertionError('should have raised')
+
+def test_sun_sensor_get_sunrise(patch_datetime):
+    patch_datetime(test_time)
+    sensor = SunSensor(latitude=0, longitude=0)
+    actual = sensor.get_sunrise()
+
+    assert actual.year == test_time.year, 'wrong year returned'
+    assert actual.month == test_time.month, 'wrong month returned'
+    assert actual.day == test_time.day, 'wrong day returned'
+    assert actual.hour == 6, 'wrong hour returned'
+    assert actual.minute == 10, 'wrong minute returned'
+
+def test_sun_sensor_get_sunset(patch_datetime):
+    patch_datetime(test_time)
+    sensor = SunSensor(latitude=0, longitude=0)
+    actual = sensor.get_sunset()
+
+    assert actual.year == test_time.year, 'wrong year returned'
+    assert actual.month == test_time.month, 'wrong month returned'
+    assert actual.day == test_time.day, 'wrong day returned'
+    assert actual.hour == 18, 'wrong hour returned'
+    assert actual.minute == 17, 'wrong minute returned'
