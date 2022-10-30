@@ -25,6 +25,13 @@ devices:
     type: light-bulb
     id: 'abc123'
 
+triggers:
+  location:
+    latitude: 40.689
+    longitude: -74.044
+  aqi:
+    api_key: '123abc'
+
 automations:
   air-purifier:
     enabled: true

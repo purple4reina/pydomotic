@@ -1,13 +1,16 @@
 version: 1
 
-# TODO: location for time triggers
+triggers:
+  location:
+    latitude: 45.520282
+    longitude: -122.632316
+    #latitude: 40.689412062832226
+    #longitude: -74.0444896661189
+  aqi:
+    # https://docs.airnowapi.org/
+    api_key: ${env:AQI_API_KEY}
 
 providers:
-  gosund:
-    username: ${env:GOSUND_USERNAME}
-    password: ${env:GOSUND_PASSWORD}
-    access_id: ${env:GOSUND_ACCESS_ID}
-    access_key: ${env:GOSUND_ACCESS_KEY}
   noop:
 
 devices:

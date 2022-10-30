@@ -4,10 +4,11 @@ import random
 
 class AQITrigger(object):
 
-    def __init__(self, check_func, sensor=None):
+    def __init__(self, check_func, sensor=None, api_key=None, latitude=None,
+            longitude=None):
         from .sensors import AQISensor
         self.check_func = check_func
-        self.sensor = sensor or AQISensor()
+        self.sensor = sensor or AQISensor(api_key, latitude, longitude)
 
     def check(self):
         aqi = self.sensor.get_aqi()

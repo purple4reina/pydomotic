@@ -325,10 +325,15 @@ _test__parse_components_devices = {
         'switch-A': 'device-2',
         'switch-B': 'device-3',
 }
+_test__parse_components_triggers_conf = {
+        'location': {'latitude': 40.689, 'longitude': -74.044},
+        'aqi': {'api_key': '123abc'},
+}
 
 @pytest.mark.parametrize('automations,expects', _test__parse_components)
 def test__parse_components(automations, expects):
-    actuals = _parse_components(automations, _test__parse_components_devices)
+    actuals = _parse_components(automations, _test__parse_components_devices,
+            _test__parse_components_triggers_conf)
     assert len(actuals) == len(expects), 'wrong number of components returned'
     for actual, expect in zip(actuals, expects):
         assert isinstance(actual, Component), 'wrong type returned'
@@ -370,10 +375,14 @@ _test__parse_triggers = (
             ],
         ),
 )
+_test__parse_triggers_triggers_conf = {
+        'location': {'latitude': 40.689, 'longitude': -74.044},
+        'aqi': {'api_key': '123abc'},
+}
 
 @pytest.mark.parametrize('ifs,expect_classes', _test__parse_triggers)
 def test__parse_triggers(ifs, expect_classes):
-    actual = _parse_triggers(ifs)
+    actual = _parse_triggers(ifs, _test__parse_triggers_triggers_conf)
     assert len(actual) == len(ifs), 'wrong number of triggers returned'
     for trigger, expect_class in zip(actual, expect_classes):
         assert isinstance(trigger, expect_class), 'wrong trigger type returned'
@@ -383,10 +392,20 @@ _test__parse_aqi_trigger = (
         ('==10', lambda a: a == 10),
         ('>10', lambda a: a > 10),
 )
+_test__parse_aqi_trigger_triggers_conf = {
+        'location': {'latitude': 40.689, 'longitude': -74.044},
+        'aqi': {'api_key': '123abc'},
+}
 
 @pytest.mark.parametrize('value,expect', _test__parse_aqi_trigger)
 def test__parse_aqi_trigger(value, expect, mock_aqi_sensor):
-    actual = _parse_aqi_trigger(value)
+    actual = _parse_aqi_trigger(value, _test__parse_aqi_trigger_triggers_conf)
+
+    assert actual.sensor.params['api_key'] == '123abc', 'wrong aqi api key'
+    assert actual.sensor.params['latitude'] == 40.689, 'wrong latitude'
+    assert actual.sensor.params['longitude'] == -74.044, 'wrong longitude'
+    assert actual.sensor.params['format'] == 'application/json', 'wrong format'
+
     actual.sensor = mock_aqi_sensor
     for i in range(100):
         mock_aqi_sensor.aqi = i

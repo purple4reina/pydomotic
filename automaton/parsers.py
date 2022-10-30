@@ -16,7 +16,8 @@ def parse_yaml(config_file):
         conf = yaml.safe_load(f)
     providers = _parse_providers(conf.get('providers', {}))
     devices = _parse_devices(conf.get('devices', {}), providers)
-    components = _parse_components(conf.get('automations', {}), devices)
+    components = _parse_components(conf.get('automations', {}), devices,
+            conf.get('triggers', {}))
     return components
 
 def _parse_providers(providers_conf):
@@ -78,7 +79,7 @@ def _parse_devices(devices_conf, providers):
                     f'unable to get device "{name}": {e}')
     return devices
 
-def _parse_components(automations, devices):
+def _parse_components(automations, devices, triggers_conf={}):
     components = []
     for name, automation in automations.items():
         if not automation.get('enabled', True):
@@ -88,18 +89,18 @@ def _parse_components(automations, devices):
             thens = component.get('then', {})
             elses = component.get('else', {})
             components.append(Component(
-                ifs=_parse_triggers(ifs),
+                ifs=_parse_triggers(ifs, triggers_conf),
                 thens=_parse_actions(thens, devices),
                 elses=_parse_actions(elses, devices),
             ))
     return components
 
-def _parse_triggers(ifs):
+def _parse_triggers(ifs, triggers_conf={}):
     triggers = []
     for trigger_type, trigger_value in ifs.items():
         trigger_type = trigger_type.lower()
         if trigger_type == 'aqi':
-            triggers.append(_parse_aqi_trigger(trigger_value))
+            triggers.append(_parse_aqi_trigger(trigger_value, triggers_conf))
         elif trigger_type == 'time':
             triggers.append(_parse_time_trigger(trigger_value))
         elif trigger_type == 'weekday':
@@ -115,10 +116,29 @@ def _parse_triggers(ifs):
                     f'unknown trigger type "{trigger_type}"')
     return triggers
 
-def _parse_aqi_trigger(value):
+def _parse_aqi_trigger(value, triggers_conf={}):
+    location = triggers_conf.get('location')
+    if location is None:
+        raise AutomatonConfigParsingError(
+                'location data required, please set latitude and longitude')
+    latitude = location.get('latitude')
+    if latitude is None:
+        raise AutomatonConfigParsingError(
+                'latitude value required for location')
+    longitude = location.get('longitude')
+    if longitude is None:
+        raise AutomatonConfigParsingError(
+                'longitude value required for location')
+
+    api_key = _parse_string(triggers_conf.get('aqi', {}).get('api_key', ''))
+    if not api_key:
+        raise AutomatonConfigParsingError('aqi api key required')
+
     def _check_func(aqi):
         return eval(f'aqi {value}')
-    return AQITrigger(_check_func)
+
+    return AQITrigger(_check_func, api_key=api_key, latitude=latitude,
+            longitude=longitude)
 
 _time_re = re.compile(r'(10|11|12|[1-9]):([0-5][0-9])\s*([ap]m)')
 def _parse_time_trigger(value):

@@ -119,3 +119,17 @@ class _MockSunSensor(object):
 @pytest.fixture
 def mock_sun_sensor():
     return _MockSunSensor()
+
+@pytest.fixture
+def patch_get_requests(monkeypatch):
+    def patch(raises, resp_json):
+        def get(url, params=None):
+            return _response()
+        class _response(object):
+            def raise_for_status(self):
+                if raises:
+                    raise raises
+            def json(self):
+                return resp_json
+        monkeypatch.setattr('requests.get', get)
+    return patch
