@@ -46,6 +46,8 @@ class AQISensorError(Exception):
 
 class SunSensor(object):
 
+    # TODO: add timezone info
+
     def __init__(self, latitude=0.0, longitude=0.0):
         self.observer = astral.Observer(latitude=latitude, longitude=longitude)
 

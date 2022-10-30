@@ -16,6 +16,8 @@ class AQITrigger(object):
 
 class IsoWeekdayTrigger(object):
 
+    # TODO: add timezone info
+
     def __init__(self, *isoweekdays):
         self.isoweekdays = isoweekdays
 
@@ -24,6 +26,8 @@ class IsoWeekdayTrigger(object):
         return now.isoweekday() in self.isoweekdays
 
 class TimeTrigger(object):
+
+    # TODO: add timezone info
 
     def __init__(self, *time_tuples):
         self.time_tuples = time_tuples
@@ -44,6 +48,8 @@ class RandomTrigger(object):
         return random.random() < self.probability
 
 class SunTrigger(object):
+
+    # TODO: add timezone info
 
     def __init__(self, timedelta, sensor=None):
         from .sensors import SunSensor
