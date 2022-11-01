@@ -3,8 +3,6 @@ import pytest
 
 from automaton.sensors import AQISensor, AQISensorError, SunSensor
 
-test_time = datetime.datetime(1982, 2, 4, 10, 20)
-
 @pytest.fixture(autouse=True)
 def reset_get_aqi_cache():
     AQISensor.get_aqi.clear_cache()
@@ -63,24 +61,24 @@ def test_aqi_sensor_get_aqi_no_data(patch_get_requests):
     else:
         raise AssertionError('should have raised')
 
-def test_sun_sensor_get_sunrise(patch_datetime):
-    patch_datetime(test_time)
-    sensor = SunSensor(latitude=0, longitude=0)
+def test_sun_sensor_get_sunrise(mock_time_sensor):
+    sensor = SunSensor(latitude=45.58, longitude=-122.11,
+            time_sensor=mock_time_sensor)
     actual = sensor.get_sunrise()
 
-    assert actual.year == test_time.year, 'wrong year returned'
-    assert actual.month == test_time.month, 'wrong month returned'
-    assert actual.day == test_time.day, 'wrong day returned'
-    assert actual.hour == 6, 'wrong hour returned'
-    assert actual.minute == 10, 'wrong minute returned'
+    assert actual.year == 1982, 'wrong year returned'
+    assert actual.month == 2, 'wrong month returned'
+    assert actual.day == 4, 'wrong day returned'
+    assert actual.hour == 7, 'wrong hour returned'
+    assert actual.minute == 26, 'wrong minute returned'
 
-def test_sun_sensor_get_sunset(patch_datetime):
-    patch_datetime(test_time)
-    sensor = SunSensor(latitude=0, longitude=0)
+def test_sun_sensor_get_sunset(mock_time_sensor):
+    sensor = SunSensor(latitude=45.58, longitude=-122.11,
+            time_sensor=mock_time_sensor)
     actual = sensor.get_sunset()
 
-    assert actual.year == test_time.year, 'wrong year returned'
-    assert actual.month == test_time.month, 'wrong month returned'
-    assert actual.day == test_time.day, 'wrong day returned'
-    assert actual.hour == 18, 'wrong hour returned'
-    assert actual.minute == 17, 'wrong minute returned'
+    assert actual.year == 1982, 'wrong year returned'
+    assert actual.month == 2, 'wrong month returned'
+    assert actual.day == 4, 'wrong day returned'
+    assert actual.hour == 17, 'wrong hour returned'
+    assert actual.minute == 18, 'wrong minute returned'

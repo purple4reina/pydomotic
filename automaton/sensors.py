@@ -50,20 +50,23 @@ class SunSensor(object):
 
     # TODO: test timezone
 
-    def __init__(self, latitude=0, longitude=0, tzinfo=datetime.timezone.utc):
+    def __init__(self, latitude=0, longitude=0, time_sensor=None):
         self.observer = astral.Observer(latitude=latitude, longitude=longitude)
-        self.tzinfo = tzinfo
+        self.time_sensor = time_sensor or TimeSensor()
 
     def get_sunrise(self):
-        return astral.sun.sunrise(self.observer, tzinfo=self.tzinfo)
+        now = self.time_sensor.get_current_datetime()
+        return astral.sun.sunrise(self.observer, date=now,
+                tzinfo=self.time_sensor.tzinfo)
 
     def get_sunset(self):
-        return astral.sun.sunset(self.observer, tzinfo=self.tzinfo)
+        now = self.time_sensor.get_current_datetime()
+        return astral.sun.sunset(self.observer, date=now,
+                tzinfo=self.time_sensor.tzinfo)
 
 class TimeSensor(object):
 
     # TODO: test
-    # TODO: change patch_datetime to mock_time_sensor
 
     def __init__(self, latitude=None, longitude=None):
         self.latitude = latitude

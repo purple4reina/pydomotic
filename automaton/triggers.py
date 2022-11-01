@@ -59,7 +59,7 @@ class SunTrigger(object):
         from .sensors import SunSensor
         self.timedelta = timedelta
         self.time_sensor = time_sensor or TimeSensor()
-        self.sun_sensor = sun_sensor or SunSensor(tzinfo=self.time_sensor.tzinfo)
+        self.sun_sensor = sun_sensor or SunSensor(time_sensor=self.time_sensor)
         self.sun_sensor_method = getattr(self.sun_sensor,
                 self.sun_sensor_method_name)
 

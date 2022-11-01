@@ -1,6 +1,7 @@
 import datetime
 import pytest
 import random
+import zoneinfo
 
 class _MockDevice(object):
     def __init__(self):
@@ -85,15 +86,16 @@ class _MockAQISensor(object):
 def mock_aqi_sensor():
     return _MockAQISensor()
 
+class _MockTimeSensor(object):
+    test_datetime = datetime.datetime(1982, 2, 4, 10, 20,
+            tzinfo=zoneinfo.ZoneInfo("America/Los_Angeles"))
+    tzinfo = test_datetime.tzinfo
+    def get_current_datetime(self):
+        return self.test_datetime
+
 @pytest.fixture
-def patch_datetime(monkeypatch):
-    def patch(dt):
-        class _datetime(datetime.datetime):
-            @classmethod
-            def now(self, *args, **kwargs):
-                return dt
-        monkeypatch.setattr(datetime, 'datetime', _datetime)
-    return patch
+def mock_time_sensor():
+    return _MockTimeSensor()
 
 @pytest.fixture
 def patch_random(monkeypatch):
