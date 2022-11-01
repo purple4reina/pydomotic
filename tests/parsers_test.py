@@ -4,7 +4,7 @@ import pytest
 
 from automaton.actions import TurnOnAction, TurnOffAction
 from automaton.components import Component
-from automaton.parsers import (parse_yaml, _parse_providers,
+from automaton.parsers import (parse_yaml, _TriggersConf, _parse_providers,
         _parse_gosund_provider, _parse_string, _parse_devices,
         _parse_components, _parse_triggers, _parse_aqi_trigger,
         _parse_time_trigger, _parse_weekday_trigger, _parse_random_trigger,
@@ -15,6 +15,11 @@ from automaton.providers.noop import NoopProvider, NoopDevice
 from automaton.sensors import SunSensor
 from automaton.triggers import (AQITrigger, TimeTrigger, IsoWeekdayTrigger, RandomTrigger,
         SunriseTrigger, SunsetTrigger)
+
+_test_triggers_conf = _TriggersConf.from_yaml({
+        'location': {'latitude': 40.689, 'longitude': -74.044},
+        'aqi': {'api_key': '123abc'},
+})
 
 def _relative_to_full_path(path):
     dir_path = os.path.dirname(os.path.realpath(__file__))
@@ -78,6 +83,62 @@ def test_parse_yaml():
         assert len(actual.elses) == len(expect.elses), 'wrong number of elses'
         for action, exp_cls in zip(actual.elses, expect.elses):
             assert isinstance(action, exp_cls), 'wrong elses class'
+
+_test__TriggersConf = (
+        ({}, Exception, Exception, Exception),
+        ([], Exception, Exception, Exception),
+        ({'location': None}, Exception, Exception, Exception),
+        ({'location': [123, 456]}, Exception, Exception, Exception),
+        ({'location': {'latitude': None, 'longitude': None}}, Exception,
+            Exception, Exception),
+        ({'location': {'latitude': [123], 'longitude': [456]}}, Exception,
+            Exception, Exception),
+        ({'location': {'latitude': '123', 'longitude': '456'}}, Exception,
+            Exception, Exception),
+        ({'location': {'latitude': 123, 'longitude': 456}}, 123, 456,
+            Exception),
+        ({'location': {'latitude': 123.4, 'longitude': 456.7}}, 123.4, 456.7,
+            Exception),
+        ({'aqi': None}, Exception, Exception, Exception),
+        ({'aqi': ['abc123']}, Exception, Exception, Exception),
+        ({'aqi': 'abc123'}, Exception, Exception, Exception),
+        ({'aqi': {'api_key': None}}, Exception, Exception, Exception),
+        ({'aqi': {'api_key': ['abc123']}}, Exception, Exception, Exception),
+        ({'aqi': {'api_key': 12345}}, Exception, Exception, Exception),
+        ({'aqi': {'api_key': 'abc123'}}, Exception, Exception, 'abc123'),
+)
+
+@pytest.mark.parametrize('raw_yml,exp_lat,exp_long,exp_api_key',
+        _test__TriggersConf)
+def test__TriggersConf(raw_yml, exp_lat, exp_long, exp_api_key):
+    triggers_conf = _TriggersConf.from_yaml(raw_yml)
+
+    def _test_property(prop_name, expect):
+        should_raise = expect is Exception
+        try:
+            actual = getattr(triggers_conf, prop_name)
+            assert expect == actual, f'incorrect property {prop_name}'
+        except AutomatonConfigParsingError:
+            assert should_raise, 'should not have raised an exception'
+        else:
+            assert not should_raise, 'should have raised an exception'
+
+    def _test_time_sensor():
+        should_raise = exp_lat is Exception or exp_long is Exception
+        try:
+            time_sensor_1 = triggers_conf.time_sensor
+            time_sensor_2 = triggers_conf.time_sensor
+            assert time_sensor_1 is time_sensor_2, (
+                    'created more than one TimeSensor')
+        except AutomatonConfigParsingError:
+            assert should_raise, 'should not have raised an exception'
+        else:
+            assert not should_raise, 'should have raised an exception'
+
+    _test_property('latitude', exp_lat)
+    _test_property('longitude', exp_long)
+    _test_property('aqi_api_key', exp_api_key)
+    _test_time_sensor()
 
 _test__parse_providers = (
         ({}, {}, False),
@@ -325,15 +386,11 @@ _test__parse_components_devices = {
         'switch-A': 'device-2',
         'switch-B': 'device-3',
 }
-_test__parse_components_triggers_conf = {
-        'location': {'latitude': 40.689, 'longitude': -74.044},
-        'aqi': {'api_key': '123abc'},
-}
 
 @pytest.mark.parametrize('automations,expects', _test__parse_components)
 def test__parse_components(automations, expects):
     actuals = _parse_components(automations, _test__parse_components_devices,
-            _test__parse_components_triggers_conf)
+            _test_triggers_conf)
     assert len(actuals) == len(expects), 'wrong number of components returned'
     for actual, expect in zip(actuals, expects):
         assert isinstance(actual, Component), 'wrong type returned'
@@ -375,14 +432,10 @@ _test__parse_triggers = (
             ],
         ),
 )
-_test__parse_triggers_triggers_conf = {
-        'location': {'latitude': 40.689, 'longitude': -74.044},
-        'aqi': {'api_key': '123abc'},
-}
 
 @pytest.mark.parametrize('ifs,expect_classes', _test__parse_triggers)
 def test__parse_triggers(ifs, expect_classes):
-    actual = _parse_triggers(ifs, _test__parse_triggers_triggers_conf)
+    actual = _parse_triggers(ifs, _test_triggers_conf)
     assert len(actual) == len(ifs), 'wrong number of triggers returned'
     for trigger, expect_class in zip(actual, expect_classes):
         assert isinstance(trigger, expect_class), 'wrong trigger type returned'
@@ -395,21 +448,17 @@ _test__parse_aqi_trigger = (
         ('>10', lambda a: a > 10),
         ('> 10', lambda a: a > 10),
 )
-_test__parse_aqi_trigger_triggers_conf = {
-        'location': {'latitude': 40.689, 'longitude': -74.044},
-        'aqi': {'api_key': '123abc'},
-}
 
 @pytest.mark.parametrize('value,expect', _test__parse_aqi_trigger)
 def test__parse_aqi_trigger(value, expect, mock_aqi_sensor):
-    actual = _parse_aqi_trigger(value, _test__parse_aqi_trigger_triggers_conf)
+    actual = _parse_aqi_trigger(value, _test_triggers_conf)
 
-    assert actual.sensor.params['api_key'] == '123abc', 'wrong aqi api key'
-    assert actual.sensor.params['latitude'] == 40.689, 'wrong latitude'
-    assert actual.sensor.params['longitude'] == -74.044, 'wrong longitude'
-    assert actual.sensor.params['format'] == 'application/json', 'wrong format'
+    assert actual.aqi_sensor.params['api_key'] == '123abc', 'wrong aqi api key'
+    assert actual.aqi_sensor.params['latitude'] == 40.689, 'wrong latitude'
+    assert actual.aqi_sensor.params['longitude'] == -74.044, 'wrong longitude'
+    assert actual.aqi_sensor.params['format'] == 'application/json', 'wrong format'
 
-    actual.sensor = mock_aqi_sensor
+    actual.aqi_sensor = mock_aqi_sensor
     for i in range(100):
         mock_aqi_sensor.aqi = i
         assert actual.check() == expect(i), (
@@ -428,7 +477,7 @@ _test__parse_aqi_trigger_cannot_run_aribtrary_code = (
         _test__parse_aqi_trigger_cannot_run_aribtrary_code)
 def test__parse_aqi_trigger_cannot_run_aribtrary_code(value):
     try:
-        _parse_aqi_trigger(value, _test__parse_aqi_trigger_triggers_conf)
+        _parse_aqi_trigger(value, _test_triggers_conf)
     except AutomatonConfigParsingError:
         pass
     else:
@@ -473,7 +522,7 @@ _test__parse_time_trigger = (
 @pytest.mark.parametrize('value,expect,raises', _test__parse_time_trigger)
 def test__parse_time_trigger(value, expect, raises):
     try:
-        actual = _parse_time_trigger(value)
+        actual = _parse_time_trigger(value, _test_triggers_conf)
         assert isinstance(actual, TimeTrigger), 'wrong trigger type'
         assert expect == actual.time_tuples, 'wrong times found'
     except AutomatonConfigParsingError:
@@ -507,7 +556,7 @@ _test__parse_weekday_trigger = (
 @pytest.mark.parametrize('value,expect,raises', _test__parse_weekday_trigger)
 def test__parse_weekday_trigger(value, expect, raises):
     try:
-        actual = _parse_weekday_trigger(value)
+        actual = _parse_weekday_trigger(value, _test_triggers_conf)
         assert isinstance(actual, IsoWeekdayTrigger), 'wrong trigger type'
         assert expect == actual.isoweekdays, 'wrong isoweekdays found'
     except AutomatonConfigParsingError:
@@ -525,7 +574,7 @@ _test__parse_random_trigger = (
 @pytest.mark.parametrize('value,raises', _test__parse_random_trigger)
 def test__parse_random_trigger(value, raises):
     try:
-        actual = _parse_random_trigger(value)
+        actual = _parse_random_trigger(value, _test_triggers_conf)
         assert isinstance(actual, RandomTrigger), 'wrong trigger type returned'
         assert actual.probability == float(value), 'wrong probability'
     except ValueError as e:
@@ -552,16 +601,16 @@ def test_parse_timedelta(value, expect, raises):
 
 def test__parse_sunrise_trigger():
     value = 10
-    trigger = _parse_sunrise_trigger(value)
+    trigger = _parse_sunrise_trigger(value, _test_triggers_conf)
     assert isinstance(trigger, SunriseTrigger), 'wrong trigger type returnd'
-    assert isinstance(trigger.sensor, SunSensor), 'wrong sensor type returned'
+    assert isinstance(trigger.sun_sensor, SunSensor), 'wrong sensor type returned'
     exp_delta = datetime.timedelta(minutes=value)
     assert trigger.timedelta == exp_delta, 'wrong timedelta on trigger'
 
 def test__parse_sunrise_trigger_raises():
     value = '2hrs'
     try:
-        _parse_sunrise_trigger(value)
+        _parse_sunrise_trigger(value, _test_triggers_conf)
     except AutomatonConfigParsingError:
         raised = True
     else:
@@ -570,16 +619,16 @@ def test__parse_sunrise_trigger_raises():
 
 def test__parse_sunset_trigger():
     value = 10
-    trigger = _parse_sunset_trigger(value)
+    trigger = _parse_sunset_trigger(value, _test_triggers_conf)
     assert isinstance(trigger, SunsetTrigger), 'wrong trigger type returnd'
-    assert isinstance(trigger.sensor, SunSensor), 'wrong sensor type returned'
+    assert isinstance(trigger.sun_sensor, SunSensor), 'wrong sensor type returned'
     exp_delta = datetime.timedelta(minutes=value)
     assert trigger.timedelta == exp_delta, 'wrong timedelta on trigger'
 
 def test__parse_sunset_trigger_raises():
     value = '2hrs'
     try:
-        _parse_sunset_trigger(value)
+        _parse_sunset_trigger(value, _test_triggers_conf)
     except AutomatonConfigParsingError:
         raised = True
     else:

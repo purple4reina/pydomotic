@@ -1,6 +1,8 @@
 import astral
 import astral.sun
+import datetime
 import requests
+import zoneinfo
 
 from .utils import cache_value
 
@@ -46,13 +48,40 @@ class AQISensorError(Exception):
 
 class SunSensor(object):
 
-    # TODO: add timezone info
+    # TODO: test timezone
 
-    def __init__(self, latitude=0.0, longitude=0.0):
+    def __init__(self, latitude=0, longitude=0, tzinfo=datetime.timezone.utc):
         self.observer = astral.Observer(latitude=latitude, longitude=longitude)
+        self.tzinfo = tzinfo
 
     def get_sunrise(self):
-        return astral.sun.sunrise(self.observer)
+        return astral.sun.sunrise(self.observer, tzinfo=self.tzinfo)
 
     def get_sunset(self):
-        return astral.sun.sunset(self.observer)
+        return astral.sun.sunset(self.observer, tzinfo=self.tzinfo)
+
+class TimeSensor(object):
+
+    # TODO: test
+    # TODO: change patch_datetime to mock_time_sensor
+
+    def __init__(self, latitude=None, longitude=None):
+        self.latitude = latitude
+        self.longitude = longitude
+        self._tzinfo = None
+
+    def _get_timezone(self):
+        # TODO: implement
+        return 'America/Los_Angeles'
+
+    def get_current_datetime(self):
+        return datetime.datetime.now(tzinfo=self.tzinfo)
+
+    @property
+    def tzinfo(self):
+        if self._tzinfo is None:
+            if self.latitude is None or self.longitude is None:
+                self._tzinfo = datetime.timezone.utc
+            else:
+                self._tzinfo = zoneinfo.ZoneInfo(self._get_timezone())
+        return self._tzinfo
