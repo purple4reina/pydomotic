@@ -11,6 +11,11 @@ triggers:
     api_key: ${env:AQI_API_KEY}
 
 providers:
+  gosund:
+    username: ${env:GOSUND_USERNAME}
+    password: ${env:GOSUND_PASSWORD}
+    access_id: ${env:GOSUND_ACCESS_ID}
+    access_key: ${env:GOSUND_ACCESS_KEY}
   noop:
 
 devices:
