@@ -78,7 +78,7 @@ class TimeSensor(object):
         return 'America/Los_Angeles'
 
     def get_current_datetime(self):
-        return datetime.datetime.now(tzinfo=self.tzinfo)
+        return datetime.datetime.now(tz=self.tzinfo)
 
     @property
     def tzinfo(self):
