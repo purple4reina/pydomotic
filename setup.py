@@ -44,8 +44,8 @@ setup(
     ],
     install_requires=[
         "astral>=3.0,<4.0",
-        "gosundpy>=0.2.0",  # TODO: only if provider requested
-        "PyYAML==6.0",
+        "gosundpy>=0.2.0,<1.0",  # TODO: only if provider requested
+        "PyYAML>=6.0,<7.0",
     ],
     packages=find_packages(),
     python_requires=">=3.7, <4",
