@@ -3,6 +3,8 @@ import pytest
 import random
 import zoneinfo
 
+from automaton.utils import Nameable
+
 class _MockDevice(object):
     def __init__(self):
         self.turn_on_called = False
@@ -16,7 +18,7 @@ class _MockDevice(object):
 def mock_device():
     return _MockDevice()
 
-class _MockTrigger(object):
+class _MockTrigger(Nameable):
     def __init__(self, returns):
         self.returns = returns
         self.check_called = False
@@ -32,7 +34,7 @@ def mock_true_trigger():
 def mock_false_trigger():
     return _MockTrigger(False)
 
-class _MockAction(object):
+class _MockAction(Nameable):
     def __init__(self):
         self.run_called = False
     def run(self):

@@ -1,4 +1,5 @@
 import functools
+import re
 import time
 
 def cache_value(seconds):
@@ -16,3 +17,17 @@ def cache_value(seconds):
         _call.clear_cache = clear_cache
         return _call
     return _rate_limit
+
+_camel_to_snake_re_1 = re.compile('(.)([A-Z][a-z]+)')
+_camel_to_snake_re_2 = re.compile('([a-z0-9])([A-Z])')
+def _camel_to_snake(name):
+    name = _camel_to_snake_re_1.sub(r'\1_\2', name)
+    return _camel_to_snake_re_2.sub(r'\1_\2', name).lower()
+
+class Nameable(object):
+
+    @property
+    def name(self):
+        if not hasattr(self, '_name'):
+            self._name = _camel_to_snake(self.__class__.__name__)
+        return self._name

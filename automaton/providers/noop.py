@@ -1,3 +1,7 @@
+import logging
+
+logger = logging.getLogger(__name__)
+
 class NoopProvider(object):
 
     def get_device(self, device_id):
@@ -9,7 +13,7 @@ class NoopDevice(object):
         self.device_id = device_id
 
     def turn_on(self):
-        print(f'device "{self.device_id}" turned on')
+        logger.debug('device "%s" turned on', self.device_id)
 
     def turn_off(self):
-        print(f'device "{self.device_id}" turned off')
+        logger.debug('device "%s" turned off', self.device_id)

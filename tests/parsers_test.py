@@ -27,39 +27,48 @@ def _relative_to_full_path(path):
 
 _test_parse_yaml_expect = [
         Component(
+            name='air-purifier 0',
             ifs=[AQITrigger],
             thens=[TurnOnAction],
             elses=[TurnOffAction],
         ),
         Component(
+            name='party-light 0',
             ifs=[IsoWeekdayTrigger, TimeTrigger],
             thens=[TurnOnAction],
         ),
         Component(
+            name='party-light 1',
             ifs=[IsoWeekdayTrigger, TimeTrigger],
             thens=[TurnOffAction],
         ),
         Component(
+            name='floor-lamp 0',
             ifs=[SunsetTrigger],
             thens=[TurnOnAction],
         ),
         Component(
+            name='floor-lamp 1',
             ifs=[TimeTrigger],
             thens=[TurnOnAction, TurnOnAction],
         ),
         Component(
+            name='floor-lamp 2',
             ifs=[IsoWeekdayTrigger, TimeTrigger],
             thens=[TurnOffAction],
         ),
         Component(
+            name='floor-lamp 3',
             ifs=[IsoWeekdayTrigger, TimeTrigger],
             thens=[TurnOffAction],
         ),
         Component(
+            name='floor-lamp 4',
             ifs=[IsoWeekdayTrigger, TimeTrigger],
             thens=[TurnOffAction],
         ),
         Component(
+            name='floor-lamp 5',
             ifs=[IsoWeekdayTrigger, TimeTrigger],
             thens=[TurnOffAction],
         ),
@@ -73,6 +82,7 @@ def test_parse_yaml():
     assert len(actuals) == len(expects), 'wrong number of components returned'
     for actual, expect in zip(actuals, expects):
         assert isinstance(actual, Component), 'wrong type returned'
+        assert actual.name == expect.name, 'wrong name returned'
         assert actual.enabled, 'action should be enabled'
         assert len(actual.ifs) == len(expect.ifs), 'wrong number of ifs'
         for trigger, exp_cls in zip(actual.ifs, expect.ifs):

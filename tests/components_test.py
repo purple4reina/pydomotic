@@ -38,3 +38,9 @@ def test_component_one_true_if_one_false_if(mock_true_trigger,
     assert not mock_true_trigger.check_called, 'true trigger.check called'
     assert not mock_action_1.run_called, 'then action.run called'
     assert mock_action_2.run_called, 'else action.run not called'
+
+def test_component_name():
+    comp = Component(name='purple')
+    assert comp.name == 'purple', 'wrong component name'
+    comp = Component()
+    assert comp.name == 'unknown', 'wrong component name'

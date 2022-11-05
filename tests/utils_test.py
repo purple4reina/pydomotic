@@ -1,7 +1,7 @@
 import pytest
 import time
 
-from automaton.utils import cache_value
+from automaton.utils import cache_value, _camel_to_snake, Nameable
 
 def test_cache_value(monkeypatch):
     call_count = [0]
@@ -27,3 +27,26 @@ def test_cache_value(monkeypatch):
     for _ in range(3):
         actual = test_fn()
         assert actual == 3, 'wrong value returned'
+
+_test__camel_to_snake = (
+        ('ABCTrigger', 'abc_trigger'),
+        ('AbcTrigger', 'abc_trigger'),
+        ('_ABCTrigger', '_abc_trigger'),
+        ('ABC123Trigger', 'abc123_trigger'),
+        ('Abc123Trigger', 'abc123_trigger'),
+        ('MyABCTrigger', 'my_abc_trigger'),
+
+        pytest.param('_AbcTrigger', '_abc_trigger',
+            marks=pytest.mark.xfail(strict=True)),
+)
+
+@pytest.mark.parametrize('name,expect', _test__camel_to_snake)
+def test__camel_to_snake(name, expect):
+    assert expect == _camel_to_snake(name)
+
+def test_Nameable():
+    class MyClass(Nameable): pass
+    assert MyClass().name == 'my_class', 'wrong name returned'
+
+    class MySubClass(MyClass): pass
+    assert MySubClass().name == 'my_sub_class', 'wrong name returned'

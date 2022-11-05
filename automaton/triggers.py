@@ -3,8 +3,9 @@ import inspect
 import random
 
 from .sensors import TimeSensor
+from .utils import Nameable
 
-class AQITrigger(object):
+class AQITrigger(Nameable):
 
     def __init__(self, check_func, aqi_sensor=None, api_key=None,
             latitude=None, longitude=None):
@@ -16,7 +17,7 @@ class AQITrigger(object):
         aqi = self.aqi_sensor.get_aqi()
         return self.check_func(aqi)
 
-class IsoWeekdayTrigger(object):
+class IsoWeekdayTrigger(Nameable):
 
     # TODO: test timezone
 
@@ -28,7 +29,7 @@ class IsoWeekdayTrigger(object):
         now = self.time_sensor.get_current_datetime()
         return now.isoweekday() in self.isoweekdays
 
-class TimeTrigger(object):
+class TimeTrigger(Nameable):
 
     # TODO: test timezone
 
@@ -43,7 +44,7 @@ class TimeTrigger(object):
                 return True
         return False
 
-class RandomTrigger(object):
+class RandomTrigger(Nameable):
 
     def __init__(self, probability):
         self.probability = probability
@@ -51,7 +52,7 @@ class RandomTrigger(object):
     def check(self):
         return random.random() < self.probability
 
-class SunTrigger(object):
+class _SunTrigger(Nameable):
 
     # TODO: test timezone
 
@@ -69,10 +70,10 @@ class SunTrigger(object):
         now = self.time_sensor.get_current_datetime()
         return now.hour == check_time.hour and now.minute == check_time.minute
 
-class SunriseTrigger(SunTrigger):
+class SunriseTrigger(_SunTrigger):
 
     sun_sensor_method_name = 'get_sunrise'
 
-class SunsetTrigger(SunTrigger):
+class SunsetTrigger(_SunTrigger):
 
     sun_sensor_method_name = 'get_sunset'

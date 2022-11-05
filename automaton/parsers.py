@@ -149,11 +149,12 @@ def _parse_components(automations, devices, triggers_conf):
     for name, automation in automations.items():
         if not automation.get('enabled', True):
             continue
-        for component in automation.get('components', []):
+        for num, component in enumerate(automation.get('components', [])):
             ifs = component.get('if', {})
             thens = component.get('then', {})
             elses = component.get('else', {})
             components.append(Component(
+                name=f'{name} {num}',
                 ifs=_parse_triggers(ifs, triggers_conf),
                 thens=_parse_actions(thens, devices),
                 elses=_parse_actions(elses, devices),
