@@ -1,3 +1,4 @@
+import logging
 import os
 import re
 import datetime
@@ -10,7 +11,7 @@ from .sensors import TimeSensor
 from .triggers import (AQITrigger, TimeTrigger, IsoWeekdayTrigger,
         RandomTrigger, SunriseTrigger, SunsetTrigger)
 
-# TODO: add debug logging
+logger = logging.getLogger(__name__)
 
 def parse_yaml(config_file):
     with open(config_file) as f:
@@ -36,13 +37,17 @@ class _TriggersConf(object):
             location = triggers.get('location', {})
             latitude = location.get('latitude')
             longitude = location.get('longitude')
-        except:
+        except Exception as e:
+            logger.warning('failed to parse location, ignoring: '
+                    f'[{e.__class__.__name__}] {e}')
             latitude = longitude = None
 
         try:
             aqi = triggers.get('aqi', {})
             aqi_api_key = _parse_string(aqi.get('api_key'))
-        except:
+        except Exception as e:
+            logger.warning('failed to parse aqi api_key, ignoring: '
+                    f'[{e.__class__.__name__}] {e}')
             aqi_api_key = None
 
         return _TriggersConf(latitude, longitude, aqi_api_key)
@@ -88,6 +93,7 @@ class _TriggersConf(object):
 def _parse_providers(providers_conf):
     providers = {}
     for name, provider in providers_conf.items():
+        logging.info(f'preparing provider {name}')
         if name == 'gosund':
             providers['gosund'] = _parse_gosund_provider(provider)
         elif name == 'noop':
@@ -124,6 +130,7 @@ def _parse_string(string):
 def _parse_devices(devices_conf, providers):
     devices = {}
     for name, device in devices_conf.items():
+        logger.info(f'preparing device {name}')
         provider_name = device.get('provider')
         if provider_name is None:
             raise AutomatonConfigParsingError(
@@ -147,14 +154,17 @@ def _parse_devices(devices_conf, providers):
 def _parse_components(automations, devices, triggers_conf):
     components = []
     for name, automation in automations.items():
+        logger.info(f'preparing automation {name}')
         if not automation.get('enabled', True):
             continue
         for num, component in enumerate(automation.get('components', [])):
+            name = f'{name} {num}'
             ifs = component.get('if', {})
             thens = component.get('then', {})
             elses = component.get('else', {})
+            logger.info(f'adding component {name}')
             components.append(Component(
-                name=f'{name} {num}',
+                name=name,
                 ifs=_parse_triggers(ifs, triggers_conf),
                 thens=_parse_actions(thens, devices),
                 elses=_parse_actions(elses, devices),
@@ -165,6 +175,7 @@ def _parse_triggers(ifs, triggers_conf):
     triggers = []
     for trigger_type, trigger_value in ifs.items():
         trigger_type = trigger_type.lower()
+        logger.debug(f'adding {trigger_type} trigger')
         if trigger_type == 'aqi':
             parser = _parse_aqi_trigger
         elif trigger_type == 'time':
@@ -272,6 +283,7 @@ def _parse_sunset_trigger(value, triggers_conf):
 def _parse_actions(thens, devices):
     actions = []
     for action_type, device_names in thens.items():
+        logger.debug(f'adding {action_type} action')
         for device_name in device_names.split(','):
             device_name = device_name.strip()
             device = devices.get(device_name)
