@@ -13,15 +13,47 @@ from .triggers import (AQITrigger, TimeTrigger, IsoWeekdayTrigger,
 
 logger = logging.getLogger(__name__)
 
-def parse_yaml(config_file):
-    with open(config_file) as f:
-        conf = yaml.safe_load(f)
+def parse_yaml(config_file=None, s3=None):
+    components = []
+    if config_file:
+        with open(config_file) as f:
+            components = parse_raw_yaml(f)
+    elif s3:
+        # TODO: test
+        data = _get_config_from_s3(s3)
+        if data:
+            components = parse_raw_yaml(data)
+    else:
+        logger.warning('no config file or s3 data provided, skipping')
+    return components
+
+def parse_raw_yaml(raw_conf):
+    conf = yaml.safe_load(raw_conf)
     triggers_conf = _TriggersConf.from_yaml(conf.get('triggers', {}))
     providers = _parse_providers(conf.get('providers', {}))
     devices = _parse_devices(conf.get('devices', {}), providers)
     components = _parse_components(conf.get('automations', {}), devices,
             triggers_conf)
     return components
+
+def _get_config_from_s3(s3):
+    # TODO: test
+    try:
+        bucket, key = s3
+    except:
+        raise AutomatonConfigParsingError('malformed s3 object: '
+                'expecting tuple like (bucket, key)')
+
+    try:
+        import boto3
+        client = boto3.client('s3')
+        response = client.get_object(Bucket=bucket, Key=key)
+        logger.debug('configuration successfully fetched from s3')
+        return response['Body'].read()
+    except Exception as e:
+        logger.warning('unable to fetch configuration from s3: '
+                f'[{e.__class__.__name__}] {e}')
+        return None
 
 class _TriggersConf(object):
 
@@ -158,13 +190,13 @@ def _parse_components(automations, devices, triggers_conf):
         if not automation.get('enabled', True):
             continue
         for num, component in enumerate(automation.get('components', [])):
-            name = f'{name} {num}'
+            component_name = f'{name} {num}'
             ifs = component.get('if', {})
             thens = component.get('then', {})
             elses = component.get('else', {})
             logger.info(f'adding component {name}')
             components.append(Component(
-                name=name,
+                name=component_name,
                 ifs=_parse_triggers(ifs, triggers_conf),
                 thens=_parse_actions(thens, devices),
                 elses=_parse_actions(elses, devices),

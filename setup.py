@@ -44,6 +44,7 @@ setup(
     ],
     install_requires=[
         "astral>=3.0,<4.0",
+        "boto3>=1.26.3,<2.0",  # TODO: only if requested
         "gosundpy>=0.2.0,<1.0",  # TODO: only if provider requested
         "PyYAML>=6.0,<7.0",
     ],
