@@ -194,7 +194,7 @@ def _parse_components(automations, devices, triggers_conf):
             ifs = component.get('if', {})
             thens = component.get('then', {})
             elses = component.get('else', {})
-            logger.info(f'adding component {name}')
+            logger.info(f'adding component {component_name}')
             components.append(Component(
                 name=component_name,
                 ifs=_parse_triggers(ifs, triggers_conf),
