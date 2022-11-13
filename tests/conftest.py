@@ -62,11 +62,15 @@ def mock_provider():
     return _MockProvider()
 
 class _MockComponent(object):
-    def __init__(self, enabled):
+    name = '_MockComponent'
+    def __init__(self, enabled, failures=None):
         self.enabled = enabled
-        self.run_called = False
+        self.run_called = 0
+        self.failures = failures or [False]
     def run(self):
-        self.run_called = True
+        self.run_called += 1
+        if self.failures.pop(0):
+            raise ZeroDivisionError
 
 @pytest.fixture
 def mock_enabled_component():
@@ -75,6 +79,14 @@ def mock_enabled_component():
 @pytest.fixture
 def mock_disabled_component():
     return _MockComponent(False)
+
+@pytest.fixture
+def mock_once_failing_component():
+    return _MockComponent(True, [True, False, False])
+
+@pytest.fixture
+def mock_thrice_failing_component():
+    return _MockComponent(True, [True, True, True])
 
 class _MockAQISensor(object):
     def __init__(self):

@@ -6,6 +6,7 @@ import yaml
 
 from .actions import TurnOnAction, TurnOffAction
 from .components import Component
+from .exceptions import AutomatonConfigParsingError
 from .providers.noop import NoopProvider
 from .sensors import TimeSensor
 from .triggers import (AQITrigger, TimeTrigger, IsoWeekdayTrigger,
@@ -330,6 +331,3 @@ def _parse_actions(thens, devices):
                 raise AutomatonConfigParsingError(
                         f'unknown action type "{action_type}"')
     return actions
-
-class AutomatonConfigParsingError(Exception):
-    pass
