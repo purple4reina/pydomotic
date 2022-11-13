@@ -149,3 +149,15 @@ def patch_get_requests(monkeypatch):
                 return resp_json
         monkeypatch.setattr('requests.get', get)
     return patch
+
+class _PatchedSleep(object):
+    def __init__(self):
+        self.times_slept = 0
+    def __call__(self, num):
+        self.times_slept += 1
+
+@pytest.fixture
+def patched_sleep(monkeypatch):
+    sleep = _PatchedSleep()
+    monkeypatch.setattr('time.sleep', sleep)
+    return sleep

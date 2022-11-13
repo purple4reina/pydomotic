@@ -26,9 +26,9 @@ class LambdaHandler(object):
                         f'{attempts} remaining attempts')
                     failed.append(component)
 
-            components, failed = failed, []
-            if failed:
+            if failed and attempts:
                 time.sleep(0.25)
+            components, failed = failed, []
 
         if components:
             raise AutomatonComponentRunError(
