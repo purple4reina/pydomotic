@@ -5,11 +5,12 @@ import pytest
 from automaton.actions import TurnOnAction, TurnOffAction
 from automaton.components import Component
 from automaton.parsers import (parse_yaml, _TriggersConf, _parse_providers,
-        _parse_gosund_provider, _parse_string, _parse_devices,
-        _parse_components, _parse_triggers, _parse_aqi_trigger,
+        _parse_gosund_provider, _parse_fujitsu_provider, _parse_string,
+        _parse_devices, _parse_components, _parse_triggers, _parse_aqi_trigger,
         _parse_time_trigger, _parse_weekday_trigger, _parse_random_trigger,
         _parse_timedelta, _parse_sunrise_trigger, _parse_sunset_trigger,
         _parse_actions, AutomatonConfigParsingError)
+from automaton.providers.fujitsu import FujitsuProvider
 from automaton.providers.gosund import GosundProvider
 from automaton.providers.noop import NoopProvider, NoopDevice
 from automaton.sensors import SunSensor
@@ -248,6 +249,23 @@ def test__parse_gosund_provider(provider, raises, monkeypatch):
     try:
         actual = _parse_gosund_provider(provider)
         assert isinstance(actual, GosundProvider)
+    except AutomatonConfigParsingError:
+        assert raises, 'should not have raised'
+    else:
+        assert not raises, 'should have raised'
+
+_test__parse_fujitsu_provider = (
+        ({}, True),
+        ({'password': 'password'}, True),
+        ({'username': 'username'}, True),
+        ({'username': 'username', 'password': 'password'}, False),
+)
+
+@pytest.mark.parametrize('provider,raises', _test__parse_fujitsu_provider)
+def test__parse_fujitsu_provider(provider, raises):
+    try:
+        actual = _parse_fujitsu_provider(provider)
+        assert isinstance(actual, FujitsuProvider)
     except AutomatonConfigParsingError:
         assert raises, 'should not have raised'
     else:

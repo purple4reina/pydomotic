@@ -131,6 +131,8 @@ def _parse_providers(providers_conf):
             providers['gosund'] = _parse_gosund_provider(provider)
         elif name == 'noop':
             providers['noop'] = NoopProvider()
+        elif name == 'fujitsu':
+            providers['fujitsu'] = _parse_fujitsu_provider(provider)
         else:
             raise AutomatonConfigParsingError(f'unknown provider "{name}"')
     return providers
@@ -148,6 +150,18 @@ def _parse_gosund_provider(provider):
 
     from .providers.gosund import GosundProvider
     return GosundProvider(username, password, access_id, access_key)
+
+def _parse_fujitsu_provider(provider):
+    for key in ('username', 'password'):
+        if key not in provider:
+            raise AutomatonConfigParsingError(
+                    f'provider fujitsu requires key "{key}"')
+
+    username = _parse_string(provider['username'])
+    password = _parse_string(provider['password'])
+
+    from .providers.fujitsu import FujitsuProvider
+    return FujitsuProvider(username, password)
 
 _env_re = re.compile(r'\$\{env:(.*?)\}')
 def _parse_string(string):
