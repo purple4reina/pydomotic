@@ -66,6 +66,7 @@ class _TriggersConf(object):
 
     @staticmethod
     def from_yaml(triggers):
+        # TODO: do not log warning if the key will never be used
         try:
             location = triggers.get('location', {})
             latitude = location.get('latitude')
