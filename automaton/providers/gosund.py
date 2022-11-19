@@ -11,6 +11,8 @@ class GosundProvider(object):
 
 class GosundDevice(object):
 
+    # TODO: add name of device
+
     def __init__(self, device):
         self.device = device
 
