@@ -73,6 +73,12 @@ _test_parse_yaml_expect = [
             ifs=[IsoWeekdayTrigger, TimeTrigger],
             thens=[TurnOffAction],
         ),
+        Component(
+            name='edge-cases 0',
+            ifs=[],
+            thens=[],
+            elses=[],
+        ),
 ]
 
 def test_parse_yaml():

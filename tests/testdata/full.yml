@@ -99,3 +99,10 @@ automations:
           time: 2:00pm
         then:
           turn-on: bulb-A
+
+  edge-cases:
+    enabled: true
+    components:
+      - if:   # always triggers and does nothing
+        then:
+        else:
