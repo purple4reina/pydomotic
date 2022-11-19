@@ -321,12 +321,20 @@ def _parse_timedelta(value):
             'or integer minutes')
 
 def _parse_sunrise_trigger(value, triggers_conf):
-    return SunriseTrigger(_parse_timedelta(value),
-            time_sensor=triggers_conf.time_sensor)
+    return SunriseTrigger(
+            _parse_timedelta(value),
+            latitude=triggers_conf.latitude,
+            longitude=triggers_conf.longitude,
+            time_sensor=triggers_conf.time_sensor,
+    )
 
 def _parse_sunset_trigger(value, triggers_conf):
-    return SunsetTrigger(_parse_timedelta(value),
-            time_sensor=triggers_conf.time_sensor)
+    return SunsetTrigger(
+            _parse_timedelta(value),
+            latitude=triggers_conf.latitude,
+            longitude=triggers_conf.longitude,
+            time_sensor=triggers_conf.time_sensor,
+    )
 
 def _parse_actions(thens, devices):
     actions = []

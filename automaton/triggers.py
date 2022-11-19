@@ -55,12 +55,15 @@ class RandomTrigger(Nameable):
 class _SunTrigger(Nameable):
 
     # TODO: test timezone
+    # TODO: test lat/long
 
-    def __init__(self, timedelta, time_sensor=None, sun_sensor=None):
+    def __init__(self, timedelta, latitude=0, longitude=0, time_sensor=None,
+            sun_sensor=None):
         from .sensors import SunSensor
         self.timedelta = timedelta
         self.time_sensor = time_sensor or TimeSensor()
-        self.sun_sensor = sun_sensor or SunSensor(time_sensor=self.time_sensor)
+        self.sun_sensor = sun_sensor or SunSensor(latitude=latitude,
+                longitude=longitude, time_sensor=self.time_sensor)
         self.sun_sensor_method = getattr(self.sun_sensor,
                 self.sun_sensor_method_name)
 
