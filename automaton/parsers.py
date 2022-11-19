@@ -207,9 +207,9 @@ def _parse_components(automations, devices, triggers_conf):
             continue
         for num, component in enumerate(automation.get('components', [])):
             component_name = f'{name} {num}'
-            ifs = component.get('if', {})
-            thens = component.get('then', {})
-            elses = component.get('else', {})
+            ifs = component.get('if') or {}
+            thens = component.get('then') or {}
+            elses = component.get('else') or {}
             logger.info(f'adding component {component_name}')
             components.append(Component(
                 name=component_name,
