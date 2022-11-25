@@ -20,7 +20,7 @@ class LambdaHandler(object):
             for component in components:
                 try:
                     component.run()
-                except Exception as e:
+                except Exception:
                     logger.exception(
                         f'failure running component {component.name}, '
                         f'{attempts} remaining attempts')

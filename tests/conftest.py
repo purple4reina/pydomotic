@@ -35,19 +35,25 @@ def mock_false_trigger():
     return _MockTrigger(False)
 
 class _MockAction(Nameable):
-    def __init__(self, name):
+    def __init__(self, name, raises):
         self.run_called = False
         self._name = name
+        self.raises = raises
     def run(self):
         self.run_called = True
+        assert not self.raises
 
 @pytest.fixture
 def mock_action_1():
-    return _MockAction('__mock_action 1')
+    return _MockAction('__mock_action 1', False)
 
 @pytest.fixture
 def mock_action_2():
-    return _MockAction('__mock_action 2')
+    return _MockAction('__mock_action 2', False)
+
+@pytest.fixture
+def mock_raising_action():
+    return _MockAction('__mock_action raising', True)
 
 class _MockProvider(object):
     def __init__(self):

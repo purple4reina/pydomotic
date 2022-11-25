@@ -40,6 +40,38 @@ def test_component_one_true_if_one_false_if(mock_true_trigger,
     assert not mock_action_1.run_called, 'then action.run called'
     assert mock_action_2.run_called, 'else action.run not called'
 
+def test_component_multiple_thens(mock_true_trigger, mock_raising_action,
+        mock_action_1):
+    comp = Component(
+            ifs=[mock_true_trigger],
+            thens=[mock_raising_action, mock_action_1],
+    )
+    try:
+        comp.run()
+    except AssertionError:
+        pass
+    else:
+        raise AssertionError('should have raised')
+    assert mock_true_trigger.check_called, 'true trigger.check not called'
+    assert mock_raising_action.run_called, 'raising action.run not called'
+    assert mock_action_1.run_called, 'action.run not called'
+
+def test_component_multiple_elses(mock_false_trigger, mock_raising_action,
+        mock_action_1):
+    comp = Component(
+            ifs=[mock_false_trigger],
+            elses=[mock_raising_action, mock_action_1],
+    )
+    try:
+        comp.run()
+    except AssertionError:
+        pass
+    else:
+        raise AssertionError('should have raised')
+    assert mock_false_trigger.check_called, 'true trigger.check not called'
+    assert mock_raising_action.run_called, 'raising action.run not called'
+    assert mock_action_1.run_called, 'action.run not called'
+
 def test_component_name():
     comp = Component(name='purple')
     assert comp.name == 'purple', 'wrong component name'

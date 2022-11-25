@@ -21,12 +21,23 @@ class Component(object):
                 checked = False
                 break
             logger.debug('trigger passes')
+
         if checked:
             logger.debug('all triggers passed')
-            for action in self.thens:
-                logger.debug('running action %s', action.name)
-                action.run()
+            exception = self._run_actions(self.thens)
         else:
-            for action in self.elses:
-                logger.debug('running action %s', action.name)
+            exception = self._run_actions(self.elses)
+
+        if exception:
+            raise exception
+
+    def _run_actions(self, actions):
+        exception = None
+        for action in actions:
+            logger.debug('running action %s', action.name)
+            try:
                 action.run()
+            except Exception as e:
+                logger.exception(f'failure running action {action.name}')
+                exception = e
+        return exception
