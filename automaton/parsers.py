@@ -347,9 +347,9 @@ def _parse_actions(thens, devices):
                 raise AutomatonConfigParsingError(
                         f'unknown device name "{device_name}"')
             if action_type == 'turn-on':
-                actions.append(TurnOnAction(device))
+                actions.append(TurnOnAction(device, device_name))
             elif action_type == 'turn-off':
-                actions.append(TurnOffAction(device))
+                actions.append(TurnOffAction(device, device_name))
             else:
                 raise AutomatonConfigParsingError(
                         f'unknown action type "{action_type}"')

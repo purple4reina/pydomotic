@@ -1,19 +1,22 @@
 from .utils import Nameable
 
-class TurnOnAction(Nameable):
+class _DeviceAction(Nameable):
 
-    # TODO: add target (name of the device)
-
-    def __init__(self, device):
+    def __init__(self, device, device_name):
         self.device = device
+        self.device_name = device_name
 
     def run(self):
-        self.device.turn_on()
+        getattr(self.device, self.device_action_method_name)()
 
-class TurnOffAction(Nameable):
+    @property
+    def name(self):
+        return f'{super().name} {self.device_name}'
 
-    def __init__(self, device):
-        self.device = device
+class TurnOnAction(_DeviceAction):
 
-    def run(self):
-        self.device.turn_off()
+    device_action_method_name = 'turn_on'
+
+class TurnOffAction(_DeviceAction):
+
+    device_action_method_name = 'turn_off'

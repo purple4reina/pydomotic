@@ -679,13 +679,15 @@ _test__parse_actions_tests = (
                 'turn-on': _test__parse_actions_device_name_1,
             },
             [
-                TurnOnAction(_test__parse_actions_device_1),
+                TurnOnAction(_test__parse_actions_device_1,
+                    _test__parse_actions_device_name_1),
             ],
             False,
         ),
         (
             {'turn-off': _test__parse_actions_device_name_2},
-            [TurnOffAction(_test__parse_actions_device_2)],
+            [TurnOffAction(_test__parse_actions_device_2,
+                _test__parse_actions_device_name_2)],
             False,
         ),
         (
@@ -694,8 +696,10 @@ _test__parse_actions_tests = (
                 'turn-off': _test__parse_actions_device_name_2,
             },
             [
-                TurnOnAction(_test__parse_actions_device_1),
-                TurnOffAction(_test__parse_actions_device_2),
+                TurnOnAction(_test__parse_actions_device_1,
+                    _test__parse_actions_device_name_1),
+                TurnOffAction(_test__parse_actions_device_2,
+                    _test__parse_actions_device_name_2),
             ],
             False,
         ),
@@ -728,4 +732,7 @@ def test__parse_actions(thens, expect, raises):
     assert len(expect) == len(actual), 'wrong number of actions returned'
     assert raises == raised, 'exception raising was wrong'
     for i in range(len(actual)):
-        assert expect[i].device == actual[i].device, 'wrong device found on action'
+        assert expect[i].device == actual[i].device, (
+                'wrong device found on action')
+        assert expect[i].device_name == actual[i].device_name, (
+                'wrong device found on action')
