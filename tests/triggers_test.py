@@ -2,7 +2,7 @@ import datetime
 import pytest
 
 from automaton.triggers import (AQITrigger, IsoWeekdayTrigger, TimeTrigger,
-        RandomTrigger, SunriseTrigger, SunsetTrigger)
+        RandomTrigger, SunriseTrigger, SunsetTrigger, TemperatureTrigger)
 
 test_time = datetime.datetime(1982, 2, 4, 10, 20)
 
@@ -13,6 +13,8 @@ _test_trigger_interface = (
         (RandomTrigger(0.5), 'random_trigger'),
         (SunriseTrigger(120), 'sunrise_trigger'),
         (SunsetTrigger(120), 'sunset_trigger'),
+        (TemperatureTrigger(lambda t: t > 100, api_key='abc123'),
+            'temperature_trigger'),
 )
 
 @pytest.mark.parametrize('instance,exp_name', _test_trigger_interface)
@@ -120,3 +122,23 @@ def test_sunset_trigger_does_not_fire(mock_time_sensor, mock_sun_sensor):
     assert not fires, 'trigger fired'
     assert mock_sun_sensor.get_sunset_called, 'sensor.get_sunset not called'
     assert not mock_sun_sensor.get_sunrise_called, 'sensor.get_sunrise called'
+
+def test_temp_trigger_fires(mock_weather_sensor):
+    mock_weather_sensor.temp = 104
+    def check_func(temp):
+        return temp > 100
+    trigger = TemperatureTrigger(check_func, weather_sensor=mock_weather_sensor)
+    fires = trigger.check()
+    assert fires, 'trigger did not fire'
+    assert mock_weather_sensor.current_temperature_called, (
+            'sensor.current_temperature not called')
+
+def test_aqi_trigger_does_not_fire(mock_weather_sensor):
+    mock_weather_sensor.temp = 50
+    def check_func(temp):
+        return temp > 100
+    trigger = TemperatureTrigger(check_func, weather_sensor=mock_weather_sensor)
+    fires = trigger.check()
+    assert not fires, 'trigger fired'
+    assert mock_weather_sensor.current_temperature_called, (
+            'sensor.current_temperature not called')

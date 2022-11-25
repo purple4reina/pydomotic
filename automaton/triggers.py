@@ -2,14 +2,13 @@ import datetime
 import inspect
 import random
 
-from .sensors import TimeSensor
+from .sensors import AQISensor, TimeSensor, WeatherSensor
 from .utils import Nameable
 
 class AQITrigger(Nameable):
 
     def __init__(self, check_func, aqi_sensor=None, api_key=None,
             latitude=None, longitude=None):
-        from .sensors import AQISensor
         self.check_func = check_func
         self.aqi_sensor = aqi_sensor or AQISensor(api_key, latitude, longitude)
 
@@ -80,3 +79,15 @@ class SunriseTrigger(_SunTrigger):
 class SunsetTrigger(_SunTrigger):
 
     sun_sensor_method_name = 'get_sunset'
+
+class TemperatureTrigger(Nameable):
+
+    def __init__(self, check_func, weather_sensor=None, api_key=None,
+            latitude=None, longitude=None):
+        self.check_func = check_func
+        self.weather_sensor = weather_sensor or WeatherSensor(api_key,
+                latitude, longitude)
+
+    def check(self):
+        temp = self.weather_sensor.current_temperature()
+        return self.check_func(temp)

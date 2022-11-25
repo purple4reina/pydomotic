@@ -88,3 +88,18 @@ class TimeSensor(object):
             else:
                 self._tzinfo = zoneinfo.ZoneInfo(self._get_timezone())
         return self._tzinfo
+
+class WeatherSensor(object):
+
+    def __init__(self, api_key, latitude, longitude):
+        import pyowm
+        self.owm_mgr = pyowm.OWM(api_key).weather_manager()
+        self.location = (latitude, longitude)
+
+    @cache_value(seconds=5*60)
+    def _weather(self):
+        return self.owm_mgr.weather_at_coords(*self.location).weather
+
+    def current_temperature(self):
+        # returns float with 2 decimal points
+        return self._weather().temperature('fahrenheit').get('temp')

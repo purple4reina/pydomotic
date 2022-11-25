@@ -31,6 +31,8 @@ triggers:
     longitude: -74.044
   aqi:
     api_key: '123abc'
+  weather:
+    api_key: '123abc'
 
 automations:
   air-purifier:
@@ -106,3 +108,9 @@ automations:
       - if:   # always triggers and does nothing
         then:
         else:
+
+  temperature:
+    enabled: true
+    components:
+      - if:
+          temp: '>75'

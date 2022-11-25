@@ -10,7 +10,7 @@ from .exceptions import AutomatonConfigParsingError
 from .providers.noop import NoopProvider
 from .sensors import TimeSensor
 from .triggers import (AQITrigger, TimeTrigger, IsoWeekdayTrigger,
-        RandomTrigger, SunriseTrigger, SunsetTrigger)
+        RandomTrigger, SunriseTrigger, SunsetTrigger, TemperatureTrigger)
 
 logger = logging.getLogger(__name__)
 
@@ -58,11 +58,12 @@ def _get_config_from_s3(s3):
 
 class _TriggersConf(object):
 
-    def __init__(self, latitude, longitude, aqi_api_key):
+    def __init__(self, latitude, longitude, aqi_api_key, weather_api_key):
         self._latitude = latitude
         self._longitude = longitude
         self._time_sensor = None
         self._aqi_api_key = aqi_api_key
+        self._weather_api_key = weather_api_key
 
     @staticmethod
     def from_yaml(triggers):
@@ -84,7 +85,15 @@ class _TriggersConf(object):
                     f'[{e.__class__.__name__}] {e}')
             aqi_api_key = None
 
-        return _TriggersConf(latitude, longitude, aqi_api_key)
+        try:
+            weather = triggers.get('weather', {})
+            weather_api_key = _parse_string(weather.get('api_key'))
+        except Exception as e:
+            logger.warning('failed to parse weather api_key, ignoring: '
+                    f'[{e.__class__.__name__}] {e}')
+            weather_api_key = None
+
+        return _TriggersConf(latitude, longitude, aqi_api_key, weather_api_key)
 
     @property
     def latitude(self):
@@ -123,6 +132,16 @@ class _TriggersConf(object):
                     'aqi api_key must be a string, not '
                     f'{self._aqi_api_key.__class__.__name__}')
         return self._aqi_api_key
+
+    @property
+    def weather_api_key(self):
+        if not self._weather_api_key:
+            raise AutomatonConfigParsingError('weather api key required')
+        if not isinstance(self._weather_api_key, str):
+            raise AutomatonConfigParsingError(
+                    'weather api_key must be a string, not '
+                    f'{self._aqi_api_key.__class__.__name__}')
+        return self._weather_api_key
 
 def _parse_providers(providers_conf):
     providers = {}
@@ -236,6 +255,8 @@ def _parse_triggers(ifs, triggers_conf):
             parser = _parse_sunrise_trigger
         elif trigger_type == 'sunset':
             parser = _parse_sunset_trigger
+        elif trigger_type == 'temp':
+            parser = _parse_temp_trigger
         else:
             raise AutomatonConfigParsingError(
                     f'unknown trigger type "{trigger_type}"')
@@ -244,6 +265,10 @@ def _parse_triggers(ifs, triggers_conf):
 
 _aqi_value_re = re.compile(r'(<|>|==)\s*(\d+)')
 def _parse_aqi_trigger(value, triggers_conf):
+    if not isinstance(value, str):
+        raise AutomatonConfigParsingError(
+                f'invalid aqi trigger value "{value}", expecting value like '
+                '">100", "<100", or "==100"')
     m = _aqi_value_re.fullmatch(value)
     if not m:
         raise AutomatonConfigParsingError(
@@ -335,6 +360,28 @@ def _parse_sunset_trigger(value, triggers_conf):
             longitude=triggers_conf.longitude,
             time_sensor=triggers_conf.time_sensor,
     )
+
+_temp_value_re = re.compile(r'(<|>|==)\s*(\d+)')
+def _parse_temp_trigger(value, triggers_conf):
+    if not isinstance(value, str):
+        raise AutomatonConfigParsingError(
+                f'invalid temp trigger value "{value}", expecting value like '
+                '">100", "<100", or "==100"')
+    m = _temp_value_re.fullmatch(value)
+    if not m:
+        raise AutomatonConfigParsingError(
+                f'invalid temp trigger value "{value}", expecting value like '
+                '">100", "<100", or "==100"')
+    num = int(m.group(2))
+    if m.group(1) == '>':
+        _check_func = lambda a: a > num
+    elif m.group(1) == '<':
+        _check_func = lambda a: a < num
+    elif m.group(1) == '==':
+        _check_func = lambda a: a == num
+
+    return TemperatureTrigger(_check_func, api_key=triggers_conf.weather_api_key,
+            latitude=triggers_conf.latitude, longitude=triggers_conf.longitude)
 
 def _parse_actions(thens, devices):
     actions = []

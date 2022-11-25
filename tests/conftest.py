@@ -143,6 +143,18 @@ class _MockSunSensor(object):
 def mock_sun_sensor():
     return _MockSunSensor()
 
+class _MockWeatherSensor(object):
+    def __init__(self):
+        self.temp = 0
+        self.current_temperature_called = False
+    def current_temperature(self):
+        self.current_temperature_called = True
+        return self.temp
+
+@pytest.fixture
+def mock_weather_sensor():
+    return _MockWeatherSensor()
+
 @pytest.fixture
 def patch_get_requests(monkeypatch):
     def patch(raises, resp_json):

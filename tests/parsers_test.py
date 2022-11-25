@@ -9,17 +9,18 @@ from automaton.parsers import (parse_yaml, _TriggersConf, _parse_providers,
         _parse_devices, _parse_components, _parse_triggers, _parse_aqi_trigger,
         _parse_time_trigger, _parse_weekday_trigger, _parse_random_trigger,
         _parse_timedelta, _parse_sunrise_trigger, _parse_sunset_trigger,
-        _parse_actions, AutomatonConfigParsingError)
+        _parse_temp_trigger, _parse_actions, AutomatonConfigParsingError)
 from automaton.providers.fujitsu import FujitsuProvider
 from automaton.providers.gosund import GosundProvider
 from automaton.providers.noop import NoopProvider, NoopDevice
 from automaton.sensors import SunSensor
 from automaton.triggers import (AQITrigger, TimeTrigger, IsoWeekdayTrigger, RandomTrigger,
-        SunriseTrigger, SunsetTrigger)
+        SunriseTrigger, SunsetTrigger, TemperatureTrigger)
 
 _test_triggers_conf = _TriggersConf.from_yaml({
         'location': {'latitude': 40.689, 'longitude': -74.044},
         'aqi': {'api_key': '123abc'},
+        'weather': {'api_key': 'abc123'},
 })
 
 def _relative_to_full_path(path):
@@ -76,6 +77,12 @@ _test_parse_yaml_expect = [
         Component(
             name='edge-cases 0',
             ifs=[],
+            thens=[],
+            elses=[],
+        ),
+        Component(
+            name='temperature 0',
+            ifs=[TemperatureTrigger],
             thens=[],
             elses=[],
         ),
@@ -505,6 +512,8 @@ _test__parse_aqi_trigger_cannot_run_aribtrary_code = (
         '+10',
         '- 10',
         '> 10 ; print("hello world")',
+        '10',
+        10,
 )
 
 @pytest.mark.parametrize('value',
@@ -668,6 +677,51 @@ def test__parse_sunset_trigger_raises():
     else:
         raised = False
     assert raised, 'should have raised error'
+
+_test__parse_temp_trigger = (
+        ('<10', lambda a: a < 10),
+        ('< 10', lambda a: a < 10),
+        ('==10', lambda a: a == 10),
+        ('== 10', lambda a: a == 10),
+        ('>10', lambda a: a > 10),
+        ('> 10', lambda a: a > 10),
+)
+
+@pytest.mark.parametrize('value,expect', _test__parse_temp_trigger)
+def test__parse_temp_trigger(value, expect, mock_weather_sensor):
+    actual = _parse_temp_trigger(value, _test_triggers_conf)
+
+    assert actual.weather_sensor.location == (40.689, -74.044) , (
+            'wrong weather sensor location')
+    assert actual.weather_sensor.owm_mgr.API_key == 'abc123', (
+            'wrong weather api key')
+
+    actual.weather_sensor = mock_weather_sensor
+    for i in range(100):
+        mock_weather_sensor.temp = i
+        assert actual.check() == expect(i), (
+                f'wrong value returned by func at index {i}')
+
+_test__parse_temp_trigger_cannot_run_aribtrary_code = (
+        '>purple',
+        '< green',
+        '=10',
+        '+10',
+        '- 10',
+        '> 10 ; print("hello world")',
+        '10',
+        10,
+)
+
+@pytest.mark.parametrize('value',
+        _test__parse_temp_trigger_cannot_run_aribtrary_code)
+def test__parse_temp_trigger_cannot_run_aribtrary_code(value):
+    try:
+        _parse_temp_trigger(value, _test_triggers_conf)
+    except AutomatonConfigParsingError:
+        pass
+    else:
+        raise AssertionError('should have raised an exception')
 
 _test__parse_actions_device_name_1 = 'name 1'
 _test__parse_actions_device_name_2 = 'name 2'
