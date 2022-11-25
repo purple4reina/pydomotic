@@ -1,3 +1,4 @@
+import logging
 import pytest
 
 from automaton.components import Component
@@ -44,3 +45,47 @@ def test_component_name():
     assert comp.name == 'purple', 'wrong component name'
     comp = Component()
     assert comp.name == 'unknown', 'wrong component name'
+
+_test_components_logging = (
+        (
+            True,
+            (
+                'running component hello',
+                'checking trigger __mock_trigger',
+                'trigger passes',
+                'checking trigger __mock_trigger',
+                'trigger passes',
+                'all triggers passed',
+                'running action __mock_action 1',
+            )
+        ),
+        (
+            False,
+            (
+                'running component hello',
+                'checking trigger __mock_trigger',
+                'trigger passes',
+                'checking trigger __mock_trigger',
+                'trigger failed',
+                'running action __mock_action 2',
+            )
+        ),
+)
+
+@pytest.mark.parametrize('passes,exp_logs', _test_components_logging)
+def test_components_logging(caplog, mock_true_trigger, mock_false_trigger,
+        mock_action_1, mock_action_2, passes, exp_logs):
+    caplog.set_level(logging.DEBUG)
+    comp = Component(
+            name='hello',
+            ifs=[mock_true_trigger, mock_true_trigger if passes else mock_false_trigger],
+            thens=[mock_action_1],
+            elses=[mock_action_2],
+    )
+    comp.run()
+
+    assert len(exp_logs) == len(caplog.record_tuples), 'wrong number of logs'
+    for exp_log, (logger, level, message) in zip(exp_logs, caplog.record_tuples):
+        assert logger == 'automaton.components', 'wrong logger found'
+        assert level == logging.DEBUG, 'wrong level found'
+        assert message == exp_log, 'wrong message found'
