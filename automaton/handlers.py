@@ -43,6 +43,10 @@ class LambdaHandler(_Handler):
 
 class WebhookHandler(_Handler):
 
+    forbidden_response = {
+            'statusCode': 403,
+            'errorMessage': 'forbidden',
+    }
     not_found_response = {
             'statusCode': 404,
             'errorMessage': 'not found',
@@ -52,12 +56,16 @@ class WebhookHandler(_Handler):
             'body': '{"status":"ok"}',
     }
 
-    def __init__(self, config_file=None, s3=None):
+    def __init__(self, config_file=None, s3=None, authorize=None):
         self.webhooks = register_webhooks(config_file=config_file, s3=s3)
+        # TODO: test authorization
+        self.authorize = authorize
 
     def __call__(self, event={}, context={}):
         # TODO: test __call__
         request = self.WebhookRequest.from_event(event)
+        if self.authorize and not self.authorize(request.headers):
+            return self.forbidden_response
         if request.method != 'POST':
             return self.not_found_response
         components = self.webhooks.get(request.path)
@@ -66,7 +74,8 @@ class WebhookHandler(_Handler):
         self.run_components(components)
         return self.ok_response
 
-    class WebhookRequest(collections.namedtuple('Request', 'method,path')):
+    class WebhookRequest(collections.namedtuple('Request',
+            ('method', 'path', 'headers'))):
 
         @classmethod
         def from_event(cls, event):
@@ -76,6 +85,7 @@ class WebhookHandler(_Handler):
                 return cls(
                         method=http.get('method'),
                         path=http.get('path'),
+                        headers=event.get('headers'),
                 )
             except Exception as e:
                 raise AutomatonWebhookError('Unable to read request: '
