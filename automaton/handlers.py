@@ -1,18 +1,16 @@
+import collections
 import logging
 import time
 
-from .exceptions import AutomatonComponentRunError
-from .parsers import parse_yaml
+from .exceptions import AutomatonComponentRunError, AutomatonWebhookError
+from .parsers import parse_yaml, register_webhooks
 
 logger = logging.getLogger(__name__)
 
-class LambdaHandler(object):
+class _Handler(object):
 
-    def __init__(self, config_file=None, s3=None):
-        self.components = parse_yaml(config_file=config_file, s3=s3)
-
-    def __call__(self, event={}, context={}):
-        components, failed = [c for c in self.components if c.enabled], []
+    def run_components(self, components):
+        components, failed = [c for c in components if c.enabled], []
         attempts = 3
 
         while components and attempts:
@@ -34,3 +32,51 @@ class LambdaHandler(object):
             raise AutomatonComponentRunError(
                     f'one or more components failed after 3 attempts: '
                     f'{", ".join(c.name for c in components)}')
+
+class LambdaHandler(_Handler):
+
+    def __init__(self, config_file=None, s3=None):
+        self.components = parse_yaml(config_file=config_file, s3=s3)
+
+    def __call__(self, event={}, context={}):
+        self.run_components(self.components)
+
+class WebhookHandler(_Handler):
+
+    not_found_response = {
+            'statusCode': 404,
+            'errorMessage': 'not found',
+    }
+    ok_response = {
+            'statusCode': 200,
+            'body': '{"status":"ok"}',
+    }
+
+    def __init__(self, config_file=None, s3=None):
+        self.webhooks = register_webhooks(config_file=config_file, s3=s3)
+
+    def __call__(self, event={}, context={}):
+        # TODO: test __call__
+        request = self.WebhookRequest.from_event(event)
+        if request.method != 'POST':
+            return self.not_found_response
+        components = self.webhooks.get(request.path)
+        if components is None:
+            return self.not_found_response
+        self.run_components(components)
+        return self.ok_response
+
+    class WebhookRequest(collections.namedtuple('Request', 'method,path')):
+
+        @classmethod
+        def from_event(cls, event):
+            try:
+                # TODO: test from_event
+                http = event.get('requestContext', {}).get('http')
+                return cls(
+                        method=http.get('method'),
+                        path=http.get('path'),
+                )
+            except Exception as e:
+                raise AutomatonWebhookError('Unable to read request: '
+                        f'[{e.__class__.__name__}] {e}')

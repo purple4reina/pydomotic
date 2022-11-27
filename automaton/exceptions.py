@@ -3,3 +3,6 @@ class AutomatonConfigParsingError(Exception):
 
 class AutomatonComponentRunError(Exception):
     pass
+
+class AutomatonWebhookError(Exception):
+    pass

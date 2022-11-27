@@ -114,3 +114,21 @@ automations:
     components:
       - if:
           temp: '>75'
+
+  webhooks:
+    components:
+      - if:
+          weekday: monday,tuesday,wednesday,thursday,friday
+          webhook: /testing/on
+        then:
+          turn-on: bulb-A
+      - if:
+          weekday: saturday,sunday
+          webhook: /testing/on
+        then:
+          turn-on: bulb-A
+      - if:
+          webhook: /testing/off
+          weekday: monday,tuesday,wednesday,thursday,friday
+        then:
+          turn-off: bulb-A

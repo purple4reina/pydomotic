@@ -356,7 +356,7 @@ _test__parse_components = (
         ({'automation-1': {'enabled': False}}, []),
         ({'automation-2': {'enabled': True}}, []),
         ({'automation-3': {'components': []}}, []),
-        ({'automation-4': { 'components': [{}]}}, [Component()]),
+        ({'automation-4': {'components': [{}]}}, [Component()]),
         (
             {
                 'automation-5': {
@@ -421,6 +421,21 @@ _test__parse_components = (
                 Component(ifs=[AQITrigger]),
                 Component(ifs=[AQITrigger]),
             ],
+        ),
+        (
+            {
+                'automation-10': {
+                    'components': [
+                        {'if': {'webhook': '/hello'}},
+                    ],
+                },
+                'automation-11': {
+                    'components': [
+                        {'if': {'aqi': '>100', 'webhook': '/purple'}},
+                    ],
+                },
+            },
+            [],  # webhook components are ignored
         ),
 )
 _test__parse_components_devices = {

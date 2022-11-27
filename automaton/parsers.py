@@ -1,3 +1,4 @@
+import collections
 import logging
 import os
 import re
@@ -10,32 +11,54 @@ from .exceptions import AutomatonConfigParsingError
 from .providers.noop import NoopProvider
 from .sensors import TimeSensor
 from .triggers import (AQITrigger, TimeTrigger, IsoWeekdayTrigger,
-        RandomTrigger, SunriseTrigger, SunsetTrigger, TemperatureTrigger)
+        RandomTrigger, SunriseTrigger, SunsetTrigger, TemperatureTrigger,
+        WebhookTrigger)
 
 logger = logging.getLogger(__name__)
 
 def parse_yaml(config_file=None, s3=None):
-    components = []
-    if config_file:
-        with open(config_file) as f:
-            components = parse_raw_yaml(f)
-    elif s3:
-        # TODO: test
-        data = _get_config_from_s3(s3)
-        if data:
-            components = parse_raw_yaml(data)
-    else:
-        logger.warning('no config file or s3 data provided, skipping')
-    return components
+    data = _get_config_data(config_file, s3)
+    if not data:
+        return []
+    return parse_raw_yaml(data)
 
-def parse_raw_yaml(raw_conf):
+def parse_raw_yaml(raw_conf, webhooks=False):
     conf = yaml.safe_load(raw_conf)
     triggers_conf = _TriggersConf.from_yaml(conf.get('triggers', {}))
     providers = _parse_providers(conf.get('providers', {}))
     devices = _parse_devices(conf.get('devices', {}), providers)
     components = _parse_components(conf.get('automations', {}), devices,
-            triggers_conf)
+            triggers_conf, webhooks=webhooks)
     return components
+
+def register_webhooks(config_file=None, s3=None):
+    # TODO: test register_webhooks
+    data = _get_config_data(config_file, s3)
+    if not data:
+        return {}
+    components = parse_raw_yaml(data, webhooks=True)
+    return _webhooks_from_components(components)
+
+def _webhooks_from_components(components):
+    # TODO: test _webhooks_from_components
+    webhooks = collections.defaultdict(list)
+    for component in components:
+        for trigger in component.ifs:
+            if isinstance(trigger, WebhookTrigger):
+                webhook = trigger
+                component.ifs.remove(trigger)
+                break
+        webhooks[webhook.path].append(component)
+    return webhooks
+
+def _get_config_data(config_file, s3):
+    if config_file:
+        with open(config_file) as f:
+            return f.read()
+    elif s3:
+        # TODO: test
+        return _get_config_from_s3(s3)
+    logger.info('no config file or s3 data provided, skipping')
 
 def _get_config_from_s3(s3):
     # TODO: test
@@ -218,7 +241,7 @@ def _parse_devices(devices_conf, providers):
                     f'unable to get device "{name}": {e}')
     return devices
 
-def _parse_components(automations, devices, triggers_conf):
+def _parse_components(automations, devices, triggers_conf, webhooks=False):
     components = []
     for name, automation in automations.items():
         logger.info(f'preparing automation {name}')
@@ -230,6 +253,16 @@ def _parse_components(automations, devices, triggers_conf):
             thens = component.get('then') or {}
             elses = component.get('else') or {}
             logger.info(f'adding component {component_name}')
+            if not webhooks and 'webhook' in ifs:
+                logger.debug(f'component "{component_name}" with webhook '
+                        'trigger ignored by lambda handler, must use webook '
+                        'handler')
+                continue
+            elif webhooks and 'webhook' not in ifs:
+                logger.debug(f'component "{component_name}" without webhook '
+                        'trigger ignored by webhook handler, must use lambda '
+                        'handler')
+                continue
             components.append(Component(
                 name=component_name,
                 ifs=_parse_triggers(ifs, triggers_conf),
@@ -257,6 +290,9 @@ def _parse_triggers(ifs, triggers_conf):
             parser = _parse_sunset_trigger
         elif trigger_type == 'temp':
             parser = _parse_temp_trigger
+        elif trigger_type == 'webhook':
+            # TODO: test _parse_triggers
+            parser = _parse_webhook_trigger
         else:
             raise AutomatonConfigParsingError(
                     f'unknown trigger type "{trigger_type}"')
@@ -382,6 +418,10 @@ def _parse_temp_trigger(value, triggers_conf):
 
     return TemperatureTrigger(_check_func, api_key=triggers_conf.weather_api_key,
             latitude=triggers_conf.latitude, longitude=triggers_conf.longitude)
+
+def _parse_webhook_trigger(value, triggers_conf):
+    # TODO: test _parse_webhook_trigger
+    return WebhookTrigger(value)
 
 def _parse_actions(thens, devices):
     actions = []

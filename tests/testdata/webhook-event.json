@@ -1,0 +1,39 @@
+{
+    "version": "2.0",
+    "routeKey": "$default",
+    "rawPath": "/my/path/is/cool",
+    "rawQueryString": "",
+    "headers": {
+        "content-length": "13",
+        "x-amzn-tls-cipher-suite": "ECDHE-RSA-AES128-GCM-SHA256",
+        "x-amzn-tls-version": "TLSv1.2",
+        "x-amzn-trace-id": "Root=1-6382cb2f-6b8264cb48aa57c005f35ea6",
+        "x-forwarded-proto": "https",
+        "host": "ypwy6ba6huz2e7nq4mc4pneezu0lfjrd.lambda-url.us-west-2.on.aws",
+        "x-forwarded-port": "443",
+        "content-type": "application/x-www-form-urlencoded",
+        "x-forwarded-for": "69.254.203.87",
+        "accept": "*/*",
+        "user-agent": "curl/7.79.1"
+    },
+    "requestContext": {
+        "accountId": "anonymous",
+        "apiId": "ypwy6ba6huz2e7nq4mc4pneezu0lfjrd",
+        "domainName": "ypwy6ba6huz2e7nq4mc4pneezu0lfjrd.lambda-url.us-west-2.on.aws",
+        "domainPrefix": "ypwy6ba6huz2e7nq4mc4pneezu0lfjrd",
+        "http": {
+            "method": "POST",
+            "path": "/testing/on",
+            "protocol": "HTTP/1.1",
+            "sourceIp": "69.254.203.87",
+            "userAgent": "curl/7.79.1"
+        },
+        "requestId": "83ab0c7e-256f-41b9-9251-603cdcd420a9",
+        "routeKey": "$default",
+        "stage": "$default",
+        "time": "27/Nov/2022:02:27:59 +0000",
+        "timeEpoch": 1669516079340
+    },
+    "body": "eyJ5byI6ImR1ZGUifQ==",
+    "isBase64Encoded": true
+}
