@@ -1,5 +1,9 @@
+import logging
+
 import pyfujitseu.api
 import pyfujitseu.splitAC
+
+logger = logging.getLogger(__name__)
 
 # see https://docs.aylanetworks.com/reference/getting_started
 
@@ -18,7 +22,10 @@ class FujitsuDevice(object):
         self.device = device
 
     def turn_on(self):
-        return self.device.turnOn()
+        self.device.turnOn()
 
     def turn_off(self):
-        return self.device.turnOff()
+        self.device.turnOff()
+
+    def switch(self):
+        logger.debug('switch action not implemented for fujitsu device')

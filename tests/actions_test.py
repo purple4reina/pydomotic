@@ -1,6 +1,6 @@
 import pytest
 
-from automaton.actions import TurnOnAction, TurnOffAction
+from automaton.actions import TurnOnAction, TurnOffAction, SwitchAction
 
 _test_action_interface_device = object()
 _test_action_interface_device_name = 'device_name'
@@ -30,3 +30,8 @@ def test_turn_off_action(mock_device):
     action = TurnOffAction(mock_device, '')
     action.run()
     assert action.device.turn_off_called, 'device.turn_off not called'
+
+def test_switch_action(mock_device):
+    action = SwitchAction(mock_device, '')
+    action.run()
+    assert action.device.switch_called, 'device.switch not called'

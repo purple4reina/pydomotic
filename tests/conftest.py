@@ -9,10 +9,13 @@ class _MockDevice(object):
     def __init__(self):
         self.turn_on_called = False
         self.turn_off_called = False
+        self.switch_called = False
     def turn_on(self):
         self.turn_on_called = True
     def turn_off(self):
         self.turn_off_called = True
+    def switch(self):
+        self.switch_called = True
 
 @pytest.fixture
 def mock_device():

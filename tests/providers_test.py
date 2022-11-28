@@ -9,10 +9,13 @@ _test_provider_interface = (
         GosundProvider,
         NoopProvider,
 )
+_test_provider_interface_attrs = (
+        'get_device',
+)
 
 @pytest.mark.parametrize('provider', _test_provider_interface)
 def test_provider_interface(provider):
-    for attr in ('get_device',):
+    for attr in _test_provider_interface_attrs:
         assert hasattr(provider, attr), f'provider requires attr {attr}'
 
 _test_device_interface = (
@@ -20,8 +23,13 @@ _test_device_interface = (
         GosundDevice,
         NoopDevice,
 )
+_test_device_interface_attrs = (
+        'turn_on',
+        'turn_off',
+        'switch',
+)
 
 @pytest.mark.parametrize('device', _test_device_interface)
 def test_device_interface(device):
-    for attr in ('turn_on', 'turn_off'):
+    for attr in _test_device_interface_attrs:
         assert hasattr(device, attr), f'device requires attr {attr}'

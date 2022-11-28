@@ -5,7 +5,7 @@ import re
 import datetime
 import yaml
 
-from .actions import TurnOnAction, TurnOffAction
+from .actions import TurnOnAction, TurnOffAction, SwitchAction
 from .components import Component
 from .exceptions import AutomatonConfigParsingError
 from .providers.noop import NoopProvider
@@ -437,6 +437,8 @@ def _parse_actions(thens, devices):
                 actions.append(TurnOnAction(device, device_name))
             elif action_type == 'turn-off':
                 actions.append(TurnOffAction(device, device_name))
+            elif action_type == 'switch':
+                actions.append(SwitchAction(device, device_name))
             else:
                 raise AutomatonConfigParsingError(
                         f'unknown action type "{action_type}"')

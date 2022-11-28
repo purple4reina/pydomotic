@@ -17,7 +17,10 @@ class GosundDevice(object):
         self.device = device
 
     def turn_on(self):
-        return self.device.turn_on()
+        self.device.turn_on()
 
     def turn_off(self):
-        return self.device.turn_off()
+        self.device.turn_off()
+
+    def switch(self):
+        self.device.switch()

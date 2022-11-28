@@ -20,3 +20,7 @@ class TurnOnAction(_DeviceAction):
 class TurnOffAction(_DeviceAction):
 
     device_action_method_name = 'turn_off'
+
+class SwitchAction(_DeviceAction):
+
+    device_action_method_name = 'switch'

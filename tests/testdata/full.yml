@@ -101,6 +101,7 @@ automations:
           time: 2:00pm
         then:
           turn-on: bulb-A
+          switch: bulb-A, bulb-B
 
   edge-cases:
     enabled: true

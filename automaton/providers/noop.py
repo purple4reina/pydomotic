@@ -17,3 +17,6 @@ class NoopDevice(object):
 
     def turn_off(self):
         logger.debug('device "%s" turned off', self.device_id)
+
+    def switch(self):
+        logger.debug('device "%s" switched', self.device_id)
