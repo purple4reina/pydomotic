@@ -2,8 +2,7 @@ import datetime
 import inspect
 import random
 
-from .exceptions import AutomatonWebhookError
-from .sensors import AQISensor, TimeSensor, WeatherSensor
+from .sensors import AQISensor, TimeSensor, WeatherSensor, WebhookSensor
 from .utils import Nameable
 
 class AQITrigger(Nameable):
@@ -93,10 +92,14 @@ class TemperatureTrigger(Nameable):
         temp = self.weather_sensor.current_temperature()
         return self.check_func(temp)
 
-class WebhookTrigger(object):
+class WebhookTrigger(Nameable):
 
-    def __init__(self, path):
+    # TODO: test webhook trigger
+
+    def __init__(self, path, webhook_sensor=None):
         self.path = path
+        self.webhook_sensor = webhook_sensor or WebhookSensor()
 
     def check(self):
-        raise AutomatonWebhookError('webhook trigger must not be checked')
+        return self.webhook_sensor.path == self.path and \
+                self.webhook_sensor.method == 'POST'

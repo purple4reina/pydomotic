@@ -1,13 +1,10 @@
-from .exceptions import (AutomatonConfigParsingError,
-        AutomatonComponentRunError, AutomatonWebhookError)
-from .handlers import LambdaHandler, WebhookHandler
+from .exceptions import AutomatonConfigParsingError, AutomatonComponentRunError
+from .handlers import LambdaHandler
 from .version import version
 
 __all__ = [
         'LambdaHandler',
-        'WebhookHandler',
         'AutomatonConfigParsingError',
         'AutomatonComponentRunError',
-        'AutomatonWebhookError',
 ]
 __version__ = version

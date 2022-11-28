@@ -15,7 +15,7 @@ from automaton.providers.gosund import GosundProvider
 from automaton.providers.noop import NoopProvider, NoopDevice
 from automaton.sensors import SunSensor
 from automaton.triggers import (AQITrigger, TimeTrigger, IsoWeekdayTrigger, RandomTrigger,
-        SunriseTrigger, SunsetTrigger, TemperatureTrigger)
+        SunriseTrigger, SunsetTrigger, TemperatureTrigger, WebhookTrigger)
 
 _test_triggers_conf = _TriggersConf.from_yaml({
         'location': {'latitude': 40.689, 'longitude': -74.044},
@@ -86,12 +86,27 @@ _test_parse_yaml_expect = [
             thens=[],
             elses=[],
         ),
+        Component(
+            name='webhooks 0',
+            ifs=[IsoWeekdayTrigger, WebhookTrigger],
+            thens=[TurnOnAction],
+        ),
+        Component(
+            name='webhooks 1',
+            ifs=[IsoWeekdayTrigger, WebhookTrigger],
+            thens=[TurnOnAction],
+        ),
+        Component(
+            name='webhooks 2',
+            ifs=[WebhookTrigger, IsoWeekdayTrigger],
+            thens=[TurnOffAction],
+        ),
 ]
 
 def test_parse_yaml():
     expects = _test_parse_yaml_expect
     config_fullpath = _relative_to_full_path('./testdata/full.yml')
-    actuals = parse_yaml(config_fullpath)
+    actuals, _ = parse_yaml(config_fullpath)
 
     assert len(actuals) == len(expects), 'wrong number of components returned'
     for actual, expect in zip(actuals, expects):
@@ -435,7 +450,10 @@ _test__parse_components = (
                     ],
                 },
             },
-            [],  # webhook components are ignored
+            [
+                Component(ifs=[WebhookTrigger]),
+                Component(ifs=[AQITrigger, WebhookTrigger]),
+            ],
         ),
 )
 _test__parse_components_devices = {

@@ -2,7 +2,8 @@ import datetime
 import pytest
 
 from automaton.triggers import (AQITrigger, IsoWeekdayTrigger, TimeTrigger,
-        RandomTrigger, SunriseTrigger, SunsetTrigger, TemperatureTrigger)
+        RandomTrigger, SunriseTrigger, SunsetTrigger, TemperatureTrigger,
+        WebhookTrigger)
 
 test_time = datetime.datetime(1982, 2, 4, 10, 20)
 
@@ -15,6 +16,7 @@ _test_trigger_interface = (
         (SunsetTrigger(120), 'sunset_trigger'),
         (TemperatureTrigger(lambda t: t > 100, api_key='abc123'),
             'temperature_trigger'),
+        (WebhookTrigger('/full/path'), 'webhook_trigger'),
 )
 
 @pytest.mark.parametrize('instance,exp_name', _test_trigger_interface)

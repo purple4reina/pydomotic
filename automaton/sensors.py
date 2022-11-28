@@ -103,3 +103,15 @@ class WeatherSensor(object):
     def current_temperature(self):
         # returns float with 2 decimal points
         return self._weather().temperature('fahrenheit').get('temp')
+
+class WebhookSensor(object):
+
+    def __init__(self):
+        self.path = None
+        self.method = None
+
+    def set_webhook_request(self, event):
+        # TODO: test setting request from various event types
+        http = event.get('requestContext', {}).get('http', {})
+        self.path = http.get('path')
+        self.method = http.get('method')
