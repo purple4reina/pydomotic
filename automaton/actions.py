@@ -2,13 +2,13 @@ import abc
 
 from .utils import ObjectMetaclass
 
-class Action(metaclass=ObjectMetaclass):
+class _Action(metaclass=ObjectMetaclass):
 
     @abc.abstractmethod
     def run(self):
         pass
 
-class _DeviceAction(Action):
+class _DeviceAction(_Action):
 
     required_class_attrs = ['device_action_method_name']
 
