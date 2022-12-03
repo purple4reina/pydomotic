@@ -5,7 +5,6 @@ from automaton.sensors import AQISensor, AQISensorError, SunSensor
 
 @pytest.fixture(autouse=True)
 def reset_get_aqi_cache():
-    # TODO: cache on the instance not the class
     AQISensor.get_aqi.clear_cache()
 
 def test_aqi_sensor_get_aqi(patch_get_requests):
