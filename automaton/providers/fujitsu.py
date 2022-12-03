@@ -3,11 +3,13 @@ import logging
 import pyfujitseu.api
 import pyfujitseu.splitAC
 
+from .base import Provider, Device
+
 logger = logging.getLogger(__name__)
 
 # see https://docs.aylanetworks.com/reference/getting_started
 
-class FujitsuProvider(object):
+class FujitsuProvider(Provider):
 
     def __init__(self, username, password, tokenpath='/tmp/token.txt'):
         self.fujitsu = pyfujitseu.api.Api(username, password, tokenpath=tokenpath)
@@ -16,7 +18,7 @@ class FujitsuProvider(object):
         device = pyfujitseu.splitAC.splitAC(dsn=device_id, api=self.fujitsu)
         return FujitsuDevice(device)
 
-class FujitsuDevice(object):
+class FujitsuDevice(Device):
 
     def __init__(self, device):
         self.device = device

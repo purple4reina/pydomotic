@@ -1,15 +1,17 @@
-from gosundpy import Gosund
+import gosundpy
 
-class GosundProvider(object):
+from .base import Provider, Device
+
+class GosundProvider(Provider):
 
     def __init__(self, username, password, access_id, access_key):
-        self.gosund = Gosund(username, password, access_id, access_key)
+        self.gosund = gosundpy.Gosund(username, password, access_id, access_key)
 
     def get_device(self, device_id):
         device = self.gosund.get_device(device_id)
         return GosundDevice(device)
 
-class GosundDevice(object):
+class GosundDevice(Device):
 
     # TODO: add name of device
 

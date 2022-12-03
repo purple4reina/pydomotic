@@ -1,13 +1,15 @@
 import logging
 
+from .base import Provider, Device
+
 logger = logging.getLogger(__name__)
 
-class NoopProvider(object):
+class NoopProvider(Provider):
 
     def get_device(self, device_id):
         return NoopDevice(device_id)
 
-class NoopDevice(object):
+class NoopDevice(Device):
 
     def __init__(self, device_id):
         self.device_id = device_id
