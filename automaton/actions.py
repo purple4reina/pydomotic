@@ -1,6 +1,16 @@
-from .utils import Nameable
+import abc
 
-class _DeviceAction(Nameable):
+from .utils import ObjectMetaclass
+
+class Action(metaclass=ObjectMetaclass):
+
+    @abc.abstractmethod
+    def run(self):
+        pass
+
+class _DeviceAction(Action):
+
+    required_class_attrs = ['device_action_method_name']
 
     def __init__(self, device, device_name):
         self.device = device

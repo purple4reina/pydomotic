@@ -1,3 +1,4 @@
+import abc
 import functools
 import re
 import time
@@ -31,3 +32,22 @@ class Nameable(object):
         if not hasattr(self, '_name'):
             self._name = _camel_to_snake(self.__class__.__name__)
         return self._name
+
+class ObjectMetaclass(abc.ABCMeta):
+
+    extra_bases = (Nameable,)
+
+    def __new__(cls, clsname, bases, dct):
+        return super().__new__(cls, clsname, bases + cls.extra_bases, dct)
+
+    def __call__(cls, *args, **kwargs):
+        # acts as __init__ for any objects using this metaclass
+        obj = super().__call__(*args, **kwargs)
+        obj.required_class_attrs = getattr(cls, 'required_class_attrs') or []
+        for attr in cls.required_class_attrs:
+            if not hasattr(obj, attr):
+                raise TypeError(
+                        "Can't instantiate abstract class "
+                        f'{cls.__name__} with abstract instance '
+                        f'variable {attr}')
+        return obj

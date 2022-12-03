@@ -2,24 +2,16 @@ import pytest
 
 from automaton.actions import TurnOnAction, TurnOffAction, SwitchAction
 
-_test_action_interface_device = object()
-_test_action_interface_device_name = 'device_name'
-_test_action_interface = (
-        (TurnOnAction(_test_action_interface_device,
-            _test_action_interface_device_name), 'turn_on_action device_name'),
-        (TurnOffAction(_test_action_interface_device,
-            _test_action_interface_device_name), 'turn_off_action device_name'),
+_test_action_name = (
+        (TurnOnAction, 'turn_on_action device_name'),
+        (TurnOffAction, 'turn_off_action device_name'),
+        (SwitchAction, 'switch_action device_name'),
 )
 
-@pytest.mark.parametrize('instance,exp_name', _test_action_interface)
-def test_action_interface(instance, exp_name):
-    assert instance.name == exp_name, 'wrong value for name found'
-    assert instance.device == _test_action_interface_device, (
-            'wrong device found')
-    assert instance.device_name == _test_action_interface_device_name, (
-            'wrong device name found')
-    assert hasattr(instance, 'run'), 'instance does not have attr run'
-    assert callable(instance.run), 'instance.run is not callable'
+@pytest.mark.parametrize('cls,expect', _test_action_name)
+def test_action_name(cls, expect):
+    inst = cls(None, 'device_name')
+    assert expect == inst.name
 
 def test_turn_on_action(mock_device):
     action = TurnOnAction(mock_device, '')
