@@ -78,3 +78,9 @@ def test_gosund_provider(patch_gosundpy):
 
     device.switch()
     assert device.device.switch_called, 'device.switch not called'
+
+def test_noop_provider():
+    device_id = 'device_id'
+    provider = NoopProvider()
+    device = provider.get_device(device_id)
+    assert device.device_id == device_id
