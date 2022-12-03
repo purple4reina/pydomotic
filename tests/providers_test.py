@@ -27,6 +27,19 @@ def test_fujitsu_provider(patch_fujitsu):
     device.switch()
     assert not patch_device.switch_called, 'device.switch called'
 
+def test_fujitsu_device(patch_fujitsu):
+    device = FujitsuDevice(patch_fujitsu.device)
+    assert device.device == patch_fujitsu.device, 'wrong device'
+
+    device.turn_on()
+    assert patch_fujitsu.device.turn_on_called, 'device.turn_on not called'
+
+    device.turn_off()
+    assert patch_fujitsu.device.turn_off_called, 'device.turn_off not called'
+
+    device.switch()
+    assert not patch_fujitsu.device.switch_called, 'device.switch called'
+
 def test_gosund_provider(patch_gosundpy):
     username, password, access_id, access_key = 'usr', 'passwd', 'id', 'key'
     provider = GosundProvider(username, password, access_id, access_key)

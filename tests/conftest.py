@@ -195,15 +195,17 @@ class _MockFujitsu(object):
             self.turn_on_called = False
             self.turn_off_called = False
             self.switch_called = False
+        def turnOn(self):
+            self.turn_on_called = True
+        def turnOff(self):
+            self.turn_off_called = True
         def __call__(self, dsn=None, api=None):
             class _MockFujitsuDevice(object):
                 def __init__(sf, dsn=None, api=None):
                     self.dsn = dsn
                     self.api = api
-                def turnOn(sf):
-                    self.turn_on_called = True
-                def turnOff(sf):
-                    self.turn_off_called = True
+                turnOn = self.turnOn
+                turnOff = self.turnOff
             return _MockFujitsuDevice(dsn=dsn, api=api)
 
 @pytest.fixture
