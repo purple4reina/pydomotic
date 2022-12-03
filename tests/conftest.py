@@ -58,19 +58,6 @@ def mock_action_2():
 def mock_raising_action():
     return _MockAction('__mock_action raising', True)
 
-class _MockProvider(object):
-    def __init__(self):
-        self.turn_on_called = False
-        self.turn_off_called = False
-    def turn_on(self):
-        self.turn_on_called = True
-    def turn_off(self):
-        self.turn_off_called = True
-
-@pytest.fixture
-def mock_provider():
-    return _MockProvider()
-
 class _MockComponent(object):
     name = '_MockComponent'
     def __init__(self, enabled, failures=None):
@@ -172,7 +159,7 @@ def patch_get_requests(monkeypatch):
         monkeypatch.setattr('requests.get', get)
     return patch
 
-class _PatchedSleep(object):
+class _MockSleep(object):
     def __init__(self):
         self.times_slept = 0
     def __call__(self, num):
@@ -180,6 +167,33 @@ class _PatchedSleep(object):
 
 @pytest.fixture
 def patched_sleep(monkeypatch):
-    sleep = _PatchedSleep()
+    sleep = _MockSleep()
     monkeypatch.setattr('time.sleep', sleep)
     return sleep
+
+class _MockGosund(object):
+    def __init__(self):
+        self.username = None
+        self.password = None
+        self.access_id = None
+        self.access_key = None
+        self.provider = None
+    def __call__(self, username, password, access_id, access_key):
+        self.username = username
+        self.password = password
+        self.access_id = access_id
+        self.access_key = access_key
+        self.provider = self._MockGosundProvider(
+                username, password, access_id, access_key)
+        return self.provider
+    class _MockGosundProvider(object):
+        def __init__(self, username, password, access_id, access_key):
+            self.device = _MockDevice()
+        def get_device(self, device_id):
+            return self.device
+
+@pytest.fixture
+def patch_gosundpy(monkeypatch):
+    gosund = _MockGosund()
+    monkeypatch.setattr('gosundpy.Gosund', gosund)
+    return gosund

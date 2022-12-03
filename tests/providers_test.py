@@ -33,3 +33,23 @@ _test_device_interface_attrs = (
 def test_device_interface(device):
     for attr in _test_device_interface_attrs:
         assert hasattr(device, attr), f'device requires attr {attr}'
+
+def test_gosund_provider(patch_gosundpy):
+    username, password, access_id, access_key = 'usr', 'passwd', 'id', 'key'
+    provider = GosundProvider(username, password, access_id, access_key)
+    assert patch_gosundpy.username == username, 'wrong username'
+    assert patch_gosundpy.password == password, 'wrong password'
+    assert patch_gosundpy.access_id == access_id, 'wrong access_id'
+    assert patch_gosundpy.access_key == access_key, 'wrong access_key'
+
+    device = provider.get_device('id')
+    assert device.device == patch_gosundpy.provider.device, 'wrong device'
+
+    device.turn_on()
+    assert device.device.turn_on_called, 'device.turn_on not called'
+
+    device.turn_off()
+    assert device.device.turn_off_called, 'device.turn_off not called'
+
+    device.switch()
+    assert device.device.switch_called, 'device.switch not called'
