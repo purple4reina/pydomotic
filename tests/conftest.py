@@ -6,6 +6,7 @@ import zoneinfo
 from automaton.utils import ObjectMetaclass
 
 class _MockDevice(object):
+    name = 'device_name'
     def __init__(self):
         self.turn_on_called = False
         self.turn_off_called = False

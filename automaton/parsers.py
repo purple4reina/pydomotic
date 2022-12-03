@@ -219,7 +219,7 @@ def _parse_devices(devices_conf, providers):
             raise AutomatonConfigParsingError(
                     f'no id given for device "{name}"')
         try:
-            devices[name] = provider.get_device(device_id)
+            devices[name] = provider.get_device(device_id, name)
         except Exception as e:
             raise AutomatonConfigParsingError(
                     f'unable to get device "{name}": {e}')
@@ -408,11 +408,11 @@ def _parse_actions(thens, devices):
                 raise AutomatonConfigParsingError(
                         f'unknown device name "{device_name}"')
             if action_type == 'turn-on':
-                actions.append(TurnOnAction(device, device_name))
+                actions.append(TurnOnAction(device))
             elif action_type == 'turn-off':
-                actions.append(TurnOffAction(device, device_name))
+                actions.append(TurnOffAction(device))
             elif action_type == 'switch':
-                actions.append(SwitchAction(device, device_name))
+                actions.append(SwitchAction(device))
             else:
                 raise AutomatonConfigParsingError(
                         f'unknown action type "{action_type}"')

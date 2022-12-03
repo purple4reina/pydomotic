@@ -14,14 +14,11 @@ class FujitsuProvider(Provider):
     def __init__(self, username, password, tokenpath='/tmp/token.txt'):
         self.fujitsu = pyfujitseu.api.Api(username, password, tokenpath=tokenpath)
 
-    def get_device(self, device_id):
+    def get_device(self, device_id, device_name):
         device = pyfujitseu.splitAC.splitAC(dsn=device_id, api=self.fujitsu)
-        return FujitsuDevice(device)
+        return FujitsuDevice(device, device_name)
 
 class FujitsuDevice(Device):
-
-    def __init__(self, device):
-        self.device = device
 
     def turn_on(self):
         self.device.turnOn()

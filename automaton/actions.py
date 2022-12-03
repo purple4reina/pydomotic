@@ -12,16 +12,15 @@ class _DeviceAction(_Action):
 
     required_class_attrs = ['device_action_method_name']
 
-    def __init__(self, device, device_name):
+    def __init__(self, device):
         self.device = device
-        self.device_name = device_name
 
     def run(self):
         getattr(self.device, self.device_action_method_name)()
 
     @property
     def name(self):
-        return f'{super().name} {self.device_name}'
+        return f'{super().name} {self.device.name}'
 
 class TurnOnAction(_DeviceAction):
 

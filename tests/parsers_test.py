@@ -758,23 +758,21 @@ def test__parse_temp_trigger_cannot_run_aribtrary_code(value):
 
 _test__parse_actions_device_name_1 = 'name 1'
 _test__parse_actions_device_name_2 = 'name 2'
-_test__parse_actions_device_1 = 'test device 1'
-_test__parse_actions_device_2 = 'test device 2'
+_test__parse_actions_device_1 = NoopDevice(None, 'test_device_1')
+_test__parse_actions_device_2 = NoopDevice(None, 'test device 2')
 _test__parse_actions_tests = (
         (
             {
                 'turn-on': _test__parse_actions_device_name_1,
             },
             [
-                TurnOnAction(_test__parse_actions_device_1,
-                    _test__parse_actions_device_name_1),
+                TurnOnAction(_test__parse_actions_device_1),
             ],
             False,
         ),
         (
             {'turn-off': _test__parse_actions_device_name_2},
-            [TurnOffAction(_test__parse_actions_device_2,
-                _test__parse_actions_device_name_2)],
+            [TurnOffAction(_test__parse_actions_device_2)],
             False,
         ),
         (
@@ -783,10 +781,8 @@ _test__parse_actions_tests = (
                 'turn-off': _test__parse_actions_device_name_2,
             },
             [
-                TurnOnAction(_test__parse_actions_device_1,
-                    _test__parse_actions_device_name_1),
-                TurnOffAction(_test__parse_actions_device_2,
-                    _test__parse_actions_device_name_2),
+                TurnOnAction(_test__parse_actions_device_1),
+                TurnOffAction(_test__parse_actions_device_2),
             ],
             False,
         ),
@@ -821,5 +817,5 @@ def test__parse_actions(thens, expect, raises):
     for i in range(len(actual)):
         assert expect[i].device == actual[i].device, (
                 'wrong device found on action')
-        assert expect[i].device_name == actual[i].device_name, (
+        assert expect[i].name == actual[i].name, (
                 'wrong device found on action')
