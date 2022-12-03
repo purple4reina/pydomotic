@@ -171,6 +171,48 @@ def patched_sleep(monkeypatch):
     monkeypatch.setattr('time.sleep', sleep)
     return sleep
 
+class _MockFujitsu(object):
+    def __init__(self):
+        self.provider = self._provider()
+        self.device = self._device()
+    class _provider(object):
+        def __init__(self):
+            self.username = None
+            self.password = None
+            self.tokenpath = None
+        def __call__(self, username, password, tokenpath=None):
+            class _MockFujitsuProvider(object):
+                def __init__(sf, username, password, tokenpath=None):
+                    self.username = username
+                    self.password = password
+                    self.tokenpath = tokenpath
+            return _MockFujitsuProvider(
+                    username, password, tokenpath=tokenpath)
+    class _device(object):
+        def __init__(self):
+            self.dsn = None
+            self.api = None
+            self.turn_on_called = False
+            self.turn_off_called = False
+            self.switch_called = False
+        def __call__(self, dsn=None, api=None):
+            class _MockFujitsuDevice(object):
+                def __init__(sf, dsn=None, api=None):
+                    self.dsn = dsn
+                    self.api = api
+                def turnOn(sf):
+                    self.turn_on_called = True
+                def turnOff(sf):
+                    self.turn_off_called = True
+            return _MockFujitsuDevice(dsn=dsn, api=api)
+
+@pytest.fixture
+def patch_fujitsu(monkeypatch):
+    fujitsu = _MockFujitsu()
+    monkeypatch.setattr('pyfujitseu.api.Api', fujitsu.provider)
+    monkeypatch.setattr('pyfujitseu.splitAC.splitAC', fujitsu.device)
+    return fujitsu
+
 class _MockGosund(object):
     def __init__(self):
         self.username = None
