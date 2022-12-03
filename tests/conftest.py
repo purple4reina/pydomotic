@@ -221,20 +221,20 @@ class _MockGosund(object):
         self.password = None
         self.access_id = None
         self.access_key = None
-        self.provider = None
+        self.device = _MockDevice()
     def __call__(self, username, password, access_id, access_key):
-        self.username = username
-        self.password = password
-        self.access_id = access_id
-        self.access_key = access_key
-        self.provider = self._MockGosundProvider(
+        class _MockGosundProvider(object):
+            device = self.device
+            def __init__(sf, username, password, access_id, access_key):
+                self.username = username
+                self.password = password
+                self.access_id = access_id
+                self.access_key = access_key
+            def get_device(sf, device_id):
+                return sf.device
+        self.provider = _MockGosundProvider(
                 username, password, access_id, access_key)
         return self.provider
-    class _MockGosundProvider(object):
-        def __init__(self, username, password, access_id, access_key):
-            self.device = _MockDevice()
-        def get_device(self, device_id):
-            return self.device
 
 @pytest.fixture
 def patch_gosundpy(monkeypatch):
