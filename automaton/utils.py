@@ -3,20 +3,31 @@ import functools
 import re
 import time
 
+class _timed_cache(object):
+
+    def __init__(self):
+        self.reset()
+
+    def set(self, last_call, value):
+        self.last_call = last_call
+        self.value = value
+
+    def reset(self):
+        self.last_call = 0
+        self.value = None
+
 def cache_value(seconds=0, minutes=0):
-    cached = [0, None]
     seconds += minutes * 60
+    cache = _timed_cache()
     def _rate_limit(fn):
         @functools.wraps(fn)
         def _call(*args, **kwargs):
             now = time.time()
-            if now - cached[0] < seconds:
-                return cached[1]
-            cached[:] = now, fn(*args, **kwargs)
-            return cached[1]
-        def clear_cache():
-            cached[:] = [0, None]
-        _call.clear_cache = clear_cache
+            if now - cache.last_call < seconds:
+                return cache.value
+            cache.set(now, fn(*args, **kwargs))
+            return cache.value
+        _call.clear_cache = cache.reset
         return _call
     return _rate_limit
 
