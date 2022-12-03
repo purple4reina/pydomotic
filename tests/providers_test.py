@@ -51,4 +51,5 @@ def test_noop_provider():
     device_id = 'device_id'
     provider = NoopProvider()
     device = provider.get_device(device_id)
-    assert device.device_id == device_id
+    assert isinstance(device, NoopDevice), 'wrong device type'
+    assert device.device_id == device_id, 'wrong device_id'
