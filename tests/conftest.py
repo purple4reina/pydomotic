@@ -3,7 +3,7 @@ import pytest
 import random
 import zoneinfo
 
-from automaton.utils import Nameable
+from automaton.utils import ObjectMetaclass
 
 class _MockDevice(object):
     def __init__(self):
@@ -21,7 +21,7 @@ class _MockDevice(object):
 def mock_device():
     return _MockDevice()
 
-class _MockTrigger(Nameable):
+class _MockTrigger(metaclass=ObjectMetaclass):
     def __init__(self, returns):
         self.returns = returns
         self.check_called = False
@@ -37,7 +37,7 @@ def mock_true_trigger():
 def mock_false_trigger():
     return _MockTrigger(False)
 
-class _MockAction(Nameable):
+class _MockAction(metaclass=ObjectMetaclass):
     def __init__(self, name, raises):
         self.run_called = False
         self._name = name

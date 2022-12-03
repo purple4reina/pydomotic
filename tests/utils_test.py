@@ -1,7 +1,7 @@
 import pytest
 import time
 
-from automaton.utils import cache_value, _camel_to_snake, Nameable
+from automaton.utils import cache_value, _camel_to_snake, ObjectMetaclass
 
 def test_cache_value(monkeypatch):
     call_count = [0]
@@ -44,8 +44,8 @@ _test__camel_to_snake = (
 def test__camel_to_snake(name, expect):
     assert expect == _camel_to_snake(name)
 
-def test_Nameable():
-    class MyClass(Nameable): pass
+def test_ObjectMetaclass__Nameable():
+    class MyClass(metaclass=ObjectMetaclass): pass
     assert MyClass().name == 'my_class', 'wrong name returned'
 
     class MySubClass(MyClass): pass

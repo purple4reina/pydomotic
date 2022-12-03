@@ -25,7 +25,7 @@ def _camel_to_snake(name):
     name = _camel_to_snake_re_1.sub(r'\1_\2', name)
     return _camel_to_snake_re_2.sub(r'\1_\2', name).lower()
 
-class Nameable(object):
+class _Nameable(object):
 
     @property
     def name(self):
@@ -35,7 +35,7 @@ class Nameable(object):
 
 class ObjectMetaclass(abc.ABCMeta):
 
-    extra_bases = (Nameable,)
+    extra_bases = (_Nameable,)
 
     def __new__(cls, clsname, bases, dct):
         return super().__new__(cls, clsname, bases + cls.extra_bases, dct)
