@@ -3,8 +3,9 @@ import functools
 import re
 import time
 
-def cache_value(seconds):
+def cache_value(seconds=0, minutes=0):
     cached = [0, None]
+    seconds += minutes * 60
     def _rate_limit(fn):
         @functools.wraps(fn)
         def _call(*args, **kwargs):

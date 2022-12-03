@@ -3,10 +3,17 @@ import time
 
 from automaton.utils import cache_value, _camel_to_snake, ObjectMetaclass
 
-def test_cache_value(monkeypatch):
+_test_cache_value = (
+        {'seconds': 3600},
+        {'minutes': 60},
+        {'seconds': 1800, 'minutes': 30},
+)
+
+@pytest.mark.parametrize('kwargs', _test_cache_value)
+def test_cache_value(kwargs, monkeypatch):
     call_count = [0]
 
-    @cache_value(seconds=3600)
+    @cache_value(**kwargs)
     def test_fn():
         call_count[0] += 1
         return call_count[0]

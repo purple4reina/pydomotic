@@ -20,7 +20,7 @@ class AQISensor(object):
                 'format': 'application/json',
         }
 
-    @cache_value(seconds=60*60)
+    @cache_value(minutes=15)
     def get_aqi(self):
         try:
             resp = requests.get(self.aqi_url, params=self.params)
@@ -97,7 +97,7 @@ class WeatherSensor(object):
         self.owm_mgr = pyowm.OWM(api_key).weather_manager()
         self.location = (latitude, longitude)
 
-    @cache_value(seconds=5*60)
+    @cache_value(minutes=5)
     def _weather(self):
         return self.owm_mgr.weather_at_coords(*self.location).weather
 
