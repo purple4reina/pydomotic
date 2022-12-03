@@ -3,6 +3,7 @@ import astral.sun
 import datetime
 import requests
 import zoneinfo
+import timezonefinder
 
 from .utils import cache_value
 
@@ -74,8 +75,8 @@ class TimeSensor(object):
         self._tzinfo = None
 
     def _get_timezone(self):
-        # TODO: implement
-        return 'America/Los_Angeles'
+        return timezonefinder.TimezoneFinder().timezone_at(
+                lng=self.longitude, lat=self.latitude)
 
     def get_current_datetime(self):
         return datetime.datetime.now(tz=self.tzinfo)

@@ -49,6 +49,7 @@ setup(
         "gosundpy>=0.3.0,<1.0",  # TODO: only if provider requested
         "pyfujitsu>=0.9.0,<1.0",  # TODO: only if provider requested
         "pyowm>=3.3.0,<4.0",  # TODO: only if requested
+        "timezonefinder>=6.1.8,<7.0",
     ],
     packages=find_packages(),
     python_requires=">=3.7, <4",
