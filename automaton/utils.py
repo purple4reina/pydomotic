@@ -43,8 +43,8 @@ class ObjectMetaclass(abc.ABCMeta):
     def __call__(cls, *args, **kwargs):
         # acts as __init__ for any objects using this metaclass
         obj = super().__call__(*args, **kwargs)
-        obj.required_class_attrs = getattr(cls, 'required_class_attrs') or []
-        for attr in cls.required_class_attrs:
+        obj.required_class_attrs = getattr(cls, 'required_class_attrs', [])
+        for attr in obj.required_class_attrs:
             if not hasattr(obj, attr):
                 raise TypeError(
                         "Can't instantiate abstract class "

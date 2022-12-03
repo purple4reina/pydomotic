@@ -1,29 +1,9 @@
 import datetime
-import pytest
 
 from automaton.triggers import (AQITrigger, IsoWeekdayTrigger, TimeTrigger,
-        RandomTrigger, SunriseTrigger, SunsetTrigger, TemperatureTrigger,
-        WebhookTrigger)
+        RandomTrigger, SunriseTrigger, SunsetTrigger, TemperatureTrigger)
 
 test_time = datetime.datetime(1982, 2, 4, 10, 20)
-
-_test_trigger_interface = (
-        (AQITrigger(lambda a: a > 100), 'aqi_trigger'),
-        (IsoWeekdayTrigger(), 'iso_weekday_trigger'),
-        (TimeTrigger(), 'time_trigger'),
-        (RandomTrigger(0.5), 'random_trigger'),
-        (SunriseTrigger(120), 'sunrise_trigger'),
-        (SunsetTrigger(120), 'sunset_trigger'),
-        (TemperatureTrigger(lambda t: t > 100, api_key='abc123'),
-            'temperature_trigger'),
-        (WebhookTrigger('/full/path'), 'webhook_trigger'),
-)
-
-@pytest.mark.parametrize('instance,exp_name', _test_trigger_interface)
-def test_trigger_interface(instance, exp_name):
-    assert instance.name == exp_name, 'wrong value for name found'
-    assert hasattr(instance, 'check'), 'instance does not have attr check'
-    assert callable(instance.check), 'instance.check is not callable'
 
 def test_aqi_trigger_fires(mock_aqi_sensor):
     mock_aqi_sensor.aqi = 200

@@ -1,11 +1,18 @@
+import abc
 import datetime
 import inspect
 import random
 
 from .sensors import AQISensor, TimeSensor, WeatherSensor, WebhookSensor
-from .utils import Nameable
+from .utils import ObjectMetaclass
 
-class AQITrigger(Nameable):
+class _Trigger(metaclass=ObjectMetaclass):
+
+    @abc.abstractmethod
+    def check(self):
+        pass
+
+class AQITrigger(_Trigger):
 
     def __init__(self, check_func, aqi_sensor=None, api_key=None,
             latitude=None, longitude=None):
@@ -16,7 +23,7 @@ class AQITrigger(Nameable):
         aqi = self.aqi_sensor.get_aqi()
         return self.check_func(aqi)
 
-class IsoWeekdayTrigger(Nameable):
+class IsoWeekdayTrigger(_Trigger):
 
     # TODO: test timezone
 
@@ -28,7 +35,7 @@ class IsoWeekdayTrigger(Nameable):
         now = self.time_sensor.get_current_datetime()
         return now.isoweekday() in self.isoweekdays
 
-class TimeTrigger(Nameable):
+class TimeTrigger(_Trigger):
 
     # TODO: test timezone
 
@@ -43,7 +50,7 @@ class TimeTrigger(Nameable):
                 return True
         return False
 
-class RandomTrigger(Nameable):
+class RandomTrigger(_Trigger):
 
     def __init__(self, probability):
         self.probability = probability
@@ -51,7 +58,7 @@ class RandomTrigger(Nameable):
     def check(self):
         return random.random() < self.probability
 
-class _SunTrigger(Nameable):
+class _SunTrigger(_Trigger):
 
     # TODO: test timezone
     # TODO: test lat/long
@@ -80,7 +87,7 @@ class SunsetTrigger(_SunTrigger):
 
     sun_sensor_method_name = 'get_sunset'
 
-class TemperatureTrigger(Nameable):
+class TemperatureTrigger(_Trigger):
 
     def __init__(self, check_func, weather_sensor=None, api_key=None,
             latitude=None, longitude=None):
@@ -92,7 +99,7 @@ class TemperatureTrigger(Nameable):
         temp = self.weather_sensor.current_temperature()
         return self.check_func(temp)
 
-class WebhookTrigger(Nameable):
+class WebhookTrigger(_Trigger):
 
     # TODO: test webhook trigger
 
