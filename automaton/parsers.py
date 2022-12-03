@@ -60,22 +60,21 @@ def _get_config_from_s3(s3):
 class _TriggersConf(object):
 
     def __init__(self, latitude, longitude, aqi_api_key, weather_api_key):
-        self.webhook_sensor = WebhookSensor()
+        self._aqi_api_key = aqi_api_key
         self._latitude = latitude
         self._longitude = longitude
         self._time_sensor = None
-        self._aqi_api_key = aqi_api_key
         self._weather_api_key = weather_api_key
+        self._webhook_sensor = None
 
     @staticmethod
     def from_yaml(triggers):
-        # TODO: do not log warning if the key will never be used
         try:
             location = triggers.get('location', {})
             latitude = location.get('latitude')
             longitude = location.get('longitude')
         except Exception as e:
-            logger.warning('failed to parse location, ignoring: '
+            logger.debug('failed to parse location, ignoring: '
                     f'[{e.__class__.__name__}] {e}')
             latitude = longitude = None
 
@@ -83,7 +82,7 @@ class _TriggersConf(object):
             aqi = triggers.get('aqi', {})
             aqi_api_key = _parse_string(aqi.get('api_key'))
         except Exception as e:
-            logger.warning('failed to parse aqi api_key, ignoring: '
+            logger.debug('failed to parse aqi api_key, ignoring: '
                     f'[{e.__class__.__name__}] {e}')
             aqi_api_key = None
 
@@ -91,7 +90,7 @@ class _TriggersConf(object):
             weather = triggers.get('weather', {})
             weather_api_key = _parse_string(weather.get('api_key'))
         except Exception as e:
-            logger.warning('failed to parse weather api_key, ignoring: '
+            logger.debug('failed to parse weather api_key, ignoring: '
                     f'[{e.__class__.__name__}] {e}')
             weather_api_key = None
 
@@ -144,6 +143,12 @@ class _TriggersConf(object):
                     'weather api_key must be a string, not '
                     f'{self._aqi_api_key.__class__.__name__}')
         return self._weather_api_key
+
+    @property
+    def webhook_sensor(self):
+        if self._webhook_sensor is None:
+            self._webhook_sensor = WebhookSensor()
+        return self._webhook_sensor
 
 def _parse_providers(providers_conf):
     providers = {}
