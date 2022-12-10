@@ -22,9 +22,11 @@ class FujitsuDevice(Device):
 
     def turn_on(self):
         self.device.turnOn()
+        logger.debug('device "%s" turned on', self.name)
 
     def turn_off(self):
         self.device.turnOff()
+        logger.debug('device "%s" turned off', self.name)
 
     def switch(self):
         logger.debug('switch action not implemented for fujitsu device')

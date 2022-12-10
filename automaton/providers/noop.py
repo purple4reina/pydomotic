@@ -12,10 +12,10 @@ class NoopProvider(Provider):
 class NoopDevice(Device):
 
     def turn_on(self):
-        logger.debug('device "%s" turned on', self.device)
+        logger.debug('device "%s" turned on', self.name)
 
     def turn_off(self):
-        logger.debug('device "%s" turned off', self.device)
+        logger.debug('device "%s" turned off', self.name)
 
     def switch(self):
-        logger.debug('device "%s" switched', self.device)
+        logger.debug('device "%s" switched', self.name)

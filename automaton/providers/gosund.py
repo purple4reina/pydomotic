@@ -1,6 +1,9 @@
 import gosundpy
+import logging
 
 from .base import Provider, Device
+
+logger = logging.getLogger(__name__)
 
 class GosundProvider(Provider):
 
@@ -15,9 +18,12 @@ class GosundDevice(Device):
 
     def turn_on(self):
         self.device.turn_on()
+        logger.debug('device "%s" turned on', self.name)
 
     def turn_off(self):
         self.device.turn_off()
+        logger.debug('device "%s" turned off', self.name)
 
     def switch(self):
         self.device.switch()
+        logger.debug('device "%s" switched', self.name)
