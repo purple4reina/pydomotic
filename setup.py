@@ -45,11 +45,11 @@ setup(
     install_requires=[
         "PyYAML>=6.0,<7.0",
         "astral>=3.0,<4.0",
-        "boto3>=1.26.3,<2.0",  # TODO: only if requested
+        #"boto3>=1.26.3,<2.0",  # TODO: only if requested
         "gosundpy>=0.3.0,<1.0",  # TODO: only if provider requested
         "pyfujitsu>=0.9.0,<1.0",  # TODO: only if provider requested
         "pyowm>=3.3.0,<4.0",  # TODO: only if requested
-        "timezonefinder>=6.1.8,<7.0",
+        #"timezonefinder>=6.1.8,<7.0",  # TODO: only if requested
     ],
     packages=find_packages(),
     python_requires=">=3.7, <4",
