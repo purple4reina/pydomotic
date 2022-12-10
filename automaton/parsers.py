@@ -59,11 +59,13 @@ def _get_config_from_s3(s3):
 
 class _TriggersConf(object):
 
-    def __init__(self, latitude, longitude, aqi_api_key, weather_api_key):
+    def __init__(self, latitude, longitude, aqi_api_key, weather_api_key,
+                timezone):
         self._aqi_api_key = aqi_api_key
         self._latitude = latitude
         self._longitude = longitude
         self._time_sensor = None
+        self._timezone = timezone
         self._weather_api_key = weather_api_key
         self._webhook_sensor = None
 
@@ -77,6 +79,13 @@ class _TriggersConf(object):
             logger.debug('failed to parse location, ignoring: '
                     f'[{e.__class__.__name__}] {e}')
             latitude = longitude = None
+
+        try:
+            timezone = triggers.get('timezone')
+        except Exception as e:
+            logger.debug('failed to parse timezone, ignoring: '
+                    f'[{e.__class__.__name__}] {e}')
+            timezone = None
 
         try:
             aqi = triggers.get('aqi', {})
@@ -94,7 +103,8 @@ class _TriggersConf(object):
                     f'[{e.__class__.__name__}] {e}')
             weather_api_key = None
 
-        return _TriggersConf(latitude, longitude, aqi_api_key, weather_api_key)
+        return _TriggersConf(
+                latitude, longitude, aqi_api_key, weather_api_key, timezone)
 
     @property
     def latitude(self):
@@ -119,9 +129,25 @@ class _TriggersConf(object):
         return self._longitude
 
     @property
+    def timezone(self):
+        if self._timezone is None:
+            raise AutomatonConfigParsingError('timezone is required')
+        if not isinstance(self._timezone, str):
+            raise AutomatonConfigParsingError(
+                    'timezone must be a string, not '
+                    f'{self._timezone.__class__.__name__}')
+        return self._timezone
+
+    @property
     def time_sensor(self):
         if self._time_sensor is None:
-            self._time_sensor = TimeSensor(self.latitude, self.longitude)
+            if self._timezone is not None:
+                self._time_sensor = TimeSensor(timezone=self.timezone)
+            elif self._longitude is not None and self._latitude is not None:
+                self._time_sensor = TimeSensor(self.latitude, self.longitude)
+            else:
+                raise AutomatonConfigParsingError(
+                        'either timezone or latitude/longitude required')
         return self._time_sensor
 
     @property

@@ -33,6 +33,7 @@ triggers:
     api_key: '123abc'
   weather:
     api_key: '123abc'
+  timezone: 'America/Los_Angeles'
 
 automations:
   air-purifier:

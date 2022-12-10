@@ -18,8 +18,9 @@ from automaton.triggers import (AQITrigger, TimeTrigger, IsoWeekdayTrigger, Rand
         SunriseTrigger, SunsetTrigger, TemperatureTrigger, WebhookTrigger)
 
 _test_triggers_conf = _TriggersConf.from_yaml({
-        'location': {'latitude': 40.689, 'longitude': -74.044},
         'aqi': {'api_key': '123abc'},
+        'location': {'latitude': 40.689, 'longitude': -74.044},
+        'timezone': 'America/Los_Angeles',
         'weather': {'api_key': 'abc123'},
 })
 
@@ -124,32 +125,38 @@ def test_parse_yaml():
             assert isinstance(action, exp_cls), 'wrong elses class'
 
 _test__TriggersConf = (
-        ({}, Exception, Exception, Exception),
-        ([], Exception, Exception, Exception),
-        ({'location': None}, Exception, Exception, Exception),
-        ({'location': [123, 456]}, Exception, Exception, Exception),
+        ({}, Exception, Exception, Exception, Exception),
+        ([], Exception, Exception, Exception, Exception),
+        ({'location': None}, Exception, Exception, Exception, Exception),
+        ({'location': [123, 456]}, Exception, Exception, Exception, Exception),
         ({'location': {'latitude': None, 'longitude': None}}, Exception,
-            Exception, Exception),
+            Exception, Exception, Exception),
         ({'location': {'latitude': [123], 'longitude': [456]}}, Exception,
-            Exception, Exception),
+            Exception, Exception, Exception),
         ({'location': {'latitude': '123', 'longitude': '456'}}, Exception,
-            Exception, Exception),
+            Exception, Exception, Exception),
         ({'location': {'latitude': 123, 'longitude': 456}}, 123, 456,
-            Exception),
+            Exception, Exception),
         ({'location': {'latitude': 123.4, 'longitude': 456.7}}, 123.4, 456.7,
+            Exception, Exception),
+        ({'aqi': None}, Exception, Exception, Exception, Exception),
+        ({'aqi': ['abc123']}, Exception, Exception, Exception, Exception),
+        ({'aqi': 'abc123'}, Exception, Exception, Exception, Exception),
+        ({'aqi': {'api_key': None}}, Exception, Exception, Exception, Exception),
+        ({'aqi': {'api_key': ['abc123']}}, Exception, Exception, Exception,
             Exception),
-        ({'aqi': None}, Exception, Exception, Exception),
-        ({'aqi': ['abc123']}, Exception, Exception, Exception),
-        ({'aqi': 'abc123'}, Exception, Exception, Exception),
-        ({'aqi': {'api_key': None}}, Exception, Exception, Exception),
-        ({'aqi': {'api_key': ['abc123']}}, Exception, Exception, Exception),
-        ({'aqi': {'api_key': 12345}}, Exception, Exception, Exception),
-        ({'aqi': {'api_key': 'abc123'}}, Exception, Exception, 'abc123'),
+        ({'aqi': {'api_key': 12345}}, Exception, Exception, Exception,
+            Exception),
+        ({'aqi': {'api_key': 'abc123'}}, Exception, Exception, 'abc123',
+            Exception),
+        ({'timezone': None}, Exception, Exception, Exception, Exception),
+        ({'timezone': 'America/Los_Angeles'}, Exception, Exception, Exception,
+            'America/Los_Angeles'),
 )
 
-@pytest.mark.parametrize('raw_yml,exp_lat,exp_long,exp_api_key',
+@pytest.mark.parametrize('raw_yml,exp_lat,exp_long,exp_api_key,exp_tz',
         _test__TriggersConf)
-def test__TriggersConf(raw_yml, exp_lat, exp_long, exp_api_key):
+def test__TriggersConf(raw_yml, exp_lat, exp_long, exp_api_key, exp_tz):
     triggers_conf = _TriggersConf.from_yaml(raw_yml)
 
     def _test_property(prop_name, expect):
@@ -163,7 +170,9 @@ def test__TriggersConf(raw_yml, exp_lat, exp_long, exp_api_key):
             assert not should_raise, 'should have raised an exception'
 
     def _test_time_sensor():
-        should_raise = exp_lat is Exception or exp_long is Exception
+        loc_missing = exp_lat is Exception and exp_long is Exception
+        tz_missing = exp_tz is Exception
+        should_raise = loc_missing and tz_missing
         try:
             time_sensor_1 = triggers_conf.time_sensor
             time_sensor_2 = triggers_conf.time_sensor
@@ -177,6 +186,7 @@ def test__TriggersConf(raw_yml, exp_lat, exp_long, exp_api_key):
     _test_property('latitude', exp_lat)
     _test_property('longitude', exp_long)
     _test_property('aqi_api_key', exp_api_key)
+    _test_property('timezone', exp_tz)
     _test_time_sensor()
 
 _test__parse_providers = (

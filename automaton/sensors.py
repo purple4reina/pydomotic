@@ -3,7 +3,6 @@ import astral.sun
 import datetime
 import requests
 import zoneinfo
-import timezonefinder
 
 from .utils import cache_value
 
@@ -69,12 +68,16 @@ class TimeSensor(object):
 
     # TODO: test
 
-    def __init__(self, latitude=None, longitude=None):
+    def __init__(self, latitude=None, longitude=None, timezone=None):
         self.latitude = latitude
         self.longitude = longitude
+        self.timezone = timezone
         self._tzinfo = None
 
     def _get_timezone(self):
+        if self.timezone:
+            return self.timezone
+        import timezonefinder
         return timezonefinder.TimezoneFinder().timezone_at(
                 lng=self.longitude, lat=self.latitude)
 
@@ -83,6 +86,7 @@ class TimeSensor(object):
 
     @property
     def tzinfo(self):
+        # TODO: test
         if self._tzinfo is None:
             if self.latitude is None or self.longitude is None:
                 self._tzinfo = datetime.timezone.utc
