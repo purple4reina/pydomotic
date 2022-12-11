@@ -16,8 +16,8 @@ class _timed_cache(object):
         self.last_call = 0
         self.value = None
 
-def cache_value(seconds=0, minutes=0):
-    seconds += minutes * 60
+def cache_value(hours=0, minutes=0, seconds=0):
+    seconds += 60 * 60 * hours + 60 * minutes
     cache = _timed_cache()
     def _rate_limit(fn):
         @functools.wraps(fn)

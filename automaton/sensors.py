@@ -54,11 +54,13 @@ class SunSensor(object):
         self.observer = astral.Observer(latitude=latitude, longitude=longitude)
         self.time_sensor = time_sensor or TimeSensor()
 
+    @cache_value(hours=12)
     def get_sunrise(self):
         now = self.time_sensor.get_current_datetime()
         return astral.sun.sunrise(self.observer, date=now,
                 tzinfo=self.time_sensor.tzinfo)
 
+    @cache_value(hours=12)
     def get_sunset(self):
         now = self.time_sensor.get_current_datetime()
         return astral.sun.sunset(self.observer, date=now,

@@ -7,6 +7,8 @@ _test_cache_value = (
         {'seconds': 3600},
         {'minutes': 60},
         {'seconds': 1800, 'minutes': 30},
+        {'hours': 1},
+        {'hours': 0.5, 'minutes': 30},
 )
 
 @pytest.mark.parametrize('kwargs', _test_cache_value)
