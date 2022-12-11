@@ -75,12 +75,10 @@ class _SunTrigger(_Trigger):
 
     def check(self):
         sun_time = self.sun_sensor_method()
+        sun_minutes = 60*sun_time.hour + sun_time.minute
         now = self.time_sensor.get_current_datetime()
-        for timedelta in self.timedeltas:
-            check_time = sun_time + timedelta
-            if now.hour == check_time.hour and now.minute == check_time.minute:
-                return True
-        return False
+        now_minutes = 60*now.hour + now.minute
+        return now_minutes - sun_minutes in self.timedeltas
 
 class SunriseTrigger(_SunTrigger):
 

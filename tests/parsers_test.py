@@ -713,25 +713,22 @@ def test__parse_random_trigger(value, raises):
     else:
         assert not raises, 'should have raised error'
 
-def _delta_range(start, end):
-    return [datetime.timedelta(minutes=i) for i in range(start, end)]
-
 _test__parse_timedelta = (
-        (1, _delta_range(1, 2), False),
-        ('1', _delta_range(1, 2), False),
-        (-10, _delta_range(-10, -9), False),
-        ('-10', _delta_range(-10, -9), False),
-        ('10-12', _delta_range(10, 13), False),
-        ('10 - 12', _delta_range(10, 13), False),
-        ('-2-0', _delta_range(-2, 1), False),
-        ('-2-1', _delta_range(-2, 2), False),
-        ('-2 - 1', _delta_range(-2, 2), False),
-        ('-2 -1', _delta_range(-2, 2), False),
-        ('-5 - -3', _delta_range(-5, -2), False),
+        (1, list(range(1, 2)), False),
+        ('1', list(range(1, 2)), False),
+        (-10, list(range(-10, -9)), False),
+        ('-10', list(range(-10, -9)), False),
+        ('10-12', list(range(10, 13)), False),
+        ('10 - 12', list(range(10, 13)), False),
+        ('-2-0', list(range(-2, 1)), False),
+        ('-2-1', list(range(-2, 2)), False),
+        ('-2 - 1', list(range(-2, 2)), False),
+        ('-2 -1', list(range(-2, 2)), False),
+        ('-5 - -3', list(range(-5, -2)), False),
         ('1,10-12,15-16',
-            _delta_range(1, 2) + _delta_range(10, 13) + _delta_range(15, 17),
+            list(range(1, 2)) + list(range(10, 13)) + list(range(15, 17)),
             False),
-        ('1, 10-12', _delta_range(1, 2) + _delta_range(10, 13), False),
+        ('1, 10-12', list(range(1, 2)) + list(range(10, 13)), False),
 
         (2.5, None, True),
         ('2.5', None, True),
@@ -746,7 +743,7 @@ _test__parse_timedelta = (
 )
 
 @pytest.mark.parametrize('value,expect,raises', _test__parse_timedelta)
-def test_parse_timedelta(value, expect, raises):
+def test__parse_timedelta(value, expect, raises):
     try:
         assert expect == _parse_timedelta(value)
     except AutomatonConfigParsingError:
@@ -756,12 +753,10 @@ def test_parse_timedelta(value, expect, raises):
     assert raises == raised, 'error handling was wrong'
 
 def test__parse_sunrise_trigger():
-    value = 10
-    trigger = _parse_sunrise_trigger(value, _test_triggers_conf)
+    trigger = _parse_sunrise_trigger(10, _test_triggers_conf)
     assert isinstance(trigger, SunriseTrigger), 'wrong trigger type returnd'
     assert isinstance(trigger.sun_sensor, SunSensor), 'wrong sensor type returned'
-    exp_delta = datetime.timedelta(minutes=value)
-    assert trigger.timedeltas == [exp_delta], 'wrong timedelta on trigger'
+    assert trigger.timedeltas == [10], 'wrong timedelta on trigger'
 
 def test__parse_sunrise_trigger_raises():
     value = '2hrs'
@@ -774,12 +769,10 @@ def test__parse_sunrise_trigger_raises():
     assert raised, 'should have raised error'
 
 def test__parse_sunset_trigger():
-    value = 10
-    trigger = _parse_sunset_trigger(value, _test_triggers_conf)
+    trigger = _parse_sunset_trigger(10, _test_triggers_conf)
     assert isinstance(trigger, SunsetTrigger), 'wrong trigger type returnd'
     assert isinstance(trigger.sun_sensor, SunSensor), 'wrong sensor type returned'
-    exp_delta = datetime.timedelta(minutes=value)
-    assert trigger.timedeltas== [exp_delta], 'wrong timedelta on trigger'
+    assert trigger.timedeltas== [10], 'wrong timedelta on trigger'
 
 def test__parse_sunset_trigger_raises():
     value = '2hrs'

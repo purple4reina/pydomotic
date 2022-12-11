@@ -66,9 +66,8 @@ def test_random_trigger_does_not_fire(patch_random):
     assert not fires, 'trigger fired'
 
 def test_sunrise_trigger_fires(mock_time_sensor, mock_sun_sensor):
-    delta = datetime.timedelta(hours=1, minutes=15)
-    mock_sun_sensor.sunrise = test_time - delta
-    trigger = SunriseTrigger([delta], time_sensor=mock_time_sensor,
+    mock_sun_sensor.sunrise = test_time - datetime.timedelta(minutes=75)
+    trigger = SunriseTrigger([75], time_sensor=mock_time_sensor,
             sun_sensor=mock_sun_sensor)
     fires = trigger.check()
     assert fires, 'trigger did not fire'
@@ -76,9 +75,8 @@ def test_sunrise_trigger_fires(mock_time_sensor, mock_sun_sensor):
     assert not mock_sun_sensor.get_sunset_called, 'sensor.get_sunset called'
 
 def test_sunrise_trigger_does_not_fire(mock_time_sensor, mock_sun_sensor):
-    delta = datetime.timedelta(hours=1, minutes=15)
     mock_sun_sensor.sunrise = test_time
-    trigger = SunriseTrigger([delta], time_sensor=mock_time_sensor,
+    trigger = SunriseTrigger([75], time_sensor=mock_time_sensor,
             sun_sensor=mock_sun_sensor)
     fires = trigger.check()
     assert not fires, 'trigger fired'
@@ -86,9 +84,8 @@ def test_sunrise_trigger_does_not_fire(mock_time_sensor, mock_sun_sensor):
     assert not mock_sun_sensor.get_sunset_called, 'sensor.get_sunset called'
 
 def test_sunset_trigger_fires(mock_time_sensor, mock_sun_sensor):
-    delta = datetime.timedelta(hours=1, minutes=15)
-    mock_sun_sensor.sunset = test_time - delta
-    trigger = SunsetTrigger([delta], time_sensor=mock_time_sensor,
+    mock_sun_sensor.sunset = test_time - datetime.timedelta(minutes=75)
+    trigger = SunsetTrigger([75], time_sensor=mock_time_sensor,
             sun_sensor=mock_sun_sensor)
     fires = trigger.check()
     assert fires, 'trigger did not fire'
@@ -96,9 +93,8 @@ def test_sunset_trigger_fires(mock_time_sensor, mock_sun_sensor):
     assert not mock_sun_sensor.get_sunrise_called, 'sensor.get_sunrise called'
 
 def test_sunset_trigger_does_not_fire(mock_time_sensor, mock_sun_sensor):
-    delta = datetime.timedelta(hours=1, minutes=15)
     mock_sun_sensor.sunset = test_time
-    trigger = SunsetTrigger([delta], time_sensor=mock_time_sensor,
+    trigger = SunsetTrigger([75], time_sensor=mock_time_sensor,
             sun_sensor=mock_sun_sensor)
     fires = trigger.check()
     assert not fires, 'trigger fired'

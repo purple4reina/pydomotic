@@ -450,7 +450,7 @@ def _parse_timedelta(value):
         end_delta = int(float(m.group(4) or start_delta))
         for i in range(start_delta, end_delta+1):
             timedeltas.append(i)
-    return [datetime.timedelta(minutes=i) for i in timedeltas]
+    return timedeltas
 
 def _parse_sunrise_trigger(value, triggers_conf):
     return SunriseTrigger(
