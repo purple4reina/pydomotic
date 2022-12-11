@@ -323,9 +323,7 @@ def _parse_aqi_trigger(value, triggers_conf):
 
 _time_re = re.compile(r'(10|11|12|[1-9]):([0-5][0-9])\s*([ap]m)')
 def _parse_time_trigger(value, triggers_conf):
-    times = []
-    for time in value.split(','):
-        time = time.strip().lower()
+    def _parse_single_time(time):
         m = _time_re.fullmatch(time)
         if not m:
             raise AutomatonConfigParsingError(
@@ -335,8 +333,24 @@ def _parse_time_trigger(value, triggers_conf):
             hour = 0
         if m.group(3) == 'pm':
             hour += 12
-        times.append((hour, minute))
-    return TimeTrigger(*times, time_sensor=triggers_conf.time_sensor)
+        return 60*hour + minute
+
+    times = []
+    for time in value.split(','):
+        time = time.strip().lower()
+        ranged_time = time.split('-')
+        start_time = _parse_single_time(ranged_time[0].strip())
+        if len(ranged_time) == 1:
+            end_time = start_time + 1
+        elif len(ranged_time) == 2:
+            end_time = _parse_single_time(ranged_time[1].strip()) + 1
+        else:
+            raise AutomatonConfigParsingError(
+                    f'unknown time "{time}", expecting time like '
+                    '"HH:MMam-HH:MMam"')
+        for minute in range(start_time, end_time):
+            times.append(minute)
+    return TimeTrigger(times, time_sensor=triggers_conf.time_sensor)
 
 _isoweekdays = {
         'monday': 1,
@@ -359,16 +373,29 @@ _isoweekdays = {
 }
 
 def _parse_weekday_trigger(value, triggers_conf):
-    isoweekdays = []
-    for weekday in value.split(','):
-        weekday = weekday.strip().lower()
+    def _parse_single_day(weekday):
         isoweekday = _isoweekdays.get(weekday)
         if isoweekday is None:
             raise AutomatonConfigParsingError(
                     f'"{weekday}" is not a valid weekday')
-        isoweekdays.append(isoweekday)
-    return IsoWeekdayTrigger(*isoweekdays,
-            time_sensor=triggers_conf.time_sensor)
+        return isoweekday
+
+    isoweekdays = []
+    for weekday in value.split(','):
+        weekday = weekday.strip().lower()
+        ranged_weekday = weekday.split('-')
+        start_weekday = _parse_single_day(ranged_weekday[0].strip())
+        if len(ranged_weekday) == 1:
+            end_weekday = start_weekday + 1
+        elif len(ranged_weekday) == 2:
+            end_weekday = _parse_single_day(ranged_weekday[1].strip()) + 1
+            if end_weekday <= start_weekday:
+                end_weekday += 7
+        else:
+            raise AutomatonConfigParsingError(f'unknown weekday "{weekday}"')
+        for isoweekday in range(start_weekday, end_weekday):
+            isoweekdays.append(isoweekday % 7 or 7)
+    return IsoWeekdayTrigger(isoweekdays, time_sensor=triggers_conf.time_sensor)
 
 def _parse_random_trigger(value, triggers_conf):
     probability = float(value)
