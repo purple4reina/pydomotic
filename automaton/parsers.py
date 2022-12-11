@@ -424,25 +424,59 @@ def _parse_sunset_trigger(value, triggers_conf):
             time_sensor=triggers_conf.time_sensor,
     )
 
-_temp_value_re = re.compile(r'(<|>|==)\s*(\d+)')
+_temp_value_re = re.compile(r'(<|>|==|<=|>=)?\s*(\d+\.?\d*)')
 def _parse_temp_trigger(value, triggers_conf):
-    if not isinstance(value, str):
+    if not isinstance(value, (str, int, float)):
         raise AutomatonConfigParsingError(
                 f'invalid temp trigger value "{value}", expecting value like '
-                '">100", "<100", or "==100"')
-    m = _temp_value_re.fullmatch(value)
-    if not m:
-        raise AutomatonConfigParsingError(
-                f'invalid temp trigger value "{value}", expecting value like '
-                '">100", "<100", or "==100"')
-    num = int(m.group(2))
-    if m.group(1) == '>':
-        _check_func = lambda a: a > num
-    elif m.group(1) == '<':
-        _check_func = lambda a: a < num
-    elif m.group(1) == '==':
-        _check_func = lambda a: a == num
+                '">100", "<100", or "100"')
 
+    def _ranged_func(start, end):
+        return lambda a: a >= start and a <= end
+
+    def _relative_func(op, num):
+        if op == '>':
+            return lambda a: a > num
+        elif op == '<':
+            return lambda a: a < num
+        elif op == '==':
+            return lambda a: a == num
+        elif op == '>=':
+            return lambda a: a >= num
+        elif op == '<=':
+            return lambda a: a <= num
+        elif op == None:
+            return lambda a: a == num
+
+    _check_funcs = []
+    for temp in str(value).split(','):
+        temp = temp.strip().lower()
+        ranged_temp = temp.split('-')
+
+        if len(ranged_temp) == 1:
+            m = _temp_value_re.fullmatch(ranged_temp[0].strip())
+            if not m:
+                raise AutomatonConfigParsingError(
+                        f'invalid temp trigger value "{temp}", expecting value like '
+                        '">100", "<100", or "100"')
+            _check_func =_relative_func(m.group(1), float(m.group(2)))
+
+        elif len(ranged_temp) == 2:
+            try:
+                start_temp = float(ranged_temp[0])
+                end_temp = float(ranged_temp[1])
+                _check_func = _ranged_func(start_temp, end_temp)
+            except:
+                raise AutomatonConfigParsingError(
+                        f'invalid temp trigger value "{temp}", expecting value '
+                        'like "80-100"')
+
+        else:
+            raise AutomatonConfigParsingError(f'unknown temp "{temp}')
+
+        _check_funcs.append(_check_func)
+
+    _check_func = lambda a: any(fn(a) for fn in _check_funcs)
     return TemperatureTrigger(_check_func, api_key=triggers_conf.weather_api_key,
             latitude=triggers_conf.latitude, longitude=triggers_conf.longitude)
 

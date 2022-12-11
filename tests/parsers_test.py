@@ -747,10 +747,26 @@ def test__parse_sunset_trigger_raises():
 _test__parse_temp_trigger = (
         ('<10', lambda a: a < 10),
         ('< 10', lambda a: a < 10),
+        ('> 10', lambda a: a > 10),
+        ('>10', lambda a: a > 10),
+
         ('==10', lambda a: a == 10),
         ('== 10', lambda a: a == 10),
-        ('>10', lambda a: a > 10),
-        ('> 10', lambda a: a > 10),
+
+        ('<=10', lambda a: a <= 10),
+        ('>=10', lambda a : a >= 10),
+        ('>= 10', lambda a : a >= 10),
+
+        ('10-20', lambda a: a>=10 and a<=20),
+        ('30-31,40-41,50,>60', lambda a: (
+            (a>=30 and a<=31) or (a>=40 and a<=41) or (a==50) or (a>60))),
+        ('100-90', lambda a: False),
+        ('<10,>90', lambda a: a < 10 or a > 90),
+        ('>66.8', lambda a: a > 66.8),
+        ('65.5-66.5', lambda a: a >= 65.5 and a <= 66.5),
+        ('65.5', lambda a: a == 65.5),
+        (65.5, lambda a: a == 65.5),
+        (60, lambda a: a == 60),
 )
 
 @pytest.mark.parametrize('value,expect', _test__parse_temp_trigger)
@@ -768,20 +784,26 @@ def test__parse_temp_trigger(value, expect, mock_weather_sensor):
         assert actual.check() == expect(i), (
                 f'wrong value returned by func at index {i}')
 
-_test__parse_temp_trigger_cannot_run_aribtrary_code = (
+        mock_weather_sensor.temp = i + 0.5
+        assert actual.check() == expect(i + 0.5), (
+                f'wrong value returned by func at index {i+0.5}')
+
+_test__parse_temp_trigger_failures = (
         '>purple',
         '< green',
         '=10',
         '+10',
         '- 10',
         '> 10 ; print("hello world")',
-        '10',
-        10,
+        '<10-20',
+        '10->20',
+        '==10-30',
+        '10-20-30',
+        {'hello': 'world'},
 )
 
-@pytest.mark.parametrize('value',
-        _test__parse_temp_trigger_cannot_run_aribtrary_code)
-def test__parse_temp_trigger_cannot_run_aribtrary_code(value):
+@pytest.mark.parametrize('value', _test__parse_temp_trigger_failures)
+def test__parse_temp_trigger_failures(value):
     try:
         _parse_temp_trigger(value, _test_triggers_conf)
     except AutomatonConfigParsingError:
