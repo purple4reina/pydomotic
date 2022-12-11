@@ -102,6 +102,11 @@ _test_parse_yaml_expect = [
             ifs=[WebhookTrigger, IsoWeekdayTrigger],
             thens=[TurnOffAction],
         ),
+        Component(
+            name='ranges 0',
+            ifs=[AQITrigger, IsoWeekdayTrigger, TimeTrigger, SunriseTrigger,
+                SunsetTrigger, TemperatureTrigger],
+        ),
 ]
 
 def test_parse_yaml():

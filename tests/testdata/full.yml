@@ -118,6 +118,7 @@ automations:
           temp: '>75'
 
   webhooks:
+    enabled: true
     components:
       - if:
           weekday: monday,tuesday,wednesday,thursday,friday
@@ -134,3 +135,14 @@ automations:
           weekday: monday,tuesday,wednesday,thursday,friday
         then:
           turn-off: bulb-A
+
+  ranges:
+    enabled: true
+    components:
+      - if:
+          aqi: 25-75
+          weekday: mon-fri
+          time: 10:00am-10:00pm
+          sunrise: 60-120
+          sunset: 60-120
+          temp: 60-90
