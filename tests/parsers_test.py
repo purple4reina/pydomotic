@@ -713,11 +713,36 @@ def test__parse_random_trigger(value, raises):
     else:
         assert not raises, 'should have raised error'
 
+def _delta_range(start, end):
+    return [datetime.timedelta(minutes=i) for i in range(start, end)]
+
 _test__parse_timedelta = (
-        (1, datetime.timedelta(minutes=1), False),
-        (2.5, datetime.timedelta(minutes=2), False),
-        (-10, datetime.timedelta(minutes=-10), False),
+        (1, _delta_range(1, 2), False),
+        ('1', _delta_range(1, 2), False),
+        (-10, _delta_range(-10, -9), False),
+        ('-10', _delta_range(-10, -9), False),
+        ('10-12', _delta_range(10, 13), False),
+        ('10 - 12', _delta_range(10, 13), False),
+        ('-2-0', _delta_range(-2, 1), False),
+        ('-2-1', _delta_range(-2, 2), False),
+        ('-2 - 1', _delta_range(-2, 2), False),
+        ('-2 -1', _delta_range(-2, 2), False),
+        ('-5 - -3', _delta_range(-5, -2), False),
+        ('1,10-12,15-16',
+            _delta_range(1, 2) + _delta_range(10, 13) + _delta_range(15, 17),
+            False),
+        ('1, 10-12', _delta_range(1, 2) + _delta_range(10, 13), False),
+
+        (2.5, None, True),
+        ('2.5', None, True),
+        ('2.5-3.5', None, True),
         ('2hrs', None, True),
+        ('>2', None, True),
+        ('<2', None, True),
+        ('==2', None, True),
+        ('10-', None, True),
+        ('- 10', None, True),
+        ('2:60', None, True),
 )
 
 @pytest.mark.parametrize('value,expect,raises', _test__parse_timedelta)
@@ -736,7 +761,7 @@ def test__parse_sunrise_trigger():
     assert isinstance(trigger, SunriseTrigger), 'wrong trigger type returnd'
     assert isinstance(trigger.sun_sensor, SunSensor), 'wrong sensor type returned'
     exp_delta = datetime.timedelta(minutes=value)
-    assert trigger.timedelta == exp_delta, 'wrong timedelta on trigger'
+    assert trigger.timedeltas == [exp_delta], 'wrong timedelta on trigger'
 
 def test__parse_sunrise_trigger_raises():
     value = '2hrs'
@@ -754,7 +779,7 @@ def test__parse_sunset_trigger():
     assert isinstance(trigger, SunsetTrigger), 'wrong trigger type returnd'
     assert isinstance(trigger.sun_sensor, SunSensor), 'wrong sensor type returned'
     exp_delta = datetime.timedelta(minutes=value)
-    assert trigger.timedelta == exp_delta, 'wrong timedelta on trigger'
+    assert trigger.timedeltas== [exp_delta], 'wrong timedelta on trigger'
 
 def test__parse_sunset_trigger_raises():
     value = '2hrs'

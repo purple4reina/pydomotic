@@ -63,10 +63,10 @@ class _SunTrigger(_Trigger):
     # TODO: test timezone
     # TODO: test lat/long
 
-    def __init__(self, timedelta, latitude=0, longitude=0, time_sensor=None,
+    def __init__(self, timedeltas, latitude=0, longitude=0, time_sensor=None,
             sun_sensor=None):
         from .sensors import SunSensor
-        self.timedelta = timedelta
+        self.timedeltas = timedeltas
         self.time_sensor = time_sensor or TimeSensor()
         self.sun_sensor = sun_sensor or SunSensor(latitude=latitude,
                 longitude=longitude, time_sensor=self.time_sensor)
@@ -75,9 +75,12 @@ class _SunTrigger(_Trigger):
 
     def check(self):
         sun_time = self.sun_sensor_method()
-        check_time = sun_time + self.timedelta
         now = self.time_sensor.get_current_datetime()
-        return now.hour == check_time.hour and now.minute == check_time.minute
+        for timedelta in self.timedeltas:
+            check_time = sun_time + timedelta
+            if now.hour == check_time.hour and now.minute == check_time.minute:
+                return True
+        return False
 
 class SunriseTrigger(_SunTrigger):
 

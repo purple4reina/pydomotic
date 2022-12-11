@@ -437,12 +437,20 @@ def _parse_random_trigger(value, triggers_conf):
     probability = float(value)
     return RandomTrigger(probability)
 
+_ranged_timedelta_re = re.compile(r'(-?\d+)((\s*-\s*)(-?\d+))?')
 def _parse_timedelta(value):
-    if isinstance(value, (int, float)):
-        return datetime.timedelta(minutes=int(value))
-    raise AutomatonConfigParsingError(
-            f'unknown time delta "{value}", expecting value like "2:15" '
-            'or integer minutes')
+    timedeltas = []
+    for delta in str(value).split(','):
+        m = _ranged_timedelta_re.fullmatch(delta.strip())
+        if not m:
+            raise AutomatonConfigParsingError(
+                    f'unknown time delta "{value}", expecting value like '
+                    '"60", "60-120", or "2:15"')
+        start_delta = int(float(m.group(1)))
+        end_delta = int(float(m.group(4) or start_delta))
+        for i in range(start_delta, end_delta+1):
+            timedeltas.append(i)
+    return [datetime.timedelta(minutes=i) for i in timedeltas]
 
 def _parse_sunrise_trigger(value, triggers_conf):
     return SunriseTrigger(
