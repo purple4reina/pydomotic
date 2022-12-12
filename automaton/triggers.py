@@ -45,8 +45,9 @@ class TimeTrigger(_Trigger):
 
     def check(self):
         now = self.time_sensor.get_current_datetime()
-        for minute in self.times:
-            if minute == 60*now.hour + now.minute:
+        now_minutes = 60*now.hour + now.minute
+        for minutes in self.times:
+            if minutes == now_minutes:
                 return True
         return False
 
