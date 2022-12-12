@@ -90,10 +90,11 @@ class TimeSensor(object):
     def tzinfo(self):
         # TODO: test
         if self._tzinfo is None:
-            if self.latitude is None or self.longitude is None:
-                self._tzinfo = datetime.timezone.utc
-            else:
+            if self.timezone or (
+                    self.latitude is not None and self.longitude is not None):
                 self._tzinfo = zoneinfo.ZoneInfo(self._get_timezone())
+            else:
+                self._tzinfo = datetime.timezone.utc
         return self._tzinfo
 
 class WeatherSensor(object):

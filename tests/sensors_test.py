@@ -1,7 +1,11 @@
 import datetime
 import pytest
 
-from automaton.sensors import AQISensor, AQISensorError, SunSensor
+from automaton.sensors import AQISensor, AQISensorError, SunSensor, TimeSensor
+
+_test_latitude, _test_longitude, _test_tz_pst, _test_tz_utc, _test_tz_est = (
+        40.68968910058536, -74.04450029112631,
+        'America/Los_Angeles', 'UTC', 'America/New_York')
 
 @pytest.fixture(autouse=True)
 def reset_get_aqi_cache():
@@ -82,3 +86,51 @@ def test_sun_sensor_get_sunset(mock_time_sensor):
     assert actual.day == 4, 'wrong day returned'
     assert actual.hour == 17, 'wrong hour returned'
     assert actual.minute == 18, 'wrong minute returned'
+
+_test_TimeSensor_tzinfo = (
+        ({
+            'latitude': None,
+            'longitude': None,
+            'timezone': None,
+        }, _test_tz_utc),
+        ({
+            'latitude': None,
+            'longitude': None,
+            'timezone': _test_tz_pst,
+        }, _test_tz_pst),
+        ({
+            'latitude': None,
+            'longitude': _test_longitude,
+            'timezone': None,
+        }, _test_tz_utc),
+        ({
+            'latitude': None,
+            'longitude': _test_longitude,
+            'timezone': _test_tz_pst,
+        }, _test_tz_pst),
+        ({
+            'latitude': _test_latitude,
+            'longitude': None,
+            'timezone': None,
+        }, _test_tz_utc),
+        ({
+            'latitude': _test_latitude,
+            'longitude': None,
+            'timezone': _test_tz_pst,
+        }, _test_tz_pst),
+        ({
+            'latitude': _test_latitude,
+            'longitude': _test_longitude,
+            'timezone': None,
+        }, _test_tz_est),
+        ({
+            'latitude': _test_latitude,
+            'longitude': _test_longitude,
+            'timezone': _test_tz_pst,
+        }, _test_tz_pst),
+)
+
+@pytest.mark.parametrize('kwargs,expect', _test_TimeSensor_tzinfo)
+def test_TimeSensor_tzinfo(kwargs, expect):
+    tzinfo = TimeSensor(**kwargs).tzinfo
+    assert expect == str(tzinfo)
