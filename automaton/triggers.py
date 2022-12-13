@@ -27,7 +27,7 @@ class IsoWeekdayTrigger(_Trigger):
 
     # TODO: test timezone
 
-    def __init__(self, isoweekdays, time_sensor=None):
+    def __init__(self, isoweekdays, time_sensor):
         self.isoweekdays = isoweekdays
         self.time_sensor = time_sensor or TimeSensor()
 
@@ -39,7 +39,7 @@ class TimeTrigger(_Trigger):
 
     # TODO: test timezone
 
-    def __init__(self, times, time_sensor=None):
+    def __init__(self, times, time_sensor):
         self.times = times
         self.time_sensor = time_sensor or TimeSensor()
 
