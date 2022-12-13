@@ -268,6 +268,7 @@ def _parse_components(automations, devices, triggers_conf):
                 ifs=_parse_triggers(ifs, triggers_conf),
                 thens=_parse_actions(thens, devices),
                 elses=_parse_actions(elses, devices),
+                enabled=True,
             ))
     return components
 

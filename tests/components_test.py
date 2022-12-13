@@ -6,6 +6,7 @@ from automaton.components import Component
 def test_component_one_true_if(mock_true_trigger, mock_action_1,
         mock_action_2):
     comp = Component(
+            name='unknown',
             ifs=[mock_true_trigger],
             thens=[mock_action_1],
             elses=[mock_action_2],
@@ -18,6 +19,7 @@ def test_component_one_true_if(mock_true_trigger, mock_action_1,
 def test_component_one_false_if(mock_false_trigger, mock_action_1,
         mock_action_2):
     comp = Component(
+            name='unknown',
             ifs=[mock_false_trigger],
             thens=[mock_action_1],
             elses=[mock_action_2],
@@ -30,6 +32,7 @@ def test_component_one_false_if(mock_false_trigger, mock_action_1,
 def test_component_one_true_if_one_false_if(mock_true_trigger,
         mock_false_trigger, mock_action_1, mock_action_2):
     comp = Component(
+            name='unknown',
             ifs=[mock_false_trigger, mock_true_trigger],
             thens=[mock_action_1],
             elses=[mock_action_2],
@@ -43,8 +46,10 @@ def test_component_one_true_if_one_false_if(mock_true_trigger,
 def test_component_multiple_thens(mock_true_trigger, mock_raising_action,
         mock_action_1):
     comp = Component(
+            name='unknown',
             ifs=[mock_true_trigger],
             thens=[mock_raising_action, mock_action_1],
+            elses=[],
     )
     try:
         comp.run()
@@ -59,7 +64,9 @@ def test_component_multiple_thens(mock_true_trigger, mock_raising_action,
 def test_component_multiple_elses(mock_false_trigger, mock_raising_action,
         mock_action_1):
     comp = Component(
+            name='unknown',
             ifs=[mock_false_trigger],
+            thens=[],
             elses=[mock_raising_action, mock_action_1],
     )
     try:
@@ -73,9 +80,9 @@ def test_component_multiple_elses(mock_false_trigger, mock_raising_action,
     assert mock_action_1.run_called, 'action.run not called'
 
 def test_component_name():
-    comp = Component(name='purple')
+    comp = Component(name='purple', ifs=[], thens=[], elses=[])
     assert comp.name == 'purple', 'wrong component name'
-    comp = Component()
+    comp = Component(name=None, ifs=[], thens=[], elses=[])
     assert comp.name == 'unknown', 'wrong component name'
 
 _test_components_logging = (

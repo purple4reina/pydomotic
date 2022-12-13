@@ -4,11 +4,11 @@ logger = logging.getLogger(__name__)
 
 class Component(object):
 
-    def __init__(self, name=None, ifs=None, thens=None, elses=None, enabled=True):
+    def __init__(self, name, ifs, thens, elses, enabled=True):
         self.name = name or 'unknown'
-        self.ifs = ifs or []
-        self.thens = thens or []
-        self.elses = elses or []
+        self.ifs = ifs
+        self.thens = thens
+        self.elses = elses
         self.enabled = enabled
 
     def run(self):

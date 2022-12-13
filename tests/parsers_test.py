@@ -39,41 +39,49 @@ _test_parse_yaml_expect = [
             name='party-light 0',
             ifs=[IsoWeekdayTrigger, TimeTrigger],
             thens=[TurnOnAction],
+            elses=[],
         ),
         Component(
             name='party-light 1',
             ifs=[IsoWeekdayTrigger, TimeTrigger],
             thens=[TurnOffAction],
+            elses=[],
         ),
         Component(
             name='floor-lamp 0',
             ifs=[SunsetTrigger],
             thens=[TurnOnAction],
+            elses=[],
         ),
         Component(
             name='floor-lamp 1',
             ifs=[TimeTrigger],
             thens=[TurnOnAction, TurnOnAction],
+            elses=[],
         ),
         Component(
             name='floor-lamp 2',
             ifs=[IsoWeekdayTrigger, TimeTrigger],
             thens=[TurnOffAction],
+            elses=[],
         ),
         Component(
             name='floor-lamp 3',
             ifs=[IsoWeekdayTrigger, TimeTrigger],
             thens=[TurnOffAction],
+            elses=[],
         ),
         Component(
             name='floor-lamp 4',
             ifs=[IsoWeekdayTrigger, TimeTrigger],
             thens=[TurnOffAction],
+            elses=[],
         ),
         Component(
             name='floor-lamp 5',
             ifs=[IsoWeekdayTrigger, TimeTrigger],
             thens=[TurnOffAction],
+            elses=[],
         ),
         Component(
             name='edge-cases 0',
@@ -91,21 +99,26 @@ _test_parse_yaml_expect = [
             name='webhooks 0',
             ifs=[IsoWeekdayTrigger, WebhookTrigger],
             thens=[TurnOnAction],
+            elses=[],
         ),
         Component(
             name='webhooks 1',
             ifs=[IsoWeekdayTrigger, WebhookTrigger],
             thens=[TurnOnAction],
+            elses=[],
         ),
         Component(
             name='webhooks 2',
             ifs=[WebhookTrigger, IsoWeekdayTrigger],
             thens=[TurnOffAction],
+            elses=[],
         ),
         Component(
             name='ranges 0',
             ifs=[AQITrigger, IsoWeekdayTrigger, TimeTrigger, SunriseTrigger,
                 SunsetTrigger, TemperatureTrigger],
+            thens=[],
+            elses=[],
         ),
 ]
 
@@ -386,7 +399,21 @@ _test__parse_components = (
         ({'automation-1': {'enabled': False}}, []),
         ({'automation-2': {'enabled': True}}, []),
         ({'automation-3': {'components': []}}, []),
-        ({'automation-4': {'components': [{}]}}, [Component()]),
+        (
+            {
+                'automation-4': {
+                    'components': [{}],
+                },
+            },
+            [
+                Component(
+                    name='automation-4 0',
+                    ifs=[],
+                    thens=[],
+                    elses=[],
+                ),
+            ],
+        ),
         (
             {
                 'automation-5': {
@@ -402,6 +429,7 @@ _test__parse_components = (
             },
             [
                 Component(
+                    name='automation-5 0',
                     ifs=[AQITrigger, IsoWeekdayTrigger],
                     thens=[TurnOnAction, TurnOnAction],
                     elses=[TurnOffAction, TurnOffAction],
@@ -417,7 +445,12 @@ _test__parse_components = (
                 },
             },
             [
-                Component(ifs=[AQITrigger]),
+                Component(
+                    name='automation-6 0',
+                    ifs=[AQITrigger],
+                    thens=[],
+                    elses=[],
+                ),
             ],
         ),
         (
@@ -430,8 +463,18 @@ _test__parse_components = (
                 },
             },
             [
-                Component(ifs=[AQITrigger]),
-                Component(ifs=[AQITrigger]),
+                Component(
+                    name='automation-7 0',
+                    ifs=[AQITrigger],
+                    thens=[],
+                    elses=[],
+                ),
+                Component(
+                    name='automation-7 1',
+                    ifs=[AQITrigger],
+                    thens=[],
+                    elses=[],
+                ),
             ],
         ),
         (
@@ -448,8 +491,18 @@ _test__parse_components = (
                 },
             },
             [
-                Component(ifs=[AQITrigger]),
-                Component(ifs=[AQITrigger]),
+                Component(
+                    name='automation-8 0',
+                    ifs=[AQITrigger],
+                    thens=[],
+                    elses=[],
+                ),
+                Component(
+                    name='automation-9 0',
+                    ifs=[AQITrigger],
+                    thens=[],
+                    elses=[],
+                ),
             ],
         ),
         (
@@ -466,8 +519,18 @@ _test__parse_components = (
                 },
             },
             [
-                Component(ifs=[WebhookTrigger]),
-                Component(ifs=[AQITrigger, WebhookTrigger]),
+                Component(
+                    name='automation-10 0',
+                    ifs=[WebhookTrigger],
+                    thens=[],
+                    elses=[],
+                ),
+                Component(
+                    name='automation-11 0',
+                    ifs=[AQITrigger, WebhookTrigger],
+                    thens=[],
+                    elses=[],
+                ),
             ],
         ),
 )
@@ -484,6 +547,7 @@ def test__parse_components(automations, expects):
     for actual, expect in zip(actuals, expects):
         assert isinstance(actual, Component), 'wrong type returned'
         assert actual.enabled, 'action should be enabled'
+        assert actual.name == expect.name, 'wrong name assigned'
         assert len(actual.ifs) == len(expect.ifs), 'wrong number of ifs'
         for trigger, exp_cls in zip(actual.ifs, expect.ifs):
             assert isinstance(trigger, exp_cls), 'wrong trigger class'
