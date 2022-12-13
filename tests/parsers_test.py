@@ -208,7 +208,7 @@ def test__TriggersConf(raw_yml, exp_lat, exp_long, exp_api_key, exp_tz):
     _test_time_sensor()
 
 _test__parse_providers = (
-        ({}, {}, False),
+        ({}, {'noop': NoopProvider}, False),
         ({'purple': None}, {}, True),
         (
             {
@@ -219,7 +219,7 @@ _test__parse_providers = (
                     'access_key': 'access_key',
                 },
             },
-            {'gosund': GosundProvider},
+            {'noop': NoopProvider, 'gosund': GosundProvider},
             False,
         ),
         (
@@ -237,7 +237,7 @@ _test__parse_providers = (
                 },
                 'noop': None,
             },
-            {'gosund': GosundProvider, 'noop': NoopProvider},
+            {'noop': NoopProvider, 'gosund': GosundProvider,},
             False,
         ),
 )

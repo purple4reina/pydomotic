@@ -178,13 +178,15 @@ class _TriggersConf(object):
         return self._webhook_sensor
 
 def _parse_providers(providers_conf):
-    providers = {}
+    providers = {
+            'noop': NoopProvider(),
+    }
     for name, provider in providers_conf.items():
         logging.info(f'preparing provider {name}')
         if name == 'gosund':
             providers['gosund'] = _parse_gosund_provider(provider)
         elif name == 'noop':
-            providers['noop'] = NoopProvider()
+            pass  # already added
         elif name == 'fujitsu':
             providers['fujitsu'] = _parse_fujitsu_provider(provider)
         else:
