@@ -14,8 +14,8 @@ class _Trigger(metaclass=ObjectMetaclass):
 
 class AQITrigger(_Trigger):
 
-    def __init__(self, check_func, aqi_sensor=None, api_key=None,
-            latitude=None, longitude=None):
+    def __init__(self, check_func, api_key, latitude, longitude,
+            aqi_sensor=None):
         self.check_func = check_func
         self.aqi_sensor = aqi_sensor or AQISensor(api_key, latitude, longitude)
 
@@ -64,7 +64,7 @@ class _SunTrigger(_Trigger):
     # TODO: test timezone
     # TODO: test lat/long
 
-    def __init__(self, timedeltas, latitude=0, longitude=0, time_sensor=None,
+    def __init__(self, timedeltas, latitude, longitude, time_sensor,
             sun_sensor=None):
         from .sensors import SunSensor
         self.timedeltas = timedeltas

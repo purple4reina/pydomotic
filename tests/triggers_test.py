@@ -9,7 +9,8 @@ def test_aqi_trigger_fires(mock_aqi_sensor):
     mock_aqi_sensor.aqi = 200
     def check_func(aqi):
         return aqi > 100
-    trigger = AQITrigger(check_func, aqi_sensor=mock_aqi_sensor)
+    trigger = AQITrigger(check_func, api_key=None, latitude=None,
+            longitude=None, aqi_sensor=mock_aqi_sensor)
     fires = trigger.check()
     assert fires, 'trigger did not fire'
     assert mock_aqi_sensor.get_aqi_called, 'sensor.get_aqi not called'
@@ -18,7 +19,8 @@ def test_aqi_trigger_does_not_fire(mock_aqi_sensor):
     mock_aqi_sensor.aqi = 50
     def check_func(aqi):
         return aqi > 100
-    trigger = AQITrigger(check_func, aqi_sensor=mock_aqi_sensor)
+    trigger = AQITrigger(check_func, api_key=None, latitude=None,
+            longitude=None, aqi_sensor=mock_aqi_sensor)
     fires = trigger.check()
     assert not fires, 'trigger fired'
     assert mock_aqi_sensor.get_aqi_called, 'sensor.get_aqi not called'
@@ -67,8 +69,8 @@ def test_random_trigger_does_not_fire(patch_random):
 
 def test_sunrise_trigger_fires(mock_time_sensor, mock_sun_sensor):
     mock_sun_sensor.sunrise = test_time - datetime.timedelta(minutes=75)
-    trigger = SunriseTrigger([75], time_sensor=mock_time_sensor,
-            sun_sensor=mock_sun_sensor)
+    trigger = SunriseTrigger([75], latitude=0, longitude=0,
+            time_sensor=mock_time_sensor, sun_sensor=mock_sun_sensor)
     fires = trigger.check()
     assert fires, 'trigger did not fire'
     assert mock_sun_sensor.get_sunrise_called, 'sensor.get_sunrise not called'
@@ -76,8 +78,8 @@ def test_sunrise_trigger_fires(mock_time_sensor, mock_sun_sensor):
 
 def test_sunrise_trigger_does_not_fire(mock_time_sensor, mock_sun_sensor):
     mock_sun_sensor.sunrise = test_time
-    trigger = SunriseTrigger([75], time_sensor=mock_time_sensor,
-            sun_sensor=mock_sun_sensor)
+    trigger = SunriseTrigger([75], latitude=0, longitude=0,
+            time_sensor=mock_time_sensor, sun_sensor=mock_sun_sensor)
     fires = trigger.check()
     assert not fires, 'trigger fired'
     assert mock_sun_sensor.get_sunrise_called, 'sensor.get_sunrise not called'
@@ -85,8 +87,8 @@ def test_sunrise_trigger_does_not_fire(mock_time_sensor, mock_sun_sensor):
 
 def test_sunset_trigger_fires(mock_time_sensor, mock_sun_sensor):
     mock_sun_sensor.sunset = test_time - datetime.timedelta(minutes=75)
-    trigger = SunsetTrigger([75], time_sensor=mock_time_sensor,
-            sun_sensor=mock_sun_sensor)
+    trigger = SunsetTrigger([75], latitude=0, longitude=0,
+            time_sensor=mock_time_sensor, sun_sensor=mock_sun_sensor)
     fires = trigger.check()
     assert fires, 'trigger did not fire'
     assert mock_sun_sensor.get_sunset_called, 'sensor.get_sunset not called'
@@ -94,8 +96,8 @@ def test_sunset_trigger_fires(mock_time_sensor, mock_sun_sensor):
 
 def test_sunset_trigger_does_not_fire(mock_time_sensor, mock_sun_sensor):
     mock_sun_sensor.sunset = test_time
-    trigger = SunsetTrigger([75], time_sensor=mock_time_sensor,
-            sun_sensor=mock_sun_sensor)
+    trigger = SunsetTrigger([75], latitude=0, longitude=0,
+            time_sensor=mock_time_sensor, sun_sensor=mock_sun_sensor)
     fires = trigger.check()
     assert not fires, 'trigger fired'
     assert mock_sun_sensor.get_sunset_called, 'sensor.get_sunset not called'

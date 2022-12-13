@@ -92,45 +92,50 @@ _test_TimeSensor_tzinfo = (
             'latitude': None,
             'longitude': None,
             'timezone': None,
-        }, _test_tz_utc),
+        }, None, True),
         ({
             'latitude': None,
             'longitude': None,
             'timezone': _test_tz_pst,
-        }, _test_tz_pst),
+        }, _test_tz_pst, False),
         ({
             'latitude': None,
             'longitude': _test_longitude,
             'timezone': None,
-        }, _test_tz_utc),
+        }, _test_tz_utc, False),
         ({
             'latitude': None,
             'longitude': _test_longitude,
             'timezone': _test_tz_pst,
-        }, _test_tz_pst),
+        }, _test_tz_pst, False),
         ({
             'latitude': _test_latitude,
             'longitude': None,
             'timezone': None,
-        }, _test_tz_utc),
+        }, _test_tz_utc, False),
         ({
             'latitude': _test_latitude,
             'longitude': None,
             'timezone': _test_tz_pst,
-        }, _test_tz_pst),
+        }, _test_tz_pst, False),
         ({
             'latitude': _test_latitude,
             'longitude': _test_longitude,
             'timezone': None,
-        }, _test_tz_est),
+        }, _test_tz_est, False),
         ({
             'latitude': _test_latitude,
             'longitude': _test_longitude,
             'timezone': _test_tz_pst,
-        }, _test_tz_pst),
+        }, _test_tz_pst, False),
 )
 
-@pytest.mark.parametrize('kwargs,expect', _test_TimeSensor_tzinfo)
-def test_TimeSensor_tzinfo(kwargs, expect):
-    tzinfo = TimeSensor(**kwargs).tzinfo
-    assert expect == str(tzinfo)
+@pytest.mark.parametrize('kwargs,expect,raises', _test_TimeSensor_tzinfo)
+def test_TimeSensor_tzinfo(kwargs, expect, raises):
+    try:
+        tzinfo = TimeSensor(**kwargs).tzinfo
+    except Exception:
+        assert raises, 'should have raised exception'
+    else:
+        assert not raises, 'should not have raised exception'
+        assert expect == str(tzinfo)

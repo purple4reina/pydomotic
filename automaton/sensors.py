@@ -50,7 +50,7 @@ class SunSensor(object):
 
     # TODO: test timezone
 
-    def __init__(self, latitude=0, longitude=0, time_sensor=None):
+    def __init__(self, latitude, longitude, time_sensor):
         self.observer = astral.Observer(latitude=latitude, longitude=longitude)
         self.time_sensor = time_sensor or TimeSensor()
 
@@ -71,6 +71,8 @@ class TimeSensor(object):
     # TODO: test
 
     def __init__(self, latitude=None, longitude=None, timezone=None):
+        if not latitude and not longitude and not timezone:
+            raise TypeError('timezone or latitude/longitude required')
         self.latitude = latitude
         self.longitude = longitude
         self.timezone = timezone

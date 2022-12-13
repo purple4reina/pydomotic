@@ -144,7 +144,8 @@ class _TriggersConf(object):
             if self._timezone is not None:
                 self._time_sensor = TimeSensor(timezone=self.timezone)
             elif self._longitude is not None and self._latitude is not None:
-                self._time_sensor = TimeSensor(self.latitude, self.longitude)
+                self._time_sensor = TimeSensor(latitude=self.latitude,
+                        longitude=self.longitude)
             else:
                 raise AutomatonConfigParsingError(
                         'either timezone or latitude/longitude required')
