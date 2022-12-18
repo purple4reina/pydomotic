@@ -125,3 +125,15 @@ class WebhookSensor(object):
         http = event.get('requestContext', {}).get('http', {})
         self.path = http.get('path')
         self.method = http.get('method')
+
+class DeviceSensor(object):
+
+    def __init__(self, device):
+        self.device = device
+
+    def __getattr__(self, attr):
+        if attr == 'device':
+            return self.device
+        if attr in dir(self.device):
+            return getattr(self.device, attr)
+        return super().__getattr__(self, attr)

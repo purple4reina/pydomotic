@@ -25,6 +25,16 @@ devices:
     provider: noop
     type: light-bulb
     id: 'abc123'
+  sensor-A:
+    description: temp/humidity sensor
+    provider: noop
+    type: temperature and humidity sensor
+    id: 'eb74be293a72a7fb15diwr'
+  sensor-B:
+    description: aqi sensor
+    provider: noop
+    type: aqi sensor
+    id: 'xyz789'
 
 triggers:
   location:
@@ -147,3 +157,12 @@ automations:
           sunrise: 60-120
           sunset: 60-120
           temp: 60-90
+
+  sensors:
+    enabled: true
+    components:
+      - if:
+          sensor-A:
+            temp: '>66'
+          sensor-B:
+            aqi: '>100'

@@ -9,7 +9,7 @@ from .actions import TurnOnAction, TurnOffAction, SwitchAction
 from .components import Component
 from .exceptions import AutomatonConfigParsingError
 from .providers.noop import NoopProvider
-from .sensors import TimeSensor, WebhookSensor
+from .sensors import TimeSensor, WebhookSensor, DeviceSensor
 from .triggers import (AQITrigger, TimeTrigger, IsoWeekdayTrigger,
         RandomTrigger, SunriseTrigger, SunsetTrigger, TemperatureTrigger,
         WebhookTrigger)
@@ -22,12 +22,11 @@ def parse_yaml(config_file=None, s3=None):
 
 def parse_raw_yaml(raw_conf):
     conf = yaml.safe_load(raw_conf) if raw_conf else {}
-    triggers_conf = _TriggersConf.from_yaml(conf.get('triggers', {}))
-    providers = _parse_providers(conf.get('providers', {}))
-    devices = _parse_devices(conf.get('devices', {}), providers)
-    components = _parse_components(conf.get('automations', {}), devices,
-            triggers_conf)
-    return components, triggers_conf.webhook_sensor
+    context = _Context.from_yaml(conf.get('triggers', {}))
+    context.providers = _parse_providers(conf.get('providers', {}))
+    context.devices = _parse_devices(conf.get('devices', {}), context.providers)
+    components = _parse_components(conf.get('automations', {}), context)
+    return components, context.webhook_sensor
 
 def _get_config_data(config_file, s3):
     if config_file:
@@ -57,7 +56,7 @@ def _get_config_from_s3(s3):
                 f'[{e.__class__.__name__}] {e}')
         return None
 
-class _TriggersConf(object):
+class _Context(object):
 
     def __init__(self, latitude, longitude, aqi_api_key, weather_api_key,
                 timezone):
@@ -68,6 +67,7 @@ class _TriggersConf(object):
         self._timezone = timezone
         self._weather_api_key = weather_api_key
         self._webhook_sensor = None
+        self._device_sensors = {}
 
     @staticmethod
     def from_yaml(triggers):
@@ -103,7 +103,7 @@ class _TriggersConf(object):
                     f'[{e.__class__.__name__}] {e}')
             weather_api_key = None
 
-        return _TriggersConf(
+        return _Context(
                 latitude, longitude, aqi_api_key, weather_api_key, timezone)
 
     @property
@@ -176,6 +176,14 @@ class _TriggersConf(object):
         if self._webhook_sensor is None:
             self._webhook_sensor = WebhookSensor()
         return self._webhook_sensor
+
+    def device_sensor(self, name):
+        device = self.devices.get(name, None)
+        if device is None:
+            raise AutomatonConfigParsingError(f'sensor device {name} not found')
+        if not self._device_sensors.get(device.name):
+            self._device_sensors[device.name] = DeviceSensor(device)
+        return self._device_sensors[device.name]
 
 def _parse_providers(providers_conf):
     providers = {
@@ -254,7 +262,7 @@ def _parse_devices(devices_conf, providers):
                     f'unable to get device "{name}": {e}')
     return devices
 
-def _parse_components(automations, devices, triggers_conf):
+def _parse_components(automations, context):
     components = []
     for name, automation in automations.items():
         logger.info(f'preparing automation {name}')
@@ -268,40 +276,45 @@ def _parse_components(automations, devices, triggers_conf):
             logger.info(f'adding component {component_name}')
             components.append(Component(
                 name=component_name,
-                ifs=_parse_triggers(ifs, triggers_conf),
-                thens=_parse_actions(thens, devices),
-                elses=_parse_actions(elses, devices),
+                ifs=_parse_triggers(ifs, context),
+                thens=_parse_actions(thens, context.devices),
+                elses=_parse_actions(elses, context.devices),
                 enabled=True,
             ))
     return components
 
-def _parse_triggers(ifs, triggers_conf):
+def _parse_triggers(ifs, context):
     triggers = []
     for trigger_type, trigger_value in ifs.items():
-        trigger_type = trigger_type.lower()
         logger.debug(f'adding {trigger_type} trigger')
-        if trigger_type == 'aqi':
-            parser = _parse_aqi_trigger
-        elif trigger_type == 'time':
-            parser = _parse_time_trigger
-        elif trigger_type == 'weekday':
-            parser = _parse_weekday_trigger
-        elif trigger_type == 'random':
-            parser = _parse_random_trigger
-        elif trigger_type == 'sunrise':
-            parser = _parse_sunrise_trigger
-        elif trigger_type == 'sunset':
-            parser = _parse_sunset_trigger
-        elif trigger_type == 'temp':
-            parser = _parse_temp_trigger
-        elif trigger_type == 'webhook':
-            # TODO: test _parse_triggers
-            parser = _parse_webhook_trigger
-        else:
-            raise AutomatonConfigParsingError(
-                    f'unknown trigger type "{trigger_type}"')
-        triggers.append(parser(trigger_value, triggers_conf))
+        triggers.append(_parse_trigger(trigger_type, trigger_value, context))
     return triggers
+
+def _parse_trigger(typ, value, context, sensor=None):
+    if typ == 'aqi':
+        trigger = _parse_aqi_trigger(value, context, sensor=sensor)
+    elif typ == 'time':
+        trigger = _parse_time_trigger(value, context, sensor=sensor)
+    elif typ == 'weekday':
+        trigger = _parse_weekday_trigger(value, context, sensor=sensor)
+    elif typ == 'random':
+        trigger = _parse_random_trigger(value, context, sensor=sensor)
+    elif typ == 'sunrise':
+        trigger = _parse_sunrise_trigger(value, context, sensor=sensor)
+    elif typ == 'sunset':
+        trigger = _parse_sunset_trigger(value, context, sensor=sensor)
+    elif typ == 'temp':
+        trigger = _parse_temp_trigger(value, context, sensor=sensor)
+    elif typ == 'webhook':
+        # TODO: test _parse_triggers
+        trigger = _parse_webhook_trigger(value, context, sensor=sensor)
+    elif typ in context.devices:
+        if sensor:
+            raise AutomatonConfigParsingError('nested sensor confs not allowed')
+        trigger = _parse_sensor(typ, value, context)
+    else:
+        raise AutomatonConfigParsingError(f'unknown trigger type "{typ}"')
+    return trigger
 
 _ranged_value_re = re.compile(r'(<|>|==|<=|>=)?\s*(\d+\.?\d*)')
 def _parse_ranged_values(value, typ):
@@ -356,13 +369,14 @@ def _parse_ranged_values(value, typ):
         _check_funcs.append(_check_func)
     return lambda a: any(fn(a) for fn in _check_funcs)
 
-def _parse_aqi_trigger(value, triggers_conf):
+def _parse_aqi_trigger(value, context, sensor=None):
     _check_func = _parse_ranged_values(value, 'aqi')
-    return AQITrigger(_check_func, api_key=triggers_conf.aqi_api_key,
-            latitude=triggers_conf.latitude, longitude=triggers_conf.longitude)
+    return AQITrigger(_check_func, api_key=context.aqi_api_key,
+            latitude=context.latitude, longitude=context.longitude,
+            aqi_sensor=sensor)
 
 _time_re = re.compile(r'(10|11|12|[1-9]):([0-5][0-9])\s*([ap]m)')
-def _parse_time_trigger(value, triggers_conf):
+def _parse_time_trigger(value, context, sensor=None):
     def _parse_single_time(time):
         m = _time_re.fullmatch(time)
         if not m:
@@ -390,7 +404,7 @@ def _parse_time_trigger(value, triggers_conf):
                     '"HH:MMam-HH:MMam"')
         for minute in range(start_time, end_time):
             times.append(minute)
-    return TimeTrigger(times, time_sensor=triggers_conf.time_sensor)
+    return TimeTrigger(times, time_sensor=sensor or context.time_sensor)
 
 _isoweekdays = {
         'monday': 1,
@@ -412,7 +426,7 @@ _isoweekdays = {
         'sun': 7,
 }
 
-def _parse_weekday_trigger(value, triggers_conf):
+def _parse_weekday_trigger(value, context, sensor=None):
     def _parse_single_day(weekday):
         isoweekday = _isoweekdays.get(weekday)
         if isoweekday is None:
@@ -435,9 +449,9 @@ def _parse_weekday_trigger(value, triggers_conf):
             raise AutomatonConfigParsingError(f'unknown weekday "{weekday}"')
         for isoweekday in range(start_weekday, end_weekday):
             isoweekdays.append(isoweekday % 7 or 7)
-    return IsoWeekdayTrigger(isoweekdays, time_sensor=triggers_conf.time_sensor)
+    return IsoWeekdayTrigger(isoweekdays, time_sensor=sensor or context.time_sensor)
 
-def _parse_random_trigger(value, triggers_conf):
+def _parse_random_trigger(value, context, sensor=None):
     probability = float(value)
     return RandomTrigger(probability)
 
@@ -456,30 +470,47 @@ def _parse_timedelta(value):
             timedeltas.append(i)
     return timedeltas
 
-def _parse_sunrise_trigger(value, triggers_conf):
+def _parse_sunrise_trigger(value, context, sensor=None):
     return SunriseTrigger(
             _parse_timedelta(value),
-            latitude=triggers_conf.latitude,
-            longitude=triggers_conf.longitude,
-            time_sensor=triggers_conf.time_sensor,
+            latitude=context.latitude,
+            longitude=context.longitude,
+            time_sensor=sensor or context.time_sensor,
     )
 
-def _parse_sunset_trigger(value, triggers_conf):
+def _parse_sunset_trigger(value, context, sensor=None):
     return SunsetTrigger(
             _parse_timedelta(value),
-            latitude=triggers_conf.latitude,
-            longitude=triggers_conf.longitude,
-            time_sensor=triggers_conf.time_sensor,
+            latitude=context.latitude,
+            longitude=context.longitude,
+            time_sensor=sensor or context.time_sensor,
     )
 
-def _parse_temp_trigger(value, triggers_conf):
+def _parse_temp_trigger(value, context, sensor=None):
     _check_func = _parse_ranged_values(value, 'temp')
-    return TemperatureTrigger(_check_func, api_key=triggers_conf.weather_api_key,
-            latitude=triggers_conf.latitude, longitude=triggers_conf.longitude)
+    if sensor:
+        kwargs = {'weather_sensor': sensor}
+    else:
+        kwargs = {
+                'api_key': context.weather_api_key,
+                'latitude': context.latitude,
+                'longitude': context.longitude,
+        }
+    return TemperatureTrigger(_check_func, **kwargs)
 
-def _parse_webhook_trigger(value, triggers_conf):
+def _parse_webhook_trigger(value, context, sensor=None):
     # TODO: test _parse_webhook_trigger
-    return WebhookTrigger(value, triggers_conf.webhook_sensor)
+    return WebhookTrigger(value, sensor or context.webhook_sensor)
+
+def _parse_sensor(device_name, value, context):
+    sensor = context.device_sensor(device_name)
+    trigger_type, trigger_value = value.popitem()
+    if value:
+        raise AutomatonConfigParsingError(
+                f'sensor trigger {value} ignored, only one trigger allowed '
+                'per sensor config')
+    return _parse_trigger(trigger_type, trigger_value, context=context,
+            sensor=sensor)
 
 def _parse_actions(thens, devices):
     actions = []

@@ -27,3 +27,6 @@ class GosundDevice(Device):
     def switch(self):
         self.device.switch()
         logger.debug('device "%s" switched', self.name)
+
+    def current_temperature(self):
+        return self.device.get_temperature()
