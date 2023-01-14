@@ -1,6 +1,7 @@
 import collections
 import logging
 import time
+import traceback
 
 from .exceptions import AutomatonComponentRunError
 from .parsers import parse_yaml
@@ -35,9 +36,10 @@ class LambdaHandler(object):
                 try:
                     component.run()
                 except Exception:
-                    logger.exception(
+                    exc = ''.join(traceback.format_exc())
+                    logger.error(
                         f'failure running component {component.name}, '
-                        f'{attempts} remaining attempts')
+                        f'{attempts} remaining attempts\n{exc}')
                     failed.append(component)
 
             if failed and attempts:
