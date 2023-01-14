@@ -17,6 +17,8 @@ class Context(object):
         self._weather_api_key = weather_api_key
         self._webhook_sensor = None
         self._device_sensors = {}
+        self._context = None
+        self.devices = {}
 
     @staticmethod
     def from_yaml(triggers):
@@ -134,3 +136,13 @@ class Context(object):
         if not self._device_sensors.get(device.name):
             self._device_sensors[device.name] = DeviceSensor(device)
         return self._device_sensors[device.name]
+
+    @property
+    def context(self):
+        if not self._context:
+            # TODO: make a copy to to pass to action.run?
+            self._context = {
+                    'devices': self.devices,
+                    'time_sensor': self.time_sensor,
+            }
+        return self._context

@@ -33,3 +33,17 @@ class TurnOffAction(_DeviceAction):
 class SwitchAction(_DeviceAction):
 
     device_action_method_name = 'switch'
+
+class ExecuteCodeAction(_Action):
+
+    def __init__(self, execute_method, context):
+        self.execute_method = execute_method
+        self.context = context
+
+    def run(self):
+        self.execute_method(self.context)
+
+    @property
+    def name(self):
+        m = self.execute_method
+        return f'{super().name} {m.__module__}.{m.__name__}'

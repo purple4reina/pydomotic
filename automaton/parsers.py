@@ -1,11 +1,13 @@
 import collections
+import importlib
 import logging
 import os
 import re
 import datetime
 import yaml
 
-from .actions import TurnOnAction, TurnOffAction, SwitchAction
+from .actions import (TurnOnAction, TurnOffAction, SwitchAction,
+        ExecuteCodeAction)
 from .components import Component
 from .context import Context
 from .exceptions import AutomatonConfigParsingError
@@ -26,7 +28,7 @@ def parse_raw_yaml(raw_conf):
     context.providers = _parse_providers(conf.get('providers', {}))
     context.devices = _parse_devices(conf.get('devices', {}), context.providers)
     components = _parse_components(conf.get('automations', {}), context)
-    return components, context.webhook_sensor
+    return components, context
 
 def _get_config_data(config_file, s3):
     if config_file:
@@ -148,8 +150,8 @@ def _parse_components(automations, context):
             components.append(Component(
                 name=component_name,
                 ifs=_parse_triggers(ifs, context),
-                thens=_parse_actions(thens, context.devices),
-                elses=_parse_actions(elses, context.devices),
+                thens=_parse_actions(thens, context),
+                elses=_parse_actions(elses, context),
                 enabled=True,
             ))
     return components
@@ -383,23 +385,44 @@ def _parse_sensor(device_name, value, context):
     return _parse_trigger(trigger_type, trigger_value, context=context,
             sensor=sensor)
 
-def _parse_actions(thens, devices):
+def _parse_actions(thens, context):
     actions = []
-    for action_type, device_names in thens.items():
+    for action_type, action_value in thens.items():
         logger.debug(f'adding {action_type} action')
-        for device_name in device_names.split(','):
-            device_name = device_name.strip()
-            device = devices.get(device_name)
-            if device is None:
-                raise AutomatonConfigParsingError(
-                        f'unknown device name "{device_name}"')
+        if action_type == 'exec':
+            for method_name in action_value.split(','):
+                method_name = method_name.strip()
+                method = _parse_method_name(method_name)
+                actions.append(ExecuteCodeAction(method, context.context))
+        else:
             if action_type == 'turn-on':
-                actions.append(TurnOnAction(device))
+                cls = TurnOnAction
             elif action_type == 'turn-off':
-                actions.append(TurnOffAction(device))
+                cls = TurnOffAction
             elif action_type == 'switch':
-                actions.append(SwitchAction(device))
+                cls = SwitchAction
             else:
                 raise AutomatonConfigParsingError(
                         f'unknown action type "{action_type}"')
+            for device_name in action_value.split(','):
+                device_name = device_name.strip()
+                device = context.devices.get(device_name)
+                if device is None:
+                    raise AutomatonConfigParsingError(
+                            f'unknown device name "{device_name}"')
+                actions.append(cls(device))
     return actions
+
+def _parse_method_name(import_path):
+    names = import_path.rsplit('.', 1)
+    if len(names) == 1:
+        raise AutomatonConfigParsingError(
+                f'execution code must include module and method name')
+    package_name, method_name = names
+    try:
+        package = importlib.import_module(package_name)
+        return getattr(package, method_name)
+    except Exception as e:
+        raise AutomatonConfigParsingError(
+                f'unable to import code "{import_path}": '
+                f'[{e.__class__.__name__}] {e}')

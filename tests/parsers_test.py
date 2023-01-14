@@ -2,7 +2,7 @@ import datetime
 import os
 import pytest
 
-from automaton.actions import TurnOnAction, TurnOffAction
+from automaton.actions import TurnOnAction, TurnOffAction, ExecuteCodeAction
 from automaton.components import Component
 from automaton.context import Context
 from automaton.parsers import (parse_yaml, _parse_providers,
@@ -10,13 +10,16 @@ from automaton.parsers import (parse_yaml, _parse_providers,
         _parse_devices, _parse_components, _parse_triggers, _parse_aqi_trigger,
         _parse_time_trigger, _parse_weekday_trigger, _parse_random_trigger,
         _parse_timedelta, _parse_sunrise_trigger, _parse_sunset_trigger,
-        _parse_temp_trigger, _parse_actions, AutomatonConfigParsingError)
+        _parse_temp_trigger, _parse_actions, _parse_method_name,
+        AutomatonConfigParsingError)
 from automaton.providers.fujitsu import FujitsuProvider
 from automaton.providers.gosund import GosundProvider
 from automaton.providers.noop import NoopProvider, NoopDevice
-from automaton.sensors import SunSensor
+from automaton.sensors import SunSensor, TimeSensor
 from automaton.triggers import (AQITrigger, TimeTrigger, IsoWeekdayTrigger, RandomTrigger,
         SunriseTrigger, SunsetTrigger, TemperatureTrigger, WebhookTrigger)
+
+import testdata.custom_code
 
 _test_context = Context.from_yaml({
         'aqi': {'api_key': '123abc'},
@@ -24,11 +27,25 @@ _test_context = Context.from_yaml({
         'timezone': 'America/Los_Angeles',
         'weather': {'api_key': 'abc123'},
 })
+_test_device_name_1 = 'device-1'
+_test_device_name_2 = 'device-2'
+_test_device_name_3 = 'switch-A'
+_test_device_name_4 = 'switch-B'
+_test_device_name_5 = 'sensor-A'
+_test_device_name_6 = 'sensor-B'
+_test_device_1 = NoopDevice(_test_device_name_1, _test_device_name_1)
+_test_device_2 = NoopDevice(_test_device_name_2, _test_device_name_2)
+_test_device_3 = NoopDevice(_test_device_name_3, _test_device_name_3)
+_test_device_4 = NoopDevice(_test_device_name_4, _test_device_name_4)
+_test_device_5 = NoopDevice(_test_device_name_5, _test_device_name_5)
+_test_device_6 = NoopDevice(_test_device_name_6, _test_device_name_6)
 _test_context.devices = {
-        'switch-A': NoopDevice('device-1', 'device-1'),
-        'switch-B': NoopDevice('device-2', 'device-2'),
-        'sensor-A': NoopDevice('device-3', 'device-3'),
-        'sensor-B': NoopDevice('device-4', 'device-4'),
+        _test_device_name_1: _test_device_1,
+        _test_device_name_2: _test_device_2,
+        _test_device_name_3: _test_device_3,
+        _test_device_name_4: _test_device_4,
+        _test_device_name_5: _test_device_5,
+        _test_device_name_6: _test_device_6,
 }
 
 def _relative_to_full_path(path):
@@ -133,15 +150,39 @@ _test_parse_yaml_expect = [
             thens=[],
             elses=[],
         ),
+        Component(
+            name='custom-code 0',
+            ifs=[],
+            thens=[ExecuteCodeAction, ExecuteCodeAction],
+            elses=[],
+        ),
 ]
 
-def test_parse_yaml():
-    expects = _test_parse_yaml_expect
-    config_fullpath = _relative_to_full_path('./testdata/full.yml')
-    actuals, _ = parse_yaml(config_fullpath)
+_test_parse_yaml_expect_context_dict = {
+        'devices': {
+            'switch-A': NoopDevice,
+            'bulb-A': NoopDevice,
+            'bulb-B': NoopDevice,
+            'bulb-C': NoopDevice,
+            'sensor-A': NoopDevice,
+            'sensor-B': NoopDevice,
+            'sensor-C': NoopDevice,
+            'sensor-D': NoopDevice,
+            'sensor-E': NoopDevice,
+        },
+        'time_sensor': TimeSensor,
+}
 
-    assert len(actuals) == len(expects), 'wrong number of components returned'
-    for actual, expect in zip(actuals, expects):
+def test_parse_yaml():
+    expect_comps, expect_context_dict = (
+            _test_parse_yaml_expect, _test_parse_yaml_expect_context_dict)
+
+    config_fullpath = _relative_to_full_path('./testdata/full.yml')
+    actual_comps, actual_context = parse_yaml(config_fullpath)
+
+    assert len(actual_comps) == len(expect_comps), (
+            'wrong number of components returned')
+    for actual, expect in zip(actual_comps, expect_comps):
         assert isinstance(actual, Component), 'wrong type returned'
         assert actual.name == expect.name, 'wrong name returned'
         assert actual.enabled, 'action should be enabled'
@@ -154,6 +195,20 @@ def test_parse_yaml():
         assert len(actual.elses) == len(expect.elses), 'wrong number of elses'
         for action, exp_cls in zip(actual.elses, expect.elses):
             assert isinstance(action, exp_cls), 'wrong elses class'
+
+    def assert_key_name_and_value_class(exp, act):
+        if isinstance(act, dict):
+            assert len(act) == len(exp), 'wrong number of items in context'
+            for exp_key, act_key in zip(exp, act):
+                assert act_key == exp_key, 'wrong key name returned'
+                assert_key_name_and_value_class(exp[exp_key], act[act_key])
+            return
+        assert isinstance(act, exp), 'wrong class type found'
+
+    actual_context_dict = actual_context.context
+    assert len(actual_context_dict) == len(expect_context_dict), (
+            'wrong size context dict returned')
+    assert_key_name_and_value_class(expect_context_dict, actual_context_dict)
 
 _test__TriggersConf = (
         ({}, Exception, Exception, Exception, Exception),
@@ -948,38 +1003,34 @@ def test__parse_temp_trigger_failures(value):
     else:
         raise AssertionError('should have raised an exception')
 
-_test__parse_actions_device_name_1 = 'name 1'
-_test__parse_actions_device_name_2 = 'name 2'
-_test__parse_actions_device_1 = NoopDevice(None, 'test_device_1')
-_test__parse_actions_device_2 = NoopDevice(None, 'test device 2')
 _test__parse_actions_tests = (
         (
             {
-                'turn-on': _test__parse_actions_device_name_1,
+                'turn-on': _test_device_name_1,
             },
             [
-                TurnOnAction(_test__parse_actions_device_1),
+                TurnOnAction(_test_device_1),
             ],
             False,
         ),
         (
-            {'turn-off': _test__parse_actions_device_name_2},
-            [TurnOffAction(_test__parse_actions_device_2)],
+            {'turn-off': _test_device_name_2},
+            [TurnOffAction(_test_device_2)],
             False,
         ),
         (
             {
-                'turn-on': _test__parse_actions_device_name_1,
-                'turn-off': _test__parse_actions_device_name_2,
+                'turn-on': _test_device_name_1,
+                'turn-off': _test_device_name_2,
             },
             [
-                TurnOnAction(_test__parse_actions_device_1),
-                TurnOffAction(_test__parse_actions_device_2),
+                TurnOnAction(_test_device_1),
+                TurnOffAction(_test_device_2),
             ],
             False,
         ),
         (
-            {'do-something': _test__parse_actions_device_name_2},
+            {'do-something': _test_device_name_2},
             [],
             True,
         ),
@@ -988,16 +1039,49 @@ _test__parse_actions_tests = (
             [],
             True,
         ),
+        (
+            {'exec': 'testdata.custom_code.custom_function'},
+            [ExecuteCodeAction(
+                testdata.custom_code.custom_function,
+                _test_context.context,
+            )],
+            False,
+        ),
+        (
+            {'exec': 'testdata.custom_code.custom_function,testdata.custom_code.custom_function'},
+            [
+                ExecuteCodeAction(
+                    testdata.custom_code.custom_function,
+                    _test_context.context,
+                ),
+                ExecuteCodeAction(
+                    testdata.custom_code.custom_function,
+                    _test_context.context,
+                ),
+            ],
+            False,
+        ),
+        (
+            {'exec': 'testdata.custom_code.non_existent_function'},
+            [],
+            True,
+        ),
+        (
+            {'exec': 'testdata.non_existent_module.custom_code'},
+            [],
+            True,
+        ),
+        (
+            {'exec': 'print'},
+            [],
+            True,
+        ),
 )
-_test__parse_actions_devices = {
-    _test__parse_actions_device_name_1: _test__parse_actions_device_1,
-    _test__parse_actions_device_name_2: _test__parse_actions_device_2,
-}
 
 @pytest.mark.parametrize('thens,expect,raises', _test__parse_actions_tests)
 def test__parse_actions(thens, expect, raises):
     try:
-        actual = _parse_actions(thens, _test__parse_actions_devices)
+        actual = _parse_actions(thens, _test_context)
     except AutomatonConfigParsingError:
         actual = []
         raised = True
@@ -1006,8 +1090,25 @@ def test__parse_actions(thens, expect, raises):
 
     assert len(expect) == len(actual), 'wrong number of actions returned'
     assert raises == raised, 'exception raising was wrong'
-    for i in range(len(actual)):
-        assert expect[i].device == actual[i].device, (
-                'wrong device found on action')
-        assert expect[i].name == actual[i].name, (
-                'wrong device found on action')
+
+    def assert_turn_on_off_actions(expect, actual):
+        assert expect.device == actual.device, 'wrong device found on action'
+
+    def assert_execute_code_action(expect, actual):
+        assert expect.execute_method == actual.execute_method, (
+                'wrong execution method on action')
+        assert expect.context == actual.context, 'wrong context found on action'
+
+    for exp, act in zip(expect, actual):
+        if isinstance(exp, (TurnOnAction, TurnOffAction)):
+            assert_turn_on_off_actions(exp, act)
+        elif isinstance(exp, ExecuteCodeAction):
+            assert_execute_code_action(exp,act)
+        else:
+            raise AssertionError(f'expectation {exp} not found')
+        assert exp.name == act.name, 'wrong action name'
+
+def test__parse_method_name():
+    expect = testdata.custom_code.custom_function
+    actual = _parse_method_name('testdata.custom_code.custom_function')
+    assert expect == actual, 'wrong method returned'

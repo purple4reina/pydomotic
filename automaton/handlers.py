@@ -15,8 +15,9 @@ class LambdaHandler(object):
     }
 
     def __init__(self, config_file=None, s3=None):
-        self.components, self.webhook_sensor = parse_yaml(
+        self.components, context = parse_yaml(
                 config_file=config_file, s3=s3)
+        self.webhook_sensor = context.webhook_sensor
 
     def __call__(self, event={}, context={}):
         # TODO: test webhook triggers

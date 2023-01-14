@@ -35,6 +35,21 @@ devices:
     provider: noop
     type: aqi sensor
     id: 'xyz789'
+  sensor-C:
+    description: light sensor
+    provider: noop
+    type: light sensor
+    id: '123456'
+  sensor-D:
+    description: motion sensor
+    provider: noop
+    type: motion sensor
+    id: '9876543210'
+  sensor-E:
+    description: contact sensor
+    provider: noop
+    type: contact sensor
+    id: 'abcdef'
 
 triggers:
   location:
@@ -166,3 +181,10 @@ automations:
             temp: '>66'
           sensor-B:
             aqi: '>100'
+
+  custom-code:
+    enabled: true
+    components:
+      - if:
+        then:
+          exec: testdata.custom_code.custom_function,testdata.custom_code.custom_function
