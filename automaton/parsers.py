@@ -7,9 +7,9 @@ import yaml
 
 from .actions import TurnOnAction, TurnOffAction, SwitchAction
 from .components import Component
+from .context import Context
 from .exceptions import AutomatonConfigParsingError
 from .providers.noop import NoopProvider
-from .sensors import TimeSensor, WebhookSensor, DeviceSensor
 from .triggers import (AQITrigger, TimeTrigger, IsoWeekdayTrigger,
         RandomTrigger, SunriseTrigger, SunsetTrigger, TemperatureTrigger,
         WebhookTrigger)
@@ -22,7 +22,7 @@ def parse_yaml(config_file=None, s3=None):
 
 def parse_raw_yaml(raw_conf):
     conf = yaml.safe_load(raw_conf) if raw_conf else {}
-    context = _Context.from_yaml(conf.get('triggers', {}))
+    context = Context.from_yaml(conf.get('triggers', {}))
     context.providers = _parse_providers(conf.get('providers', {}))
     context.devices = _parse_devices(conf.get('devices', {}), context.providers)
     components = _parse_components(conf.get('automations', {}), context)
@@ -55,135 +55,6 @@ def _get_config_from_s3(s3):
         logger.warning('unable to fetch configuration from s3: '
                 f'[{e.__class__.__name__}] {e}')
         return None
-
-class _Context(object):
-
-    def __init__(self, latitude, longitude, aqi_api_key, weather_api_key,
-                timezone):
-        self._aqi_api_key = aqi_api_key
-        self._latitude = latitude
-        self._longitude = longitude
-        self._time_sensor = None
-        self._timezone = timezone
-        self._weather_api_key = weather_api_key
-        self._webhook_sensor = None
-        self._device_sensors = {}
-
-    @staticmethod
-    def from_yaml(triggers):
-        try:
-            location = triggers.get('location', {})
-            latitude = location.get('latitude')
-            longitude = location.get('longitude')
-        except Exception as e:
-            logger.debug('failed to parse location, ignoring: '
-                    f'[{e.__class__.__name__}] {e}')
-            latitude = longitude = None
-
-        try:
-            timezone = triggers.get('timezone')
-        except Exception as e:
-            logger.debug('failed to parse timezone, ignoring: '
-                    f'[{e.__class__.__name__}] {e}')
-            timezone = None
-
-        try:
-            aqi = triggers.get('aqi', {})
-            aqi_api_key = _parse_string(aqi.get('api_key'))
-        except Exception as e:
-            logger.debug('failed to parse aqi api_key, ignoring: '
-                    f'[{e.__class__.__name__}] {e}')
-            aqi_api_key = None
-
-        try:
-            weather = triggers.get('weather', {})
-            weather_api_key = _parse_string(weather.get('api_key'))
-        except Exception as e:
-            logger.debug('failed to parse weather api_key, ignoring: '
-                    f'[{e.__class__.__name__}] {e}')
-            weather_api_key = None
-
-        return _Context(
-                latitude, longitude, aqi_api_key, weather_api_key, timezone)
-
-    @property
-    def latitude(self):
-        if self._latitude is None:
-            raise AutomatonConfigParsingError(
-                    'latitude value required for location')
-        if not isinstance(self._latitude, (int, float)):
-            raise AutomatonConfigParsingError(
-                    'latitude must be a number, not '
-                    f'{self._latitude.__class__.__name__}')
-        return self._latitude
-
-    @property
-    def longitude(self):
-        if self._longitude is None:
-            raise AutomatonConfigParsingError(
-                    'longitude value required for location')
-        if not isinstance(self._longitude, (int, float)):
-            raise AutomatonConfigParsingError(
-                    'longitude must be a number, not '
-                    f'{self._longitude.__class__.__name__}')
-        return self._longitude
-
-    @property
-    def timezone(self):
-        if self._timezone is None:
-            raise AutomatonConfigParsingError('timezone is required')
-        if not isinstance(self._timezone, str):
-            raise AutomatonConfigParsingError(
-                    'timezone must be a string, not '
-                    f'{self._timezone.__class__.__name__}')
-        return self._timezone
-
-    @property
-    def time_sensor(self):
-        if self._time_sensor is None:
-            if self._timezone is not None:
-                self._time_sensor = TimeSensor(timezone=self.timezone)
-            elif self._longitude is not None and self._latitude is not None:
-                self._time_sensor = TimeSensor(latitude=self.latitude,
-                        longitude=self.longitude)
-            else:
-                raise AutomatonConfigParsingError(
-                        'either timezone or latitude/longitude required')
-        return self._time_sensor
-
-    @property
-    def aqi_api_key(self):
-        if not self._aqi_api_key:
-            raise AutomatonConfigParsingError('aqi api key required')
-        if not isinstance(self._aqi_api_key, str):
-            raise AutomatonConfigParsingError(
-                    'aqi api_key must be a string, not '
-                    f'{self._aqi_api_key.__class__.__name__}')
-        return self._aqi_api_key
-
-    @property
-    def weather_api_key(self):
-        if not self._weather_api_key:
-            raise AutomatonConfigParsingError('weather api key required')
-        if not isinstance(self._weather_api_key, str):
-            raise AutomatonConfigParsingError(
-                    'weather api_key must be a string, not '
-                    f'{self._aqi_api_key.__class__.__name__}')
-        return self._weather_api_key
-
-    @property
-    def webhook_sensor(self):
-        if self._webhook_sensor is None:
-            self._webhook_sensor = WebhookSensor()
-        return self._webhook_sensor
-
-    def device_sensor(self, name):
-        device = self.devices.get(name, None)
-        if device is None:
-            raise AutomatonConfigParsingError(f'sensor device {name} not found')
-        if not self._device_sensors.get(device.name):
-            self._device_sensors[device.name] = DeviceSensor(device)
-        return self._device_sensors[device.name]
 
 def _parse_providers(providers_conf):
     providers = {

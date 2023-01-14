@@ -4,7 +4,8 @@ import pytest
 
 from automaton.actions import TurnOnAction, TurnOffAction
 from automaton.components import Component
-from automaton.parsers import (parse_yaml, _Context, _parse_providers,
+from automaton.context import Context
+from automaton.parsers import (parse_yaml, _parse_providers,
         _parse_gosund_provider, _parse_fujitsu_provider, _parse_string,
         _parse_devices, _parse_components, _parse_triggers, _parse_aqi_trigger,
         _parse_time_trigger, _parse_weekday_trigger, _parse_random_trigger,
@@ -17,7 +18,7 @@ from automaton.sensors import SunSensor
 from automaton.triggers import (AQITrigger, TimeTrigger, IsoWeekdayTrigger, RandomTrigger,
         SunriseTrigger, SunsetTrigger, TemperatureTrigger, WebhookTrigger)
 
-_test_context = _Context.from_yaml({
+_test_context = Context.from_yaml({
         'aqi': {'api_key': '123abc'},
         'location': {'latitude': 40.689, 'longitude': -74.044},
         'timezone': 'America/Los_Angeles',
@@ -187,7 +188,7 @@ _test__TriggersConf = (
 @pytest.mark.parametrize('raw_yml,exp_lat,exp_long,exp_api_key,exp_tz',
         _test__TriggersConf)
 def test__TriggersConf(raw_yml, exp_lat, exp_long, exp_api_key, exp_tz):
-    context = _Context.from_yaml(raw_yml)
+    context = Context.from_yaml(raw_yml)
 
     def _test_property(prop_name, expect):
         should_raise = expect is Exception
