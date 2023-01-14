@@ -10,16 +10,13 @@ from automaton.parsers import (parse_yaml, _parse_providers,
         _parse_devices, _parse_components, _parse_triggers, _parse_aqi_trigger,
         _parse_time_trigger, _parse_weekday_trigger, _parse_random_trigger,
         _parse_timedelta, _parse_sunrise_trigger, _parse_sunset_trigger,
-        _parse_temp_trigger, _parse_actions, _parse_method_name,
-        AutomatonConfigParsingError)
+        _parse_temp_trigger, _parse_actions, AutomatonConfigParsingError)
 from automaton.providers.fujitsu import FujitsuProvider
 from automaton.providers.gosund import GosundProvider
 from automaton.providers.noop import NoopProvider, NoopDevice
 from automaton.sensors import SunSensor, TimeSensor
 from automaton.triggers import (AQITrigger, TimeTrigger, IsoWeekdayTrigger, RandomTrigger,
         SunriseTrigger, SunsetTrigger, TemperatureTrigger, WebhookTrigger)
-
-import testdata.custom_code
 
 _test_context = Context.from_yaml({
         'aqi': {'api_key': '123abc'},
@@ -1042,7 +1039,7 @@ _test__parse_actions_tests = (
         (
             {'exec': 'testdata.custom_code.custom_function'},
             [ExecuteCodeAction(
-                testdata.custom_code.custom_function,
+                'testdata.custom_code.custom_function',
                 _test_context.context,
             )],
             False,
@@ -1051,30 +1048,20 @@ _test__parse_actions_tests = (
             {'exec': 'testdata.custom_code.custom_function,testdata.custom_code.custom_function'},
             [
                 ExecuteCodeAction(
-                    testdata.custom_code.custom_function,
+                    'testdata.custom_code.custom_function',
                     _test_context.context,
                 ),
                 ExecuteCodeAction(
-                    testdata.custom_code.custom_function,
+                    'testdata.custom_code.custom_function',
                     _test_context.context,
                 ),
             ],
             False,
         ),
         (
-            {'exec': 'testdata.custom_code.non_existent_function'},
-            [],
-            True,
-        ),
-        (
-            {'exec': 'testdata.non_existent_module.custom_code'},
-            [],
-            True,
-        ),
-        (
-            {'exec': 'print'},
-            [],
-            True,
+            {'exec': 'non_existent'},
+            [ExecuteCodeAction('non_existent', _test_context.context)],
+            False,
         ),
 )
 
@@ -1095,7 +1082,7 @@ def test__parse_actions(thens, expect, raises):
         assert expect.device == actual.device, 'wrong device found on action'
 
     def assert_execute_code_action(expect, actual):
-        assert expect.execute_method == actual.execute_method, (
+        assert expect.import_path == actual.import_path, (
                 'wrong execution method on action')
         assert expect.context == actual.context, 'wrong context found on action'
 
@@ -1103,12 +1090,7 @@ def test__parse_actions(thens, expect, raises):
         if isinstance(exp, (TurnOnAction, TurnOffAction)):
             assert_turn_on_off_actions(exp, act)
         elif isinstance(exp, ExecuteCodeAction):
-            assert_execute_code_action(exp,act)
+            assert_execute_code_action(exp, act)
         else:
             raise AssertionError(f'expectation {exp} not found')
         assert exp.name == act.name, 'wrong action name'
-
-def test__parse_method_name():
-    expect = testdata.custom_code.custom_function
-    actual = _parse_method_name('testdata.custom_code.custom_function')
-    assert expect == actual, 'wrong method returned'

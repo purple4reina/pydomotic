@@ -1,6 +1,6 @@
 import abc
 
-from .utils import ObjectMetaclass
+from .utils import ObjectMetaclass, import_method
 
 class _Action(metaclass=ObjectMetaclass):
 
@@ -36,14 +36,20 @@ class SwitchAction(_DeviceAction):
 
 class ExecuteCodeAction(_Action):
 
-    def __init__(self, execute_method, context):
-        self.execute_method = execute_method
+    def __init__(self, import_path, context):
+        self.import_path = import_path
         self.context = context
+        self._execute_method = None
+
+    @property
+    def execute_method(self):
+        if not self._execute_method:
+            self._execute_method = import_method(self.import_path)
+        return self._execute_method
 
     def run(self):
         self.execute_method(self.context)
 
     @property
     def name(self):
-        m = self.execute_method
-        return f'{super().name} {m.__module__}.{m.__name__}'
+        return f'{super().name} {self.import_path}'

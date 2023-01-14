@@ -1,7 +1,10 @@
 import pytest
 import time
 
-from automaton.utils import cache_value, _camel_to_snake, ObjectMetaclass
+from automaton.utils import (cache_value, _camel_to_snake, ObjectMetaclass,
+        import_method)
+
+import testdata.custom_code
 
 _test_cache_value = (
         {'seconds': 3600},
@@ -59,3 +62,8 @@ def test_ObjectMetaclass__Nameable():
 
     class MySubClass(MyClass): pass
     assert MySubClass().name == 'my_sub_class', 'wrong name returned'
+
+def test_import_method():
+    expect = testdata.custom_code.custom_function
+    actual = import_method('testdata.custom_code.custom_function')
+    assert expect == actual, 'wrong method returned'

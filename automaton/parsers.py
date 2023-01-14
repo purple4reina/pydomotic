@@ -1,9 +1,6 @@
-import collections
-import importlib
 import logging
 import os
 import re
-import datetime
 import yaml
 
 from .actions import (TurnOnAction, TurnOffAction, SwitchAction,
@@ -392,8 +389,7 @@ def _parse_actions(thens, context):
         if action_type == 'exec':
             for method_name in action_value.split(','):
                 method_name = method_name.strip()
-                method = _parse_method_name(method_name)
-                actions.append(ExecuteCodeAction(method, context.context))
+                actions.append(ExecuteCodeAction(method_name, context.context))
         else:
             if action_type == 'turn-on':
                 cls = TurnOnAction
@@ -412,17 +408,3 @@ def _parse_actions(thens, context):
                             f'unknown device name "{device_name}"')
                 actions.append(cls(device))
     return actions
-
-def _parse_method_name(import_path):
-    names = import_path.rsplit('.', 1)
-    if len(names) == 1:
-        raise AutomatonConfigParsingError(
-                f'execution code must include module and method name')
-    package_name, method_name = names
-    try:
-        package = importlib.import_module(package_name)
-        return getattr(package, method_name)
-    except Exception as e:
-        raise AutomatonConfigParsingError(
-                f'unable to import code "{import_path}": '
-                f'[{e.__class__.__name__}] {e}')
