@@ -22,11 +22,11 @@ class LambdaHandler(object):
     def __call__(self, event={}, context={}):
         # TODO: test webhook triggers
         self.webhook_sensor.set_webhook_request(event)
-        self.run_components(self.components)
+        self.run_components()
         return self.ok_response
 
-    def run_components(self, components):
-        components, failed = [c for c in components if c.enabled], []
+    def run_components(self):
+        components, failed = [c for c in self.components if c.enabled], []
         attempts = 3
 
         while components and attempts:
