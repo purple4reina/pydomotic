@@ -10,9 +10,9 @@ class GosundProvider(Provider):
     def __init__(self, username, password, access_id, access_key):
         self.gosund = gosundpy.Gosund(username, password, access_id, access_key)
 
-    def get_device(self, device_id, device_name):
+    def get_device(self, device_id, device_name, device_description):
         device = self.gosund.get_device(device_id)
-        return GosundDevice(device, device_name)
+        return GosundDevice(device, device_name, device_description)
 
 class GosundDevice(Device):
 

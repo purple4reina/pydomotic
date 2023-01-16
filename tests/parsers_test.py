@@ -11,6 +11,7 @@ from automaton.parsers import (parse_yaml, _parse_providers,
         _parse_time_trigger, _parse_weekday_trigger, _parse_random_trigger,
         _parse_timedelta, _parse_sunrise_trigger, _parse_sunset_trigger,
         _parse_temp_trigger, _parse_actions, AutomatonConfigParsingError)
+from automaton.providers.base import Device
 from automaton.providers.fujitsu import FujitsuProvider
 from automaton.providers.gosund import GosundProvider
 from automaton.providers.noop import NoopProvider, NoopDevice
@@ -30,12 +31,24 @@ _test_device_name_3 = 'switch-A'
 _test_device_name_4 = 'switch-B'
 _test_device_name_5 = 'sensor-A'
 _test_device_name_6 = 'sensor-B'
-_test_device_1 = NoopDevice(_test_device_name_1, _test_device_name_1)
-_test_device_2 = NoopDevice(_test_device_name_2, _test_device_name_2)
-_test_device_3 = NoopDevice(_test_device_name_3, _test_device_name_3)
-_test_device_4 = NoopDevice(_test_device_name_4, _test_device_name_4)
-_test_device_5 = NoopDevice(_test_device_name_5, _test_device_name_5)
-_test_device_6 = NoopDevice(_test_device_name_6, _test_device_name_6)
+_test_device_description_1 = 'device-description-1'
+_test_device_description_2 = 'device-description-2'
+_test_device_description_3 = 'switch-description-A'
+_test_device_description_4 = 'switch-description-B'
+_test_device_description_5 = 'sensor-description-A'
+_test_device_description_6 = 'sensor-description-B'
+_test_device_1 = NoopDevice(_test_device_name_1, _test_device_name_1,
+        _test_device_description_1)
+_test_device_2 = NoopDevice(_test_device_name_2, _test_device_name_2,
+        _test_device_description_1)
+_test_device_3 = NoopDevice(_test_device_name_3, _test_device_name_3,
+        _test_device_description_1)
+_test_device_4 = NoopDevice(_test_device_name_4, _test_device_name_4,
+        _test_device_description_1)
+_test_device_5 = NoopDevice(_test_device_name_5, _test_device_name_5,
+        _test_device_description_1)
+_test_device_6 = NoopDevice( _test_device_name_6, _test_device_name_6,
+        _test_device_description_1)
 _test_context.devices = {
         _test_device_name_1: _test_device_1,
         _test_device_name_2: _test_device_2,
@@ -157,17 +170,17 @@ _test_parse_yaml_expect = [
 
 _test_parse_yaml_expect_context_dict = {
         'devices': {
-            'switch-A': NoopDevice,
-            'bulb-A': NoopDevice,
-            'bulb-B': NoopDevice,
-            'bulb-C': NoopDevice,
-            'sensor-A': NoopDevice,
-            'sensor-B': NoopDevice,
-            'sensor-C': NoopDevice,
-            'sensor-D': NoopDevice,
-            'sensor-E': NoopDevice,
+            'switch-A': NoopDevice('012', 'switch-A', 'air purifier'),
+            'bulb-A': NoopDevice('123', 'bulb-A', 'party light'),
+            'bulb-B': NoopDevice('234', 'bulb-B', 'floor lamp 1'),
+            'bulb-C': NoopDevice('345', 'bulb-C', 'floor lamp 2'),
+            'sensor-A': NoopDevice('456', 'sensor-A', 'temp/humidity sensor'),
+            'sensor-B': NoopDevice('567', 'sensor-B', 'aqi sensor'),
+            'sensor-C': NoopDevice('678', 'sensor-C', 'light sensor'),
+            'sensor-D': NoopDevice('789', 'sensor-D', 'motion sensor'),
+            'sensor-E': NoopDevice('890', 'sensor-E', 'contact sensor'),
         },
-        'time_sensor': TimeSensor,
+        'time_sensor': TimeSensor(latitude=0, longitude=0),
 }
 
 def test_parse_yaml():
@@ -200,7 +213,13 @@ def test_parse_yaml():
                 assert act_key == exp_key, 'wrong key name returned'
                 assert_key_name_and_value_class(exp[exp_key], act[act_key])
             return
-        assert isinstance(act, exp), 'wrong class type found'
+        assert type(act) == type(exp), 'wrong class type found'
+        if isinstance(act, Device):
+            assert act.device == exp.device, 'wrong device'
+            assert act.name == exp.name, 'wrong name'
+            assert act.device_name == exp.device_name, 'wrong device_name'
+            assert act.device_description == exp.device_description, (
+                    'wrong device_description')
 
     actual_context_dict = actual_context.context
     assert len(actual_context_dict) == len(expect_context_dict), (

@@ -6,8 +6,8 @@ logger = logging.getLogger(__name__)
 
 class NoopProvider(Provider):
 
-    def get_device(self, device_id, device_name):
-        return NoopDevice(device_id, device_name)
+    def get_device(self, device_id, device_name, device_description):
+        return NoopDevice(device_id, device_name, device_description)
 
 class NoopDevice(Device):
 

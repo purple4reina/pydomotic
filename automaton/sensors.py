@@ -71,7 +71,7 @@ class TimeSensor(object):
     # TODO: test
 
     def __init__(self, latitude=None, longitude=None, timezone=None):
-        if not latitude and not longitude and not timezone:
+        if latitude is None and longitude is None and timezone is None:
             raise TypeError('timezone or latitude/longitude required')
         self.latitude = latitude
         self.longitude = longitude

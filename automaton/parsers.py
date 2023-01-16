@@ -126,7 +126,8 @@ def _parse_devices(devices_conf, providers):
             raise AutomatonConfigParsingError(
                     f'no id given for device "{name}"')
         try:
-            devices[name] = provider.get_device(device_id, name)
+            description = device.get('description')
+            devices[name] = provider.get_device(device_id, name, description)
         except Exception as e:
             raise AutomatonConfigParsingError(
                     f'unable to get device "{name}": {e}')
