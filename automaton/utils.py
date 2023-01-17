@@ -20,6 +20,7 @@ class _timed_cache(object):
         self.value = None
 
 def cache_value(hours=0, minutes=0, seconds=0):
+    # XXX: cache stored per class rather than per instance
     seconds += 60 * 60 * hours + 60 * minutes
     cache = _timed_cache()
     def _rate_limit(fn):
