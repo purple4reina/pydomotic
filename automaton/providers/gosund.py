@@ -7,8 +7,10 @@ logger = logging.getLogger(__name__)
 
 class GosundProvider(Provider):
 
-    def __init__(self, username, password, access_id, access_key):
-        self.gosund = gosundpy.Gosund(username, password, access_id, access_key)
+    def __init__(self, username, password, access_id, access_key,
+            status_cache_seconds=None):
+        self.gosund = gosundpy.Gosund(username, password, access_id, access_key,
+                status_cache_seconds=status_cache_seconds)
 
     def get_device(self, device_id, device_name, device_description):
         device = self.gosund.get_device(device_id)

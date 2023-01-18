@@ -82,8 +82,11 @@ def _parse_gosund_provider(provider):
     access_id = _parse_string(provider['access_id'])
     access_key = _parse_string(provider['access_key'])
 
+    cache_secs = provider.get('device_status_cache_seconds')
+
     from .providers.gosund import GosundProvider
-    return GosundProvider(username, password, access_id, access_key)
+    return GosundProvider(username, password, access_id, access_key,
+            status_cache_seconds=cache_secs)
 
 def _parse_fujitsu_provider(provider):
     for key in ('username', 'password'):

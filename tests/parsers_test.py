@@ -328,7 +328,7 @@ _test__parse_providers = (
 
 @pytest.mark.parametrize('providers,expects,raises', _test__parse_providers)
 def test__parse_providers(providers, expects, raises, monkeypatch):
-    monkeypatch.setattr('gosundpy.Gosund.__init__', lambda *a: None)
+    monkeypatch.setattr('gosundpy.Gosund.__init__', lambda *a, **k: None)
     try:
         actuals = _parse_providers(providers)
     except AutomatonConfigParsingError:
@@ -381,11 +381,22 @@ _test__parse_gosund_provider = (
                 'access_key': 'access_key',
             }, False,
         ),
+        (
+            {
+                'username': 'username',
+                'password': 'password',
+                'access_id': 'access_id',
+                'access_key': 'access_key',
+                'device_status_cache_seconds': 100,
+            }, False,
+        ),
 )
 
 @pytest.mark.parametrize('provider,raises', _test__parse_gosund_provider)
 def test__parse_gosund_provider(provider, raises, monkeypatch):
-    monkeypatch.setattr('gosundpy.Gosund.__init__', lambda *a: None)
+    def __init__(self, *args, status_cache_seconds=None):
+        assert status_cache_seconds == provider.get('device_status_cache_seconds')
+    monkeypatch.setattr('gosundpy.Gosund.__init__', __init__)
     try:
         actual = _parse_gosund_provider(provider)
         assert isinstance(actual, GosundProvider)

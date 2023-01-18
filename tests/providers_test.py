@@ -54,6 +54,7 @@ def test_gosund_provider(patch_gosundpy):
     assert patch_gosundpy.password == pwd, 'wrong password'
     assert patch_gosundpy.access_id == a_id, 'wrong access_id'
     assert patch_gosundpy.access_key == a_key, 'wrong access_key'
+    assert patch_gosundpy.cache_secs == None, 'wrong caching value'
 
     device = provider.get_device('id', name, desc)
     assert device.device == patch_gosundpy.provider.device, 'wrong device'
@@ -69,6 +70,12 @@ def test_gosund_provider(patch_gosundpy):
 
     device.switch()
     assert device.device.switch_called, 'device.switch not called'
+
+def test_gosund_provider_device_status_cache(patch_gosundpy):
+    cache_secs = 50
+    provider = GosundProvider('u', 'p', 'ai', 'ak',
+            status_cache_seconds=cache_secs)
+    assert patch_gosundpy.cache_secs == cache_secs, 'wrong caching value'
 
 def test_gosund_device(patch_gosundpy):
     name, desc = 'device_name', 'device_description'
