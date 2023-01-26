@@ -3,7 +3,6 @@ import datetime
 import inspect
 import random
 
-from .sensors import AQISensor, TimeSensor, WeatherSensor, WebhookSensor
 from .utils import ObjectMetaclass
 
 class _Trigger(metaclass=ObjectMetaclass):
@@ -14,10 +13,9 @@ class _Trigger(metaclass=ObjectMetaclass):
 
 class AQITrigger(_Trigger):
 
-    def __init__(self, check_func, api_key, latitude, longitude,
-            aqi_sensor=None):
+    def __init__(self, check_func, aqi_sensor):
         self.check_func = check_func
-        self.aqi_sensor = aqi_sensor or AQISensor(api_key, latitude, longitude)
+        self.aqi_sensor = aqi_sensor
 
     def check(self):
         aqi = self.aqi_sensor.get_aqi()
@@ -29,7 +27,7 @@ class IsoWeekdayTrigger(_Trigger):
 
     def __init__(self, isoweekdays, time_sensor):
         self.isoweekdays = isoweekdays
-        self.time_sensor = time_sensor or TimeSensor()
+        self.time_sensor = time_sensor
 
     def check(self):
         now = self.time_sensor.get_current_datetime()
@@ -41,7 +39,7 @@ class TimeTrigger(_Trigger):
 
     def __init__(self, times, time_sensor):
         self.times = times
-        self.time_sensor = time_sensor or TimeSensor()
+        self.time_sensor = time_sensor
 
     def check(self):
         now = self.time_sensor.get_current_datetime()
@@ -61,16 +59,10 @@ class RandomTrigger(_Trigger):
 
 class _SunTrigger(_Trigger):
 
-    # TODO: test timezone
-    # TODO: test lat/long
-
-    def __init__(self, timedeltas, latitude, longitude, time_sensor,
-            sun_sensor=None):
-        from .sensors import SunSensor
+    def __init__(self, timedeltas, time_sensor, sun_sensor):
         self.timedeltas = timedeltas
-        self.time_sensor = time_sensor or TimeSensor()
-        self.sun_sensor = sun_sensor or SunSensor(latitude=latitude,
-                longitude=longitude, time_sensor=self.time_sensor)
+        self.time_sensor = time_sensor
+        self.sun_sensor = sun_sensor
         self.sun_sensor_method = getattr(self.sun_sensor,
                 self.sun_sensor_method_name)
 
@@ -103,9 +95,9 @@ class WebhookTrigger(_Trigger):
 
     # TODO: test webhook trigger
 
-    def __init__(self, path, webhook_sensor=None):
+    def __init__(self, path, webhook_sensor):
         self.path = path
-        self.webhook_sensor = webhook_sensor or WebhookSensor()
+        self.webhook_sensor = webhook_sensor
 
     def check(self):
         return self.webhook_sensor.path == self.path and \

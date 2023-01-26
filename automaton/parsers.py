@@ -245,9 +245,8 @@ def _parse_ranged_values(value, typ):
 
 def _parse_aqi_trigger(value, context, sensor=None):
     _check_func = _parse_ranged_values(value, 'aqi')
-    return AQITrigger(_check_func, api_key=context.aqi_api_key,
-            latitude=context.latitude, longitude=context.longitude,
-            aqi_sensor=sensor)
+    sensor = sensor or context.aqi_sensor
+    return AQITrigger(_check_func, sensor)
 
 _time_re = re.compile(r'(10|11|12|[1-9]):([0-5][0-9])\s*([ap]m)')
 def _parse_time_trigger(value, context, sensor=None):
@@ -345,20 +344,14 @@ def _parse_timedelta(value):
     return timedeltas
 
 def _parse_sunrise_trigger(value, context, sensor=None):
-    return SunriseTrigger(
-            _parse_timedelta(value),
-            latitude=context.latitude,
-            longitude=context.longitude,
-            time_sensor=sensor or context.time_sensor,
-    )
+    timedelta = _parse_timedelta(value)
+    sun_sensor = sensor or context.sun_sensor
+    return SunriseTrigger(timedelta, context.time_sensor, sun_sensor)
 
 def _parse_sunset_trigger(value, context, sensor=None):
-    return SunsetTrigger(
-            _parse_timedelta(value),
-            latitude=context.latitude,
-            longitude=context.longitude,
-            time_sensor=sensor or context.time_sensor,
-    )
+    timedelta = _parse_timedelta(value)
+    sun_sensor = sensor or context.sun_sensor
+    return SunsetTrigger(timedelta, context.time_sensor, sun_sensor)
 
 def _parse_temp_trigger(value, context, sensor=None):
     _check_func = _parse_ranged_values(value, 'temp')

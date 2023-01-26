@@ -119,7 +119,6 @@ class Context(object):
 
     @property
     def aqi_sensor(self):
-        # TODO: use this in parsers
         if self._aqi_sensor is None:
             self._aqi_sensor = AQISensor(
                     self.aqi_api_key, self.latitude, self.longitude)
@@ -127,7 +126,6 @@ class Context(object):
 
     @property
     def sun_sensor(self):
-        # TODO: use this in parsers
         if self._sun_sensor  is None:
             self._sun_sensor = SunSensor(
                     self.latitude, self.longitude, self.time_sensor)
