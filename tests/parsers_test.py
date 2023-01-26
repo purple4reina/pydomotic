@@ -15,7 +15,7 @@ from automaton.providers.base import Device
 from automaton.providers.fujitsu import FujitsuProvider
 from automaton.providers.gosund import GosundProvider
 from automaton.providers.noop import NoopProvider, NoopDevice
-from automaton.sensors import SunSensor, TimeSensor
+from automaton.sensors import SunSensor, TimeSensor, WeatherSensor, AQISensor
 from automaton.triggers import (AQITrigger, TimeTrigger, IsoWeekdayTrigger, RandomTrigger,
         SunriseTrigger, SunsetTrigger, TemperatureTrigger, WebhookTrigger)
 
@@ -180,7 +180,15 @@ _test_parse_yaml_expect_context_dict = {
             'sensor-D': NoopDevice('789', 'sensor-D', 'motion sensor'),
             'sensor-E': NoopDevice('890', 'sensor-E', 'contact sensor'),
         },
-        'time_sensor': TimeSensor(latitude=0, longitude=0),
+        'sensors': {
+            'aqi_sensor': AQISensor(
+                    api_key='123abc', latitude=40.689, longitude=-74.044),
+            'sun_sensor': SunSensor(
+                    latitude=40.689, longitude=-74.044, time_sensor=None),
+            'time_sensor': TimeSensor(latitude=40.689, longitude=-74.044),
+            'weather_sensor': WeatherSensor(
+                    api_key='123abc', latitude=40.689, longitude=-74.044),
+        },
 }
 
 def test_parse_yaml():

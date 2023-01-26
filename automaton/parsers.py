@@ -362,15 +362,9 @@ def _parse_sunset_trigger(value, context, sensor=None):
 
 def _parse_temp_trigger(value, context, sensor=None):
     _check_func = _parse_ranged_values(value, 'temp')
-    if sensor:
-        kwargs = {'weather_sensor': sensor}
-    else:
-        kwargs = {
-                'api_key': context.weather_api_key,
-                'latitude': context.latitude,
-                'longitude': context.longitude,
-        }
-    return TemperatureTrigger(_check_func, **kwargs)
+    # TODO: test weather sensor singleton
+    sensor = sensor or context.weather_sensor
+    return TemperatureTrigger(_check_func, sensor)
 
 def _parse_webhook_trigger(value, context, sensor=None):
     # TODO: test _parse_webhook_trigger

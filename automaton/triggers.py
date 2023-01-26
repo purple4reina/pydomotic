@@ -91,11 +91,9 @@ class SunsetTrigger(_SunTrigger):
 
 class TemperatureTrigger(_Trigger):
 
-    def __init__(self, check_func, weather_sensor=None, api_key=None,
-            latitude=None, longitude=None):
+    def __init__(self, check_func, weather_sensor):
         self.check_func = check_func
-        self.weather_sensor = weather_sensor or WeatherSensor(api_key,
-                latitude, longitude)
+        self.weather_sensor = weather_sensor
 
     def check(self):
         temp = self.weather_sensor.current_temperature()

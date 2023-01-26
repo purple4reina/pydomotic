@@ -1,7 +1,8 @@
 import logging
 
 from .exceptions import AutomatonConfigParsingError
-from .sensors import TimeSensor, WebhookSensor, DeviceSensor
+from .sensors import (TimeSensor, WebhookSensor, DeviceSensor, WeatherSensor,
+        AQISensor, SunSensor)
 
 logger = logging.getLogger(__name__)
 
@@ -12,12 +13,18 @@ class Context(object):
         self._aqi_api_key = aqi_api_key
         self._latitude = latitude
         self._longitude = longitude
-        self._time_sensor = None
         self._timezone = timezone
         self._weather_api_key = weather_api_key
-        self._webhook_sensor = None
+
         self._device_sensors = {}
+        self._aqi_sensor = None
+        self._sun_sensor = None
+        self._time_sensor = None
+        self._weather_sensor = None
+        self._webhook_sensor = None
+
         self._context = None
+        self._sensors = None
         self.devices = {}
 
     @staticmethod
@@ -91,19 +98,6 @@ class Context(object):
         return self._timezone
 
     @property
-    def time_sensor(self):
-        if self._time_sensor is None:
-            if self._timezone is not None:
-                self._time_sensor = TimeSensor(timezone=self.timezone)
-            elif self._longitude is not None and self._latitude is not None:
-                self._time_sensor = TimeSensor(latitude=self.latitude,
-                        longitude=self.longitude)
-            else:
-                raise AutomatonConfigParsingError(
-                        'either timezone or latitude/longitude required')
-        return self._time_sensor
-
-    @property
     def aqi_api_key(self):
         if not self._aqi_api_key:
             raise AutomatonConfigParsingError('aqi api key required')
@@ -124,6 +118,42 @@ class Context(object):
         return self._weather_api_key
 
     @property
+    def aqi_sensor(self):
+        # TODO: use this in parsers
+        if self._aqi_sensor is None:
+            self._aqi_sensor = AQISensor(
+                    self.aqi_api_key, self.latitude, self.longitude)
+        return self._aqi_sensor
+
+    @property
+    def sun_sensor(self):
+        # TODO: use this in parsers
+        if self._sun_sensor  is None:
+            self._sun_sensor = SunSensor(
+                    self.latitude, self.longitude, self.time_sensor)
+        return self._sun_sensor
+
+    @property
+    def time_sensor(self):
+        if self._time_sensor is None:
+            if self._timezone is not None:
+                self._time_sensor = TimeSensor(timezone=self.timezone)
+            elif self._longitude is not None and self._latitude is not None:
+                self._time_sensor = TimeSensor(latitude=self.latitude,
+                        longitude=self.longitude)
+            else:
+                raise AutomatonConfigParsingError(
+                        'either timezone or latitude/longitude required')
+        return self._time_sensor
+
+    @property
+    def weather_sensor(self):
+        if self._weather_sensor is None:
+            self._weather_sensor = WeatherSensor(
+                    self.weather_api_key, self.latitude, self.longitude)
+        return self._weather_sensor
+
+    @property
     def webhook_sensor(self):
         if self._webhook_sensor is None:
             self._webhook_sensor = WebhookSensor()
@@ -138,11 +168,24 @@ class Context(object):
         return self._device_sensors[device.name]
 
     @property
+    def sensors(self):
+        if self._sensors is None:
+            self._sensors = {}
+            for sensor in ('aqi_sensor', 'sun_sensor', 'time_sensor',
+                    'weather_sensor'):
+                try:
+                    self._sensors[sensor] = getattr(self, sensor)
+                except Exception as e:
+                    logger.debug(f'{sensor} not configured, ignoring: '
+                            f'[{e.__class__.__name__}] {e}')
+        return self._sensors
+
+    @property
     def context(self):
         if not self._context:
             # TODO: make a copy to to pass to action.run?
             self._context = {
                     'devices': self.devices,
-                    'time_sensor': self.time_sensor,
+                    'sensors': self.sensors,
             }
         return self._context

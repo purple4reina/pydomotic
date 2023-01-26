@@ -52,7 +52,8 @@ class SunSensor(object):
 
     def __init__(self, latitude, longitude, time_sensor):
         self.observer = astral.Observer(latitude=latitude, longitude=longitude)
-        self.time_sensor = time_sensor or TimeSensor()
+        self.time_sensor = time_sensor or TimeSensor(
+                latitude=latitude, longitude=longitude)
 
     @cache_value(hours=12)
     def get_sunrise(self):
