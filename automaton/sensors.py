@@ -110,6 +110,7 @@ class WeatherSensor(_Sensor):
         self.owm_mgr = pyowm.OWM(api_key).weather_manager()
         self.location = (latitude, longitude)
 
+    # TODO: configurable cache duration
     @cache_value(minutes=5)
     def _weather(self):
         return self.owm_mgr.weather_at_coords(*self.location).weather
