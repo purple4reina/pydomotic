@@ -4,9 +4,12 @@ import datetime
 import requests
 import zoneinfo
 
-from .utils import cache_value
+from .utils import cache_value, ObjectMetaclass
 
-class AQISensor(object):
+class _Sensor(metaclass=ObjectMetaclass):
+    pass
+
+class AQISensor(_Sensor):
 
     aqi_url = 'https://www.airnowapi.org/aq/observation/latLong/current'
 
@@ -46,7 +49,7 @@ class AQISensor(object):
 class AQISensorError(Exception):
     pass
 
-class SunSensor(object):
+class SunSensor(_Sensor):
 
     # TODO: test timezone
 
@@ -67,7 +70,7 @@ class SunSensor(object):
         return astral.sun.sunset(self.observer, date=now,
                 tzinfo=self.time_sensor.tzinfo)
 
-class TimeSensor(object):
+class TimeSensor(_Sensor):
 
     # TODO: test
 
@@ -100,7 +103,7 @@ class TimeSensor(object):
                 self._tzinfo = datetime.timezone.utc
         return self._tzinfo
 
-class WeatherSensor(object):
+class WeatherSensor(_Sensor):
 
     def __init__(self, api_key, latitude, longitude):
         import pyowm
@@ -115,7 +118,7 @@ class WeatherSensor(object):
         # returns float with 2 decimal points
         return self._weather().temperature('fahrenheit').get('temp')
 
-class WebhookSensor(object):
+class WebhookSensor(_Sensor):
 
     def __init__(self):
         self.path = None
@@ -127,7 +130,7 @@ class WebhookSensor(object):
         self.path = http.get('path')
         self.method = http.get('method')
 
-class DeviceSensor(object):
+class DeviceSensor(_Sensor):
 
     def __init__(self, device):
         self.device = device
@@ -135,6 +138,12 @@ class DeviceSensor(object):
     def __getattr__(self, attr):
         if attr == 'device':
             return self.device
+        if attr == '_name':
+            return 'device_sensor'
         if attr in dir(self.device):
             return getattr(self.device, attr)
         return super().__getattr__(self, attr)
+
+    @property
+    def name(self):
+        return f'{super().name} {self.device.name}'

@@ -1,4 +1,5 @@
 import datetime
+import functools
 import os
 import pytest
 
@@ -15,7 +16,8 @@ from automaton.providers.base import Device
 from automaton.providers.fujitsu import FujitsuProvider
 from automaton.providers.gosund import GosundProvider
 from automaton.providers.noop import NoopProvider, NoopDevice
-from automaton.sensors import SunSensor, TimeSensor, WeatherSensor, AQISensor
+from automaton.sensors import (SunSensor, TimeSensor, WeatherSensor, AQISensor,
+        WebhookSensor, DeviceSensor)
 from automaton.triggers import (AQITrigger, TimeTrigger, IsoWeekdayTrigger, RandomTrigger,
         SunriseTrigger, SunsetTrigger, TemperatureTrigger, WebhookTrigger)
 
@@ -233,6 +235,41 @@ def test_parse_yaml():
     assert len(actual_context_dict) == len(expect_context_dict), (
             'wrong size context dict returned')
     assert_key_name_and_value_class(expect_context_dict, actual_context_dict)
+
+def test_parse_yaml_sensor_singletons(monkeypatch):
+    sensors = {}
+    def wrap_init(fn):
+        @functools.wraps(fn)
+        def __init__(self, *args, **kwargs):
+            fn(self, *args, **kwargs)
+            sensors[self.name] = sensors.get(self.name, 0) + 1
+        return __init__
+
+    monkeypatch.setattr('automaton.sensors.AQISensor.__init__',
+            wrap_init(AQISensor.__init__))
+    monkeypatch.setattr('automaton.sensors.SunSensor.__init__',
+            wrap_init(SunSensor.__init__))
+    monkeypatch.setattr('automaton.sensors.TimeSensor.__init__',
+            wrap_init(TimeSensor.__init__))
+    monkeypatch.setattr('automaton.sensors.WeatherSensor.__init__',
+            wrap_init(WeatherSensor.__init__))
+    monkeypatch.setattr('automaton.sensors.WebhookSensor.__init__',
+            wrap_init(WebhookSensor.__init__))
+    monkeypatch.setattr('automaton.sensors.DeviceSensor.__init__',
+            wrap_init(DeviceSensor.__init__))
+
+    config_fullpath = _relative_to_full_path('./testdata/full.yml')
+    parse_yaml(config_fullpath)
+    assert tuple(sensors.items()) == (
+            ('aqi_sensor', 1),
+            ('time_sensor', 1),
+            ('sun_sensor', 1),
+            ('weather_sensor', 1),
+            ('webhook_sensor', 1),
+            ('device_sensor noop_device sensor-A', 1),
+            ('device_sensor noop_device sensor-B', 1),
+    ), 'wrong number of sensors objects initialized'
+
 
 _test__TriggersConf = (
         ({}, Exception, Exception, Exception, Exception),
