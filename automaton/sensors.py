@@ -118,6 +118,10 @@ class WeatherSensor(_Sensor):
         # returns float with 2 decimal points
         return self._weather().temperature('fahrenheit').get('temp')
 
+    def current_humidity(self):
+        # returns percentage value between 0 and 100
+        return self._weather().humidity
+
 class WebhookSensor(_Sensor):
 
     def __init__(self):
