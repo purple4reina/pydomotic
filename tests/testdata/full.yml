@@ -181,6 +181,9 @@ automations:
             temp: '>66'
           sensor-B:
             aqi: '>100'
+      - if:
+          sensor-A:
+            temp: '<${temp}'
 
   custom-code:
     enabled: true

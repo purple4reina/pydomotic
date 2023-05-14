@@ -190,8 +190,9 @@ def _parse_trigger(typ, value, context, sensor=None):
         raise AutomatonConfigParsingError(f'unknown trigger type "{typ}"')
     return trigger
 
-_ranged_value_re = re.compile(r'(<|>|==|<=|>=)?\s*(\d+\.?\d*)')
-def _parse_ranged_values(value, typ):
+_ranged_value_aqi_re = re.compile(r'(<|>|==|<=|>=)?\s*(\d+\.?\d*)')
+_ranged_value_temp_re = re.compile(r'(<|>|==|<=|>=)?\s*(\d+\.?\d*|\$\{temp\})')
+def _parse_ranged_values(value, typ, context):
     if not isinstance(value, (str, int, float)):
         raise AutomatonConfigParsingError(
                 f'invalid {typ} trigger value "{value}", expecting value like '
@@ -200,19 +201,36 @@ def _parse_ranged_values(value, typ):
     def _ranged_func(start, end):
         return lambda a: a >= start and a <= end
 
-    def _relative_func(op, num):
+    def _relative_func(op, val):
+        value_func = _get_value_func(val)
         if op == '>':
-            return lambda a: a > num
+            return lambda a: a > value_func()
         elif op == '<':
-            return lambda a: a < num
+            return lambda a: a < value_func()
         elif op == '==':
-            return lambda a: a == num
+            return lambda a: a == value_func()
         elif op == '>=':
-            return lambda a: a >= num
+            return lambda a: a >= value_func()
         elif op == '<=':
-            return lambda a: a <= num
+            return lambda a: a <= value_func()
         elif op == None:
-            return lambda a: a == num
+            return lambda a: a == value_func()
+
+    def _float_value_func(val):
+        num = float(val)
+        return lambda: num
+
+    if typ == 'aqi':
+        _ranged_value_re = _ranged_value_aqi_re
+        _get_value_func = lambda a: _float_value_func(a)
+    elif typ == 'temp':
+        _ranged_value_re = _ranged_value_temp_re
+        def _get_value_func(val):
+            if val == '${temp}':
+                return context.weather_sensor.current_temperature
+            return _float_value_func(val)
+    else:
+        raise AutomatonConfigParsingError(f'unknown ranged trigger type "{typ}"')
 
     _check_funcs = []
     for val in str(value).split(','):
@@ -225,7 +243,7 @@ def _parse_ranged_values(value, typ):
                 raise AutomatonConfigParsingError(
                         f'invalid {typ} trigger value "{val}", expecting value like '
                         '">100", "<100", or "100"')
-            _check_func =_relative_func(m.group(1), float(m.group(2)))
+            _check_func =_relative_func(m.group(1), m.group(2))
 
         elif len(ranged_val) == 2:
             try:
@@ -244,7 +262,7 @@ def _parse_ranged_values(value, typ):
     return lambda a: any(fn(a) for fn in _check_funcs)
 
 def _parse_aqi_trigger(value, context, sensor=None):
-    _check_func = _parse_ranged_values(value, 'aqi')
+    _check_func = _parse_ranged_values(value, 'aqi', context)
     sensor = sensor or context.aqi_sensor
     return AQITrigger(_check_func, sensor)
 
@@ -354,7 +372,7 @@ def _parse_sunset_trigger(value, context, sensor=None):
     return SunsetTrigger(timedelta, context.time_sensor, sun_sensor)
 
 def _parse_temp_trigger(value, context, sensor=None):
-    _check_func = _parse_ranged_values(value, 'temp')
+    _check_func = _parse_ranged_values(value, 'temp', context)
     # TODO: test weather sensor singleton
     sensor = sensor or context.weather_sensor
     return TemperatureTrigger(_check_func, sensor)

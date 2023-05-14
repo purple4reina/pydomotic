@@ -59,6 +59,8 @@ _test_context.devices = {
         _test_device_name_5: _test_device_5,
         _test_device_name_6: _test_device_6,
 }
+_test_current_temp = 75.5
+_test_context.weather_sensor.current_temperature = lambda: _test_current_temp
 
 def _relative_to_full_path(path):
     dir_path = os.path.dirname(os.path.realpath(__file__))
@@ -159,6 +161,12 @@ _test_parse_yaml_expect = [
         Component(
             name='sensors 0',
             ifs=[TemperatureTrigger, AQITrigger],
+            thens=[],
+            elses=[],
+        ),
+        Component(
+            name='sensors 1',
+            ifs=[TemperatureTrigger],
             thens=[],
             elses=[],
         ),
@@ -804,6 +812,10 @@ _test__parse_aqi_trigger_failures = (
         '==10-30',
         '10-20-30',
         {'hello': 'world'},
+        '>${temp}',
+        '>${aqi}',
+        '${aqi}-80',
+        '${temp}-${api}',
 )
 
 @pytest.mark.parametrize('value', _test__parse_aqi_trigger_failures)
@@ -1031,6 +1043,12 @@ _test__parse_temp_trigger = (
         ('65.5', lambda a: a == 65.5),
         (65.5, lambda a: a == 65.5),
         (60, lambda a: a == 60),
+
+        ('<${temp}', lambda a: a < _test_current_temp),
+        ('>${temp}', lambda a: a > _test_current_temp),
+        ('==${temp}', lambda a: a == _test_current_temp),
+        ('<=${temp}', lambda a: a <= _test_current_temp),
+        ('>=${temp}', lambda a: a >= _test_current_temp),
 )
 
 @pytest.mark.parametrize('value,expect', _test__parse_temp_trigger)
@@ -1064,6 +1082,9 @@ _test__parse_temp_trigger_failures = (
         '==10-30',
         '10-20-30',
         {'hello': 'world'},
+        '>${aqi}',
+        '${temp}-80',
+        '${temp}-${api}',
 )
 
 @pytest.mark.parametrize('value', _test__parse_temp_trigger_failures)
