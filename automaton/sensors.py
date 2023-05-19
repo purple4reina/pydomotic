@@ -12,6 +12,7 @@ class _Sensor(metaclass=ObjectMetaclass):
 class AQISensor(_Sensor):
 
     aqi_url = 'https://www.airnowapi.org/aq/observation/latLong/current'
+    timeout = 5 # seconds
 
     def __init__(self, api_key, latitude, longitude):
         self.location = (latitude, longitude)
@@ -22,10 +23,10 @@ class AQISensor(_Sensor):
                 'format': 'application/json',
         }
 
-    @cache_value(minutes=15)
+    @cache_value(minutes=15, fallback_on_error=True)
     def get_aqi(self):
         try:
-            resp = requests.get(self.aqi_url, params=self.params)
+            resp = requests.get(self.aqi_url, params=self.params, timeout=self.timeout)
             resp.raise_for_status()
             data = resp.json()
         except Exception as e:

@@ -40,6 +40,39 @@ def test_cache_value(kwargs, monkeypatch):
         actual = test_fn()
         assert actual == 3, 'wrong value returned'
 
+def test_cache_value_fallback():
+    def test_fn(fails_on):
+        call_count = [0]
+
+        @cache_value(fallback_on_error=True)
+        def _test_fn():
+            call_count[0] += 1
+            if call_count[0] in fails_on:
+                1 / 0
+            return call_count[0]
+        return _test_fn
+
+    # first call succeeds, second fails, third succeeds
+    fn = test_fn([2])
+    assert fn() == 1, 'wrong value returned'
+    assert fn() == 1, 'wrong value returned'
+    assert fn() == 3, 'wrong value returned'
+
+    # first call fails, second succeeds, third fails
+    fn = test_fn([1, 3])
+    with pytest.raises(ZeroDivisionError):
+        fn()
+    assert fn() == 2, 'wrong value returned'
+    assert fn() == 2, 'wrong value returned'
+
+    # first call fails, second fails, third succeeds
+    fn = test_fn([1, 2])
+    with pytest.raises(ZeroDivisionError):
+        fn()
+    with pytest.raises(ZeroDivisionError):
+        fn()
+    assert fn() == 3, 'wrong value returned'
+
 _test__camel_to_snake = (
         ('ABCTrigger', 'abc_trigger'),
         ('AbcTrigger', 'abc_trigger'),

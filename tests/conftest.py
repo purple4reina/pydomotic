@@ -149,7 +149,7 @@ def mock_weather_sensor():
 @pytest.fixture
 def patch_get_requests(monkeypatch):
     def patch(raises, resp_json):
-        def get(url, params=None):
+        def get(url, **kwargs):
             return _response()
         class _response(object):
             def raise_for_status(self):

@@ -19,7 +19,7 @@ class _timed_cache(object):
         self.last_call = 0
         self.value = None
 
-def cache_value(hours=0, minutes=0, seconds=0):
+def cache_value(hours=0, minutes=0, seconds=0, fallback_on_error=False):
     # XXX: cache stored per class rather than per instance
     seconds += 60 * 60 * hours + 60 * minutes
     cache = _timed_cache()
@@ -29,7 +29,11 @@ def cache_value(hours=0, minutes=0, seconds=0):
             now = time.time()
             if now - cache.last_call < seconds:
                 return cache.value
-            cache.set(now, fn(*args, **kwargs))
+            try:
+                cache.set(now, fn(*args, **kwargs))
+            except Exception as e:
+                if not fallback_on_error or cache.last_call == 0:
+                    raise e
             return cache.value
         _call.clear_cache = cache.reset
         return _call
