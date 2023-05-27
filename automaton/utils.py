@@ -1,10 +1,13 @@
 import abc
 import functools
 import importlib
+import logging
 import re
 import time
 
 from .exceptions import AutomatonMethodImportError
+
+logger = logging.getLogger(__name__)
 
 class _timed_cache(object):
 
@@ -34,6 +37,7 @@ def cache_value(hours=0, minutes=0, seconds=0, fallback_on_error=False):
             except Exception as e:
                 if not fallback_on_error or cache.last_call == 0:
                     raise e
+                logger.info(f'falling back to cached value: [{e.__class__.__name__}] {e}')
             return cache.value
         _call.clear_cache = cache.reset
         return _call
