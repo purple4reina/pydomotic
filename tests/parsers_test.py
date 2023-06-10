@@ -7,12 +7,14 @@ from automaton.actions import TurnOnAction, TurnOffAction, ExecuteCodeAction
 from automaton.components import Component
 from automaton.context import Context
 from automaton.parsers import (parse_yaml, _parse_providers,
-        _parse_gosund_provider, _parse_fujitsu_provider, _parse_string,
-        _parse_devices, _parse_components, _parse_triggers, _parse_aqi_trigger,
+        _parse_gosund_provider, _parse_fujitsu_provider,
+        _parse_airthings_provider, _parse_string, _parse_devices,
+        _parse_components, _parse_triggers, _parse_aqi_trigger,
         _parse_time_trigger, _parse_weekday_trigger, _parse_random_trigger,
         _parse_timedelta, _parse_sunrise_trigger, _parse_sunset_trigger,
         _parse_temp_trigger, _parse_actions, AutomatonConfigParsingError)
 from automaton.providers.base import Device
+from automaton.providers.airthings import AirthingsProvider
 from automaton.providers.fujitsu import FujitsuProvider
 from automaton.providers.gosund import GosundProvider
 from automaton.providers.noop import NoopProvider, NoopDevice
@@ -377,6 +379,16 @@ _test__parse_providers = (
             {'noop': NoopProvider, 'gosund': GosundProvider,},
             False,
         ),
+        (
+            {
+                'airthings': {
+                    'client_id': 'client_id',
+                    'client_secret': 'client_secret',
+                },
+            },
+            {'noop': NoopProvider, 'airthings': AirthingsProvider},
+            False,
+        ),
 )
 
 @pytest.mark.parametrize('providers,expects,raises', _test__parse_providers)
@@ -470,6 +482,23 @@ def test__parse_fujitsu_provider(provider, raises):
     try:
         actual = _parse_fujitsu_provider(provider)
         assert isinstance(actual, FujitsuProvider)
+    except AutomatonConfigParsingError:
+        assert raises, 'should not have raised'
+    else:
+        assert not raises, 'should have raised'
+
+_test__parse_airthings_provider = (
+        ({}, True),
+        ({'client_id': 'client_id'}, True),
+        ({'client_secret': 'client_secret'}, True),
+        ({'client_id': 'client_id', 'client_secret': 'client_secret'}, False),
+)
+
+@pytest.mark.parametrize('provider,raises', _test__parse_airthings_provider)
+def test__parse_airthings_provider(provider, raises):
+    try:
+        actual = _parse_airthings_provider(provider)
+        assert isinstance(actual, AirthingsProvider)
     except AutomatonConfigParsingError:
         assert raises, 'should not have raised'
     else:

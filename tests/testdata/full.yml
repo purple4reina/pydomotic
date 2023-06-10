@@ -1,9 +1,5 @@
 version: 1
 
-providers:
-  # TODO: remove requirement to declare noop provider
-  noop:
-
 devices:
   switch-A:
     description: air purifier

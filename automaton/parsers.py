@@ -67,6 +67,8 @@ def _parse_providers(providers_conf):
             pass  # already added
         elif name == 'fujitsu':
             providers['fujitsu'] = _parse_fujitsu_provider(provider)
+        elif name == 'airthings':
+            providers['airthings'] = _parse_airthings_provider(provider)
         else:
             raise AutomatonConfigParsingError(f'unknown provider "{name}"')
     return providers
@@ -99,6 +101,20 @@ def _parse_fujitsu_provider(provider):
 
     from .providers.fujitsu import FujitsuProvider
     return FujitsuProvider(username, password)
+
+def _parse_airthings_provider(provider):
+    for key in ('client_id', 'client_secret'):
+        if key not in provider:
+            raise AutomatonConfigParsingError(
+                    f'provider airthings requires key "{key}"')
+
+    client_id = _parse_string(provider['client_id'])
+    client_secret = _parse_string(provider['client_secret'])
+
+    cache_secs = provider.get('data_cache_seconds')
+
+    from .providers.airthings import AirthingsProvider
+    return AirthingsProvider(client_id, client_secret, data_cache_seconds=cache_secs)
 
 _env_re = re.compile(r'\$\{env:(.*?)\}')
 def _parse_string(string):
