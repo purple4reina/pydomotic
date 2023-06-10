@@ -15,18 +15,6 @@ class Device(metaclass=ObjectMetaclass):
         self.device_name = name
         self.device_description = description
 
-    @abc.abstractmethod
-    def turn_on(self):
-        pass
-
-    @abc.abstractmethod
-    def turn_off(self):
-        pass
-
-    @abc.abstractmethod
-    def switch(self):
-        pass
-
     @property
     def name(self):
         return f'{super().name} {self.device_name}'

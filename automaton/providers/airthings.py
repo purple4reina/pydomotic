@@ -1,0 +1,69 @@
+import requests
+
+from .base import Provider, Device
+from ..utils import cache_value
+
+class AirthingsAPI(object):
+
+    _auth_token_url = 'https://accounts-api.airthings.com/v1/token'
+    _auth_token_data = {
+            'grant_type': 'client_credentials',
+            'scope': 'read:device:current_values',
+    }
+    _auth_headers = {}
+    _samples_url = 'https://ext-api.airthings.com/v1/devices/{}/latest-samples'
+
+    def __init__(self, client_id, client_secret, data_cache_seconds=None):
+        self._auth_credentials = (client_id, client_secret)
+        if data_cache_seconds:
+            self.fetch_data = cache_value(seconds=data_cache_seconds)(self.fetch_data)
+
+    def _get_auth_headers(self):
+        resp = requests.post(
+                self._auth_token_url,
+                data=self._auth_token_data,
+                auth=self._auth_credentials,
+        )
+        resp.raise_for_status()
+        self._auth_headers['Authorization'] = f'Bearer {resp.json().get("access_token")}'
+        return self._auth_headers
+
+    def fetch_data(self, device_id):
+        resp = requests.get(
+                url=self._samples_url.format(device_id),
+                headers=self._get_auth_headers(),
+        )
+        resp.raise_for_status()
+        return resp.json().get('data')
+
+    def get_device(self, device_id):
+        return self.device(device_id, self)
+
+    class device(object):
+
+        def __init__(self, device_id, api):
+            self.device_id = device_id
+            self.api = api
+
+        def fetch_data(self):
+            return self.api.fetch_data(self.device_id)
+
+class AirthingsProvider(Provider):
+
+    def __init__(self, client_id, client_secret, data_cache_seconds=None):
+        self.api = AirthingsAPI(client_id, client_secret, data_cache_seconds=data_cache_seconds)
+
+    def get_device(self, device_id, device_name, device_description):
+        device = self.api.get_device(device_id)
+        return AirthingsDevice(device, device_name, device_description)
+
+class AirthingsDevice(Device):
+
+    def current_radon(self):
+        return self.device.fetch_data()['radonShortTermAvg']
+
+    def current_temperature(self):
+        return self.device.fetch_data()['temp'] * 1.8 + 32  # convert to F
+
+    def current_humidity(self):
+        return self.device.fetch_data()['humidity']

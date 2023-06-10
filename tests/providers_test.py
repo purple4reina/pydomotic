@@ -1,3 +1,4 @@
+from automaton.providers.airthings import AirthingsProvider, AirthingsDevice
 from automaton.providers.fujitsu import FujitsuProvider, FujitsuDevice
 from automaton.providers.gosund import GosundProvider, GosundDevice
 from automaton.providers.noop import NoopProvider, NoopDevice
@@ -72,6 +73,11 @@ def test_gosund_provider(patch_gosundpy):
     assert device.device.switch_called, 'device.switch not called'
 
 def test_gosund_provider_device_status_cache(patch_gosundpy):
+    cache_secs = None
+    provider = GosundProvider('u', 'p', 'ai', 'ak',
+            status_cache_seconds=cache_secs)
+    assert patch_gosundpy.cache_secs == cache_secs, 'wrong caching value'
+
     cache_secs = 50
     provider = GosundProvider('u', 'p', 'ai', 'ak',
             status_cache_seconds=cache_secs)
@@ -103,3 +109,40 @@ def test_noop_provider():
     assert device.name == f'noop_device {name}', 'wrong name'
     assert device.device_name == name, 'wrong device_name'
     assert device.device_description == desc, 'wrong device_description'
+
+def test_airthings_provider(patch_airthings):
+    client_id, client_secret, name, desc = 'c_id', 'c_secret', 'name', 'desc'
+    provider = AirthingsProvider(client_id, client_secret)
+    assert patch_airthings.client_id == client_id, 'wrong client_id'
+    assert patch_airthings.client_secret == client_secret, 'wrong client_secret'
+
+    device = provider.get_device('id', name, desc)
+    assert device.device == patch_airthings.provider.device, 'wrong device'
+    assert device.name == f'airthings_device {name}', 'wrong name'
+    assert device.device_name == name, 'wrong device_name'
+    assert device.device_description == desc, 'wrong device_description'
+
+    assert device.current_temperature() == patch_airthings.device.temperature, 'wrong temperature'
+    assert device.current_humidity() == patch_airthings.device.humidity, 'wrong humidity'
+    assert device.current_radon() == patch_airthings.device.radon, 'wrong radon'
+
+def test_airthings_device(patch_airthings):
+    name, desc = 'device_name', 'device_description'
+    device = AirthingsDevice(patch_airthings.device, name, desc)
+    assert device.device == patch_airthings.device, 'wrong device'
+    assert device.name == f'airthings_device {name}', 'wrong name'
+    assert device.device_name == name, 'wrong device_name'
+    assert device.device_description == desc, 'wrong device_description'
+
+    assert device.current_temperature() == patch_airthings.device.temperature, 'wrong temperature'
+    assert device.current_humidity() == patch_airthings.device.humidity, 'wrong humidity'
+    assert device.current_radon() == patch_airthings.device.radon, 'wrong radon'
+
+def test_airthings_provider_data_cache(patch_airthings):
+    cache_secs = None
+    provider = AirthingsProvider('id', 'secret', data_cache_seconds=cache_secs)
+    assert patch_airthings.cache_secs == cache_secs, 'wrong caching value'
+
+    cache_secs = 50
+    provider = AirthingsProvider('id', 'secret', data_cache_seconds=cache_secs)
+    assert patch_airthings.cache_secs == cache_secs, 'wrong caching value'

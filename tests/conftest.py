@@ -247,3 +247,39 @@ def patch_gosundpy(monkeypatch):
     gosund = _MockGosund()
     monkeypatch.setattr('gosundpy.Gosund', gosund)
     return gosund
+
+class _MockAirthings(object):
+    def __init__(self):
+        self.device_id = None
+        self.device = self._MockDevice()
+        self.cache_secs = None
+    class _MockDevice(object):
+        name = 'device_name'
+        radon = 123
+        temperature = 456
+        humidity = 789
+        def __init__(self):
+            self.data = {
+                    'radonShortTermAvg': self.radon,
+                    'temp': (self.temperature - 32) * 5 / 9, # convert to celcius
+                    'humidity': self.humidity,
+            }
+        def fetch_data(self):
+            return self.data
+    def __call__(self, client_id, client_secret, data_cache_seconds=None):
+        class _MockAirthingsProvider(object):
+            device = self.device
+            def __init__(sf, client_id, client_secret, data_cache_seconds=None):
+                self.client_id = client_id
+                self.client_secret = client_secret
+                self.cache_secs = data_cache_seconds
+            def get_device(sf, device_id):
+                return sf.device
+        self.provider = _MockAirthingsProvider(client_id, client_secret, data_cache_seconds=data_cache_seconds)
+        return self.provider
+
+@pytest.fixture
+def patch_airthings(monkeypatch):
+    airthings = _MockAirthings()
+    monkeypatch.setattr('automaton.providers.airthings.AirthingsAPI', airthings)
+    return airthings
