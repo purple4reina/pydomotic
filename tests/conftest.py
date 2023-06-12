@@ -3,6 +3,7 @@ import pytest
 import random
 import zoneinfo
 
+from automaton.providers.airthings import AirthingsAPI
 from automaton.utils import ObjectMetaclass
 
 class _MockDevice(object):
@@ -253,14 +254,14 @@ class _MockAirthings(object):
         self.device_id = None
         self.device = self._MockDevice()
         self.cache_secs = None
-    class _MockDevice(object):
+    class _MockDevice(AirthingsAPI.device):
         name = 'device_name'
         radon = 123
         temperature = 456
         humidity = 789
         def __init__(self):
             self.data = {
-                    'radonShortTermAvg': self.radon,
+                    'radonShortTermAvg': self.radon * 37,  # convert to Bq/m3
                     'temp': (self.temperature - 32) * 5 / 9, # convert to celcius
                     'humidity': self.humidity,
             }

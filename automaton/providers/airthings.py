@@ -48,6 +48,18 @@ class AirthingsAPI(object):
         def fetch_data(self):
             return self.api.fetch_data(self.device_id)
 
+        def get_radon(self):
+            return self.fetch_data()['radonShortTermAvg'] / 37  # convert Bq/m3 to pCi/L
+
+        def get_temperature(self):
+            return self.fetch_data()['temp'] * 1.8 + 32  # convert C to F
+
+        def get_humidity(self):
+            return self.fetch_data()['humidity']
+
+        def get_battery(self):
+            return self.fetch_data()['battery']
+
 class AirthingsProvider(Provider):
 
     def __init__(self, client_id, client_secret, data_cache_seconds=None):
@@ -60,10 +72,10 @@ class AirthingsProvider(Provider):
 class AirthingsDevice(Device):
 
     def current_radon(self):
-        return self.device.fetch_data()['radonShortTermAvg']
+        return self.device.get_radon()
 
     def current_temperature(self):
-        return self.device.fetch_data()['temp'] * 1.8 + 32  # convert to F
+        return self.device.get_temperature()
 
     def current_humidity(self):
-        return self.device.fetch_data()['humidity']
+        return self.device.get_humidity()
