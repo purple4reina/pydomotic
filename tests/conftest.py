@@ -99,6 +99,18 @@ class _MockAQISensor(object):
 def mock_aqi_sensor():
     return _MockAQISensor()
 
+class _MockRadonSensor(object):
+    def __init__(self):
+        self.radon = 0
+        self.get_radon_called = False
+    def current_radon(self):
+        self.get_radon_called = True
+        return self.radon
+
+@pytest.fixture
+def mock_radon_sensor():
+    return _MockRadonSensor()
+
 class _MockTimeSensor(object):
     test_datetime = datetime.datetime(1982, 2, 4, 10, 20,
             tzinfo=zoneinfo.ZoneInfo("America/Los_Angeles"))

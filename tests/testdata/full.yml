@@ -46,6 +46,11 @@ devices:
     provider: noop
     type: contact sensor
     id: '890'
+  sensor-F:
+    description: radon sensor
+    provider: noop
+    type: radon sensor
+    id: '901'
 
 triggers:
   location:
@@ -180,6 +185,9 @@ automations:
       - if:
           sensor-A:
             temp: '<${temp}'
+      - if:
+          sensor-F:
+            radon: '>4'
 
   custom-code:
     enabled: true

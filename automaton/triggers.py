@@ -91,6 +91,16 @@ class TemperatureTrigger(_Trigger):
         temp = self.weather_sensor.current_temperature()
         return self.check_func(temp)
 
+class RadonTrigger(_Trigger):
+
+    def __init__(self, check_func, radon_sensor):
+        self.check_func = check_func
+        self.radon_sensor = radon_sensor
+
+    def check(self):
+        radon = self.radon_sensor.current_radon()
+        return self.check_func(radon)
+
 class WebhookTrigger(_Trigger):
 
     # TODO: test webhook trigger

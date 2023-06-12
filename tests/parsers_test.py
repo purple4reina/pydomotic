@@ -12,7 +12,8 @@ from automaton.parsers import (parse_yaml, _parse_providers,
         _parse_components, _parse_triggers, _parse_aqi_trigger,
         _parse_time_trigger, _parse_weekday_trigger, _parse_random_trigger,
         _parse_timedelta, _parse_sunrise_trigger, _parse_sunset_trigger,
-        _parse_temp_trigger, _parse_actions, AutomatonConfigParsingError)
+        _parse_temp_trigger, _parse_radon_trigger, _parse_actions,
+        AutomatonConfigParsingError)
 from automaton.providers.base import Device
 from automaton.providers.airthings import AirthingsProvider
 from automaton.providers.fujitsu import FujitsuProvider
@@ -20,8 +21,9 @@ from automaton.providers.gosund import GosundProvider
 from automaton.providers.noop import NoopProvider, NoopDevice
 from automaton.sensors import (SunSensor, TimeSensor, WeatherSensor, AQISensor,
         WebhookSensor, DeviceSensor)
-from automaton.triggers import (AQITrigger, TimeTrigger, IsoWeekdayTrigger, RandomTrigger,
-        SunriseTrigger, SunsetTrigger, TemperatureTrigger, WebhookTrigger)
+from automaton.triggers import (AQITrigger, TimeTrigger, IsoWeekdayTrigger,
+        RandomTrigger, SunriseTrigger, SunsetTrigger, TemperatureTrigger,
+        RadonTrigger, WebhookTrigger)
 
 _test_context = Context.from_yaml({
         'aqi': {'api_key': '123abc'},
@@ -173,6 +175,12 @@ _test_parse_yaml_expect = [
             elses=[],
         ),
         Component(
+            name='sensors 2',
+            ifs=[RadonTrigger],
+            thens=[],
+            elses=[],
+        ),
+        Component(
             name='custom-code 0',
             ifs=[],
             thens=[ExecuteCodeAction, ExecuteCodeAction],
@@ -191,6 +199,7 @@ _test_parse_yaml_expect_context_dict = {
             'sensor-C': NoopDevice('678', 'sensor-C', 'light sensor'),
             'sensor-D': NoopDevice('789', 'sensor-D', 'motion sensor'),
             'sensor-E': NoopDevice('890', 'sensor-E', 'contact sensor'),
+            'sensor-F': NoopDevice('901', 'sensor-F', 'radon sensor'),
         },
         'sensors': {
             'aqi_sensor': AQISensor(
@@ -278,6 +287,7 @@ def test_parse_yaml_sensor_singletons(monkeypatch):
             ('webhook_sensor', 1),
             ('device_sensor noop_device sensor-A', 1),
             ('device_sensor noop_device sensor-B', 1),
+            ('device_sensor noop_device sensor-F', 1),
     ), 'wrong number of sensors objects initialized'
 
 
@@ -845,12 +855,48 @@ _test__parse_aqi_trigger_failures = (
         '>${aqi}',
         '${aqi}-80',
         '${temp}-${api}',
+        '>${radon}',
 )
 
 @pytest.mark.parametrize('value', _test__parse_aqi_trigger_failures)
 def test__parse_aqi_trigger_failures(value):
     try:
         _parse_aqi_trigger(value, _test_context)
+    except AutomatonConfigParsingError:
+        pass
+    else:
+        raise AssertionError('should have raised an exception')
+
+_test__parse_radon_trigger = _test__parse_aqi_trigger
+
+@pytest.mark.parametrize('value,expect', _test__parse_radon_trigger)
+def test__parse_radon_trigger(value, expect, mock_radon_sensor):
+    actual = _parse_radon_trigger(value, _test_context, sensor=mock_radon_sensor)
+
+    actual.radon_sensor = mock_radon_sensor
+    for i in range(100):
+        mock_radon_sensor.radon = i
+        assert actual.check() == expect(i), (
+                f'wrong value returned by func at index {i}')
+
+        mock_radon_sensor.radon = i + 0.5
+        assert actual.check() == expect(i + 0.5), (
+                f'wrong value returned by func at index {i + 0.5}')
+
+_test__parse_radon_trigger_failures = _test__parse_aqi_trigger_failures
+
+@pytest.mark.parametrize('value', _test__parse_radon_trigger_failures)
+def test__parse_radon_trigger_failures(value):
+    try:
+        _parse_radon_trigger(value, _test_context)
+    except AutomatonConfigParsingError:
+        pass
+    else:
+        raise AssertionError('should have raised an exception')
+
+def test__parse_radon_trigger_requires_sensor():
+    try:
+        _parse_radon_trigger('>=100', _test_context)
     except AutomatonConfigParsingError:
         pass
     else:

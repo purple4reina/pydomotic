@@ -11,7 +11,7 @@ from .exceptions import AutomatonConfigParsingError
 from .providers.noop import NoopProvider
 from .triggers import (AQITrigger, TimeTrigger, IsoWeekdayTrigger,
         RandomTrigger, SunriseTrigger, SunsetTrigger, TemperatureTrigger,
-        WebhookTrigger)
+        RadonTrigger, WebhookTrigger)
 
 logger = logging.getLogger(__name__)
 
@@ -195,6 +195,8 @@ def _parse_trigger(typ, value, context, sensor=None):
         trigger = _parse_sunset_trigger(value, context, sensor=sensor)
     elif typ == 'temp':
         trigger = _parse_temp_trigger(value, context, sensor=sensor)
+    elif typ == 'radon':
+        trigger = _parse_radon_trigger(value, context, sensor=sensor)
     elif typ == 'webhook':
         # TODO: test _parse_triggers
         trigger = _parse_webhook_trigger(value, context, sensor=sensor)
@@ -236,7 +238,7 @@ def _parse_ranged_values(value, typ, context):
         num = float(val)
         return lambda: num
 
-    if typ == 'aqi':
+    if typ == 'aqi' or typ == 'radon':
         _ranged_value_re = _ranged_value_aqi_re
         _get_value_func = lambda a: _float_value_func(a)
     elif typ == 'temp':
@@ -392,6 +394,13 @@ def _parse_temp_trigger(value, context, sensor=None):
     # TODO: test weather sensor singleton
     sensor = sensor or context.weather_sensor
     return TemperatureTrigger(_check_func, sensor)
+
+def _parse_radon_trigger(value, context, sensor=None):
+    if not sensor:
+        raise AutomatonConfigParsingError(
+                'radon trigger requires a radon sensor')
+    _check_func = _parse_ranged_values(value, 'radon', context)
+    return RadonTrigger(_check_func, sensor)
 
 def _parse_webhook_trigger(value, context, sensor=None):
     # TODO: test _parse_webhook_trigger
