@@ -1,5 +1,6 @@
 import abc
 import datetime
+import croniter
 import inspect
 import random
 
@@ -48,6 +49,16 @@ class TimeTrigger(_Trigger):
             if minutes == now_minutes:
                 return True
         return False
+
+class CronTrigger(_Trigger):
+
+    def __init__(self, cron, time_sensor):
+        self.cron = cron
+        self.time_sensor = time_sensor
+
+    def check(self):
+        now = self.time_sensor.get_current_datetime()
+        return croniter.croniter.match(self.cron, now)
 
 class RandomTrigger(_Trigger):
 

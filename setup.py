@@ -46,6 +46,7 @@ setup(
         "PyYAML>=6.0,<7.0",
         "astral>=3.0,<4.0",
         #"boto3>=1.26.3,<2.0",  # TODO: only if requested
+        "croniter>=1.3.15,<2.0",
         "gosundpy>=0.6.2,<1.0",  # TODO: only if provider requested
         "pyfujitsu>=0.9.0,<1.0",  # TODO: only if provider requested
         "pyowm>=3.3.0,<4.0",  # TODO: only if requested

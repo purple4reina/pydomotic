@@ -1,3 +1,4 @@
+import croniter
 import logging
 import os
 import re
@@ -9,7 +10,7 @@ from .components import Component
 from .context import Context
 from .exceptions import AutomatonConfigParsingError
 from .providers.noop import NoopProvider
-from .triggers import (AQITrigger, TimeTrigger, IsoWeekdayTrigger,
+from .triggers import (AQITrigger, TimeTrigger, IsoWeekdayTrigger, CronTrigger,
         RandomTrigger, SunriseTrigger, SunsetTrigger, TemperatureTrigger,
         RadonTrigger, WebhookTrigger)
 
@@ -187,6 +188,8 @@ def _parse_trigger(typ, value, context, sensor=None):
         trigger = _parse_time_trigger(value, context, sensor=sensor)
     elif typ == 'weekday':
         trigger = _parse_weekday_trigger(value, context, sensor=sensor)
+    elif typ == 'cron':
+        trigger = _parse_cron_trigger(value, context, sensor=sensor)
     elif typ == 'random':
         trigger = _parse_random_trigger(value, context, sensor=sensor)
     elif typ == 'sunrise':
@@ -360,7 +363,13 @@ def _parse_weekday_trigger(value, context, sensor=None):
             isoweekdays.append(isoweekday % 7 or 7)
     return IsoWeekdayTrigger(isoweekdays, time_sensor=sensor or context.time_sensor)
 
+def _parse_cron_trigger(value, context, sensor=None):
+    if not croniter.croniter.is_valid(value):
+        raise AutomatonConfigParsingError(f'invalid cron expression "{value}"')
+    return CronTrigger(value, time_sensor=sensor or context.time_sensor)
+
 def _parse_random_trigger(value, context, sensor=None):
+    # TODO: check for valid probability
     probability = float(value)
     return RandomTrigger(probability)
 

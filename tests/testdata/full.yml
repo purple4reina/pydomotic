@@ -173,6 +173,7 @@ automations:
           sunrise: 60-120
           sunset: 60-120
           temp: 60-90
+          cron: '* * 13 * *'
 
   sensors:
     enabled: true

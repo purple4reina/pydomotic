@@ -1,7 +1,8 @@
 import datetime
 
 from automaton.triggers import (AQITrigger, IsoWeekdayTrigger, TimeTrigger,
-        RandomTrigger, SunriseTrigger, SunsetTrigger, TemperatureTrigger)
+        CronTrigger, RandomTrigger, SunriseTrigger, SunsetTrigger,
+        TemperatureTrigger)
 
 def test_aqi_trigger_fires(mock_aqi_sensor):
     mock_aqi_sensor.aqi = 200
@@ -49,6 +50,16 @@ def test_time_trigger_does_not_fire_different_hour(mock_time_sensor):
 
 def test_time_trigger_does_not_fire_different_minute(mock_time_sensor):
     trigger = TimeTrigger([630], time_sensor=mock_time_sensor)
+    fires = trigger.check()
+    assert not fires, 'trigger fired'
+
+def test_cron_trigger_fires(mock_time_sensor):
+    trigger = CronTrigger('20 10 * * *', time_sensor=mock_time_sensor)
+    fires = trigger.check()
+    assert fires, 'trigger did not fire'
+
+def test_cron_trigger_does_not_fire(mock_time_sensor):
+    trigger = CronTrigger('20 11 * * *', time_sensor=mock_time_sensor)
     fires = trigger.check()
     assert not fires, 'trigger fired'
 

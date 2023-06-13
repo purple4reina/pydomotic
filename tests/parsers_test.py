@@ -10,10 +10,10 @@ from automaton.parsers import (parse_yaml, _parse_providers,
         _parse_gosund_provider, _parse_fujitsu_provider,
         _parse_airthings_provider, _parse_string, _parse_devices,
         _parse_components, _parse_triggers, _parse_aqi_trigger,
-        _parse_time_trigger, _parse_weekday_trigger, _parse_random_trigger,
-        _parse_timedelta, _parse_sunrise_trigger, _parse_sunset_trigger,
-        _parse_temp_trigger, _parse_radon_trigger, _parse_actions,
-        AutomatonConfigParsingError)
+        _parse_time_trigger, _parse_weekday_trigger, _parse_cron_trigger,
+        _parse_random_trigger, _parse_timedelta, _parse_sunrise_trigger,
+        _parse_sunset_trigger, _parse_temp_trigger, _parse_radon_trigger,
+       _parse_actions, AutomatonConfigParsingError)
 from automaton.providers.base import Device
 from automaton.providers.airthings import AirthingsProvider
 from automaton.providers.fujitsu import FujitsuProvider
@@ -22,8 +22,8 @@ from automaton.providers.noop import NoopProvider, NoopDevice
 from automaton.sensors import (SunSensor, TimeSensor, WeatherSensor, AQISensor,
         WebhookSensor, DeviceSensor)
 from automaton.triggers import (AQITrigger, TimeTrigger, IsoWeekdayTrigger,
-        RandomTrigger, SunriseTrigger, SunsetTrigger, TemperatureTrigger,
-        RadonTrigger, WebhookTrigger)
+        CronTrigger, RandomTrigger, SunriseTrigger, SunsetTrigger,
+        TemperatureTrigger, RadonTrigger, WebhookTrigger)
 
 _test_context = Context.from_yaml({
         'aqi': {'api_key': '123abc'},
@@ -158,7 +158,7 @@ _test_parse_yaml_expect = [
         Component(
             name='ranges 0',
             ifs=[AQITrigger, IsoWeekdayTrigger, TimeTrigger, SunriseTrigger,
-                SunsetTrigger, TemperatureTrigger],
+                SunsetTrigger, TemperatureTrigger, CronTrigger],
             thens=[],
             elses=[],
         ),
@@ -954,6 +954,38 @@ def test__parse_time_trigger(value, expect, raises):
         actual = _parse_time_trigger(value, _test_context)
         assert isinstance(actual, TimeTrigger), 'wrong trigger type'
         assert expect == actual.times, 'wrong times found'+str(actual.times)
+    except AutomatonConfigParsingError:
+        assert raises, 'error should not have been raised'
+    else:
+        assert not raises, 'error not raised'
+
+_test__parse_cron_trigger = (
+    ('* * * * *', False),
+    ('0 * * * *', False),
+    ('0 0 * * *', False),
+    ('*/5 1,2,3 * * *', False),
+    ('5/5/* * * * *', True),
+    ('* * * *', True),
+    ('* * * * * * *', True),
+    ('*****', True),
+    ('90 * * * *', True),
+    ('@hourly', False),
+    ('@daily', False),
+    ('@weekly', False),
+    ('@monthly', False),
+    ('@yearly', False),
+    ('@annually', False),
+    ('@midnight', False),
+    ('@reboot', True),
+    ('@foo', True),
+)
+
+@pytest.mark.parametrize('value,raises', _test__parse_cron_trigger)
+def test__parse_cron_trigger(value, raises):
+    try:
+        actual = _parse_cron_trigger(value, _test_context)
+        assert isinstance(actual, CronTrigger), 'wrong trigger type'
+        assert actual.cron == value, 'wrong cron value'
     except AutomatonConfigParsingError:
         assert raises, 'error should not have been raised'
     else:
