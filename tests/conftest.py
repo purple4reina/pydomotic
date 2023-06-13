@@ -112,15 +112,24 @@ def mock_radon_sensor():
     return _MockRadonSensor()
 
 class _MockTimeSensor(object):
-    test_datetime = datetime.datetime(1982, 2, 4, 10, 20,
-            tzinfo=zoneinfo.ZoneInfo("America/Los_Angeles"))
-    tzinfo = test_datetime.tzinfo
+    test_datetime = None
     def get_current_datetime(self):
         return self.test_datetime
 
+@ pytest.fixture
+def test_tzinfo():
+    return zoneinfo.ZoneInfo("America/Los_Angeles")
+
 @pytest.fixture
-def mock_time_sensor():
-    return _MockTimeSensor()
+def test_datetime(test_tzinfo):
+    return datetime.datetime(1982, 2, 4, 10, 20, tzinfo=test_tzinfo)
+
+@pytest.fixture
+def mock_time_sensor(test_datetime, test_tzinfo):
+    sensor = _MockTimeSensor()
+    sensor.test_datetime = test_datetime
+    sensor.tzinfo = test_tzinfo
+    return sensor
 
 @pytest.fixture
 def patch_random(monkeypatch):
