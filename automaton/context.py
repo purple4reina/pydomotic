@@ -9,12 +9,13 @@ logger = logging.getLogger(__name__)
 class Context(object):
 
     def __init__(self, latitude, longitude, aqi_api_key, weather_api_key,
-                timezone):
+                weather_data_cache_seconds, timezone):
         self._aqi_api_key = aqi_api_key
         self._latitude = latitude
         self._longitude = longitude
         self._timezone = timezone
         self._weather_api_key = weather_api_key
+        self._weather_data_cache_seconds = weather_data_cache_seconds
 
         self._device_sensors = {}
         self._aqi_sensor = None
@@ -62,8 +63,17 @@ class Context(object):
                     f'[{e.__class__.__name__}] {e}')
             weather_api_key = None
 
+        try:
+            weather = triggers.get('weather', {})
+            weather_data_cache_seconds = weather.get('data_cache_seconds')
+        except Exception as e:
+            logger.debug('failed to parse weather data_cache_seconds, ignoring: '
+                    f'[{e.__class__.__name__}] {e}')
+            weather_data_cache_seconds = None
+
         return Context(
-                latitude, longitude, aqi_api_key, weather_api_key, timezone)
+                latitude, longitude, aqi_api_key, weather_api_key,
+                weather_data_cache_seconds, timezone)
 
     @property
     def latitude(self):
@@ -118,6 +128,16 @@ class Context(object):
         return self._weather_api_key
 
     @property
+    def weather_data_cache_seconds(self):
+        if self._weather_data_cache_seconds is None:
+            return None
+        if not isinstance(self._weather_data_cache_seconds, int):
+            raise AutomatonConfigParsingError(
+                    'weather data_cache_seconds must be an integer, not '
+                    f'{self._weather_data_cache_seconds.__class__.__name__}')
+        return self._weather_data_cache_seconds
+
+    @property
     def aqi_sensor(self):
         if self._aqi_sensor is None:
             self._aqi_sensor = AQISensor(
@@ -148,7 +168,8 @@ class Context(object):
     def weather_sensor(self):
         if self._weather_sensor is None:
             self._weather_sensor = WeatherSensor(
-                    self.weather_api_key, self.latitude, self.longitude)
+                    self.weather_api_key, self.latitude, self.longitude,
+                    data_cache_seconds=self.weather_data_cache_seconds)
         return self._weather_sensor
 
     @property

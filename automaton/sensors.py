@@ -105,13 +105,14 @@ class TimeSensor(_Sensor):
 
 class WeatherSensor(_Sensor):
 
-    def __init__(self, api_key, latitude, longitude):
+    def __init__(self, api_key, latitude, longitude, data_cache_seconds=None):
         import pyowm
         self.owm_mgr = pyowm.OWM(api_key).weather_manager()
         self.location = (latitude, longitude)
 
-    # TODO: configurable cache duration
-    @cache_value(minutes=5)
+        if data_cache_seconds is not None:
+            self._weather = cache_value(seconds=data_cache_seconds)(self._weather)
+
     def _weather(self):
         return self.owm_mgr.weather_at_coords(*self.location).weather
 

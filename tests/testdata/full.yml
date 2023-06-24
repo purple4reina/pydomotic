@@ -60,6 +60,7 @@ triggers:
     api_key: '123abc'
   weather:
     api_key: '123abc'
+    data_cache_seconds: 20
   timezone: 'America/Los_Angeles'
 
 automations:
