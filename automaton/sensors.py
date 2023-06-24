@@ -123,6 +123,9 @@ class WeatherSensor(_Sensor):
         # returns percentage value between 0 and 100
         return self._weather().humidity
 
+    def current_pressure(self):
+        return self._weather().barometric_pressure(unit='inHg').get('press')
+
 class WebhookSensor(_Sensor):
 
     def __init__(self):
