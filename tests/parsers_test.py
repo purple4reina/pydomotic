@@ -336,7 +336,7 @@ _test__get_config_reader = (
         (None, None, 'ce', 'se', _file_reader, 'ce'),
         (None, None, 'ce', None, _file_reader, 'ce'),
         (None, None, None, 'se', _s3_reader, 'se'),
-        (None, None, None, None, None, None),
+        (None, None, None, None, _file_reader, 'pydomotic.yml')
 )
 
 @pytest.mark.parametrize('conf_file,s3,conf_env,s3_env,exp_type,exp_data',

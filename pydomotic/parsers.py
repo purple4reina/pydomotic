@@ -48,7 +48,9 @@ def _get_config_reader(config_file, s3):
         logger.debug(f'loading configuration from s3 {s3_env} via '
                 'environment variable')
         return _s3_reader(s3_env)
-    logger.warning('no config file or s3 data provided, skipping')
+    else:
+        logger.debug('using default config file pydomotic.yml')
+        return _file_reader('pydomotic.yml')
 
 class _reader(object):
     def __init__(self, data):
@@ -56,8 +58,13 @@ class _reader(object):
 
 class _file_reader(_reader):
     def read(self):
-        with open(self.data) as f:
-            return f.read()
+        if not self.data:
+            logger.warning('no config file or s3 data provided, skipping')
+        elif not os.path.isfile(self.data):
+            logger.warning(f'configuration file {self.data} does not exist, skipping')
+        else:
+            with open(self.data) as f:
+                return f.read()
 
 class _s3_reader(_reader):
     def parse(self):
