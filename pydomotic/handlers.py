@@ -7,23 +7,13 @@ from .parsers import parse_yaml
 
 logger = logging.getLogger(__name__)
 
-class LambdaHandler(object):
+class Handler(object):
 
-    ok_response = {
-            'statusCode': 200,
-            'body': '{"status":"ok"}',
-    }
+    def __init__(self, config_file=None):
+        self.components, _ = parse_yaml(config_file=config_file)
 
-    def __init__(self, config_file=None, s3=None):
-        self.components, context = parse_yaml(
-                config_file=config_file, s3=s3)
-        self.webhook_sensor = context.webhook_sensor
-
-    def __call__(self, event={}, context={}):
-        # TODO: test webhook triggers
-        self.webhook_sensor.set_webhook_request(event)
+    def __call__(self):
         self.run_components()
-        return self.ok_response
 
     def run_components(self):
         components, failed = [c for c in self.components if c.enabled], []
@@ -49,3 +39,20 @@ class LambdaHandler(object):
             raise PyDomoticComponentRunError(
                     f'one or more components failed after 3 attempts: '
                     f'{", ".join(c.name for c in components)}')
+
+class LambdaHandler(Handler):
+
+    ok_response = {
+            'statusCode': 200,
+            'body': '{"status":"ok"}',
+    }
+
+    def __init__(self, config_file=None, s3=None):
+        self.components, context = parse_yaml(config_file=config_file, s3=s3)
+        self.webhook_sensor = context.webhook_sensor
+
+    def __call__(self, event, context):
+        # TODO: test webhook triggers
+        self.webhook_sensor.set_webhook_request(event)
+        self.run_components()
+        return self.ok_response
