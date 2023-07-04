@@ -19,3 +19,6 @@ class NoopDevice(Device):
 
     def switch(self):
         logger.debug('device "%s" switched', self.name)
+
+    def current_temperature(self):
+        return 42
