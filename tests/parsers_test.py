@@ -6,14 +6,14 @@ import pytest
 from pydomotic.actions import TurnOnAction, TurnOffAction, ExecuteCodeAction
 from pydomotic.components import Component
 from pydomotic.context import Context
-from pydomotic.parsers import (parse_yaml, _parse_providers,
-        _parse_gosund_provider, _parse_fujitsu_provider,
-        _parse_airthings_provider, _parse_string, _parse_devices,
-        _parse_components, _parse_triggers, _parse_aqi_trigger,
+from pydomotic.parsers import (parse_yaml, _get_config_reader, _file_reader,
+        _s3_reader, _parse_providers, _parse_gosund_provider,
+        _parse_fujitsu_provider, _parse_airthings_provider, _parse_string,
+        _parse_devices, _parse_components, _parse_triggers, _parse_aqi_trigger,
         _parse_time_trigger, _parse_weekday_trigger, _parse_cron_trigger,
         _parse_random_trigger, _parse_timedelta, _parse_sunrise_trigger,
         _parse_sunset_trigger, _parse_temp_trigger, _parse_radon_trigger,
-       _parse_actions, PyDomoticConfigParsingError)
+        _parse_actions, PyDomoticConfigParsingError)
 from pydomotic.providers.base import Device
 from pydomotic.providers.airthings import AirthingsProvider
 from pydomotic.providers.fujitsu import FujitsuProvider
@@ -24,6 +24,11 @@ from pydomotic.sensors import (SunSensor, TimeSensor, WeatherSensor, AQISensor,
 from pydomotic.triggers import (AQITrigger, TimeTrigger, IsoWeekdayTrigger,
         CronTrigger, RandomTrigger, SunriseTrigger, SunsetTrigger,
         TemperatureTrigger, RadonTrigger, WebhookTrigger)
+
+_test_config_file = os.path.join(
+        os.path.dirname(os.path.realpath(__file__)),
+        './testdata/full.yml',
+)
 
 _test_context = Context.from_yaml({
         'aqi': {'api_key': '123abc'},
@@ -65,10 +70,6 @@ _test_context.devices = {
 }
 _test_current_temp = 75.5
 _test_context.weather_sensor.current_temperature = lambda: _test_current_temp
-
-def _relative_to_full_path(path):
-    dir_path = os.path.dirname(os.path.realpath(__file__))
-    return os.path.join(dir_path, path)
 
 _test_parse_yaml_expect = [
         Component(
@@ -216,8 +217,7 @@ def test_parse_yaml():
     expect_comps, expect_context_dict = (
             _test_parse_yaml_expect, _test_parse_yaml_expect_context_dict)
 
-    config_fullpath = _relative_to_full_path('./testdata/full.yml')
-    actual_comps, actual_context = parse_yaml(config_fullpath)
+    actual_comps, actual_context = parse_yaml(_test_config_file)
 
     assert len(actual_comps) == len(expect_comps), (
             'wrong number of components returned')
@@ -277,8 +277,7 @@ def test_parse_yaml_sensor_singletons(monkeypatch):
     monkeypatch.setattr('pydomotic.sensors.DeviceSensor.__init__',
             wrap_init(DeviceSensor.__init__))
 
-    config_fullpath = _relative_to_full_path('./testdata/full.yml')
-    parse_yaml(config_fullpath)
+    parse_yaml(_test_config_file)
     assert tuple(sensors.items()) == (
             ('aqi_sensor', 1),
             ('time_sensor', 1),
@@ -320,6 +319,68 @@ _test__TriggersConf = (
         ({'timezone': 'America/Los_Angeles'}, Exception, Exception, Exception,
             'America/Los_Angeles'),
 )
+
+_test__get_config_reader = (
+        ('cv', 'sv', 'ce', 'se', _file_reader, 'cv'),
+        ('cv', 'sv', 'ce', None, _file_reader, 'cv'),
+        ('cv', 'sv', None, 'se', _file_reader, 'cv'),
+        ('cv', 'sv', None, None, _file_reader, 'cv'),
+        ('cv', None, 'ce', 'se', _file_reader, 'cv'),
+        ('cv', None, 'ce', None, _file_reader, 'cv'),
+        ('cv', None, None, 'se', _file_reader, 'cv'),
+        ('cv', None, None, None, _file_reader, 'cv'),
+        (None, 'sv', 'ce', 'se', _s3_reader, 'sv'),
+        (None, 'sv', 'ce', None, _s3_reader, 'sv'),
+        (None, 'sv', None, 'se', _s3_reader, 'sv'),
+        (None, 'sv', None, None, _s3_reader, 'sv'),
+        (None, None, 'ce', 'se', _file_reader, 'ce'),
+        (None, None, 'ce', None, _file_reader, 'ce'),
+        (None, None, None, 'se', _s3_reader, 'se'),
+        (None, None, None, None, None, None),
+)
+
+@pytest.mark.parametrize('conf_file,s3,conf_env,s3_env,exp_type,exp_data',
+        _test__get_config_reader)
+def test_get_config_reader(conf_file, s3, conf_env, s3_env, exp_type, exp_data, monkeypatch):
+    if conf_env is not None:
+        monkeypatch.setenv('PYDOMOTIC_CONFIG_FILE', conf_env)
+    if s3_env is not None:
+        monkeypatch.setenv('PYDOMOTIC_CONFIG_S3', s3_env)
+
+    reader = _get_config_reader(conf_file, s3)
+    if exp_type is None:
+        assert reader is None, 'reader should be None'
+    else:
+        assert isinstance(reader, exp_type), 'wrong reader class returned'
+        assert reader.data == exp_data, 'wrong data value'
+
+_test__s3_reader_read = (
+        (('bucket', 'key'), ('bucket', 'key')),
+        ('bucket/key', ('bucket', 'key')),
+        ('bucket/key/key', ('bucket', 'key/key')),
+
+        (('bucket', 'key', 'key'), PyDomoticConfigParsingError),
+        (('bucket',), PyDomoticConfigParsingError),
+        (('bucket', None), PyDomoticConfigParsingError),
+        ((None, 'key'), PyDomoticConfigParsingError),
+        ((None, None), PyDomoticConfigParsingError),
+
+        ('bucket', PyDomoticConfigParsingError),
+        ('bucket/', PyDomoticConfigParsingError),
+        ('/key', PyDomoticConfigParsingError),
+        ('/', PyDomoticConfigParsingError),
+        (None, PyDomoticConfigParsingError),
+)
+
+@pytest.mark.parametrize('data,expect', _test__s3_reader_read)
+def test_s3_reader_parse(data, expect):
+    try:
+        reader = _s3_reader(data)
+        parsed = reader.parse()
+    except Exception as e:
+        assert expect is e.__class__, 'wrong exception raised'
+    else:
+        assert expect == parsed, 'wrong parse result'
 
 @pytest.mark.parametrize('raw_yml,exp_lat,exp_long,exp_api_key,exp_tz',
         _test__TriggersConf)

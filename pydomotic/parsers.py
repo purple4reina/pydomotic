@@ -17,7 +17,8 @@ from .triggers import (AQITrigger, TimeTrigger, IsoWeekdayTrigger, CronTrigger,
 logger = logging.getLogger(__name__)
 
 def parse_yaml(config_file=None, s3=None):
-    data = _get_config_data(config_file, s3)
+    reader = _get_config_reader(config_file, s3)
+    data = reader.read() if reader else None
     return parse_raw_yaml(data)
 
 def parse_raw_yaml(raw_conf):
@@ -28,33 +29,61 @@ def parse_raw_yaml(raw_conf):
     components = _parse_components(conf.get('automations', {}), context)
     return components, context
 
-def _get_config_data(config_file, s3):
+def _get_config_reader(config_file, s3):
+    conf_env = os.environ.get('PYDOMOTIC_CONFIG_FILE')
+    s3_env = os.environ.get('PYDOMOTIC_CONFIG_S3')
+    logger.debug(f'found environment variables: '
+            f'PYDOMOTIC_CONFIG_FILE={conf_env}, PYDOMOTIC_CONFIG_S3={s3_env}')
     if config_file:
-        with open(config_file) as f:
-            return f.read()
+        logger.debug(f'loading configuration from file {config_file}')
+        return _file_reader(config_file)
     elif s3:
-        # TODO: test
-        return _get_config_from_s3(s3)
-    logger.info('no config file or s3 data provided, skipping')
+        logger.debug(f'loading configuration from s3 {s3}')
+        return _s3_reader(s3)
+    elif conf_env:
+        logger.debug(f'loading configuration from file {conf_env} via '
+                'environment variable')
+        return _file_reader(conf_env)
+    elif s3_env:
+        logger.debug(f'loading configuration from s3 {s3_env} via '
+                'environment variable')
+        return _s3_reader(s3_env)
+    logger.warning('no config file or s3 data provided, skipping')
 
-def _get_config_from_s3(s3):
-    # TODO: test
-    try:
-        bucket, key = s3
-    except:
-        raise PyDomoticConfigParsingError('malformed s3 object: '
-                'expecting tuple like (bucket, key)')
+class _reader(object):
+    def __init__(self, data):
+        self.data = data
 
-    try:
-        import boto3
-        client = boto3.client('s3')
-        response = client.get_object(Bucket=bucket, Key=key)
-        logger.debug('configuration successfully fetched from s3')
-        return response['Body'].read()
-    except Exception as e:
-        logger.warning('unable to fetch configuration from s3: '
-                f'[{e.__class__.__name__}] {e}')
-        return None
+class _file_reader(_reader):
+    def read(self):
+        with open(self.data) as f:
+            return f.read()
+
+class _s3_reader(_reader):
+    def parse(self):
+        try:
+            if isinstance(self.data, str):
+                self.data = self.data.split('/', 1)
+            bucket, key = self.data
+            assert bucket and key
+            return bucket, key
+        except:
+            raise PyDomoticConfigParsingError('malformed s3 object: '
+                    'expecting tuple like (bucket, key) or string like "bucket/key"')
+
+    def read(self):
+        bucket, key = self.parse()
+
+        try:
+            import boto3
+            client = boto3.client('s3')
+            response = client.get_object(Bucket=bucket, Key=key)
+            logger.debug('configuration successfully fetched from s3')
+            return response['Body'].read()
+        except Exception as e:
+            logger.error('unable to fetch configuration from s3: '
+                    f'[{e.__class__.__name__}] {e}')
+            return None
 
 def _parse_providers(providers_conf):
     providers = {
