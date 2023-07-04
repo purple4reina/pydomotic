@@ -17,9 +17,9 @@ def get_version(rel_path):
         raise RuntimeError("Unable to find version string.")
 
 setup(
-    name="automaton",
-    version=get_version("automaton/version.py"),
-    url="https://github.com/purple4reina/automaton",
+    name="pydomotic",
+    version=get_version("pydomotic/version.py"),
+    url="https://github.com/purple4reina/pydomotic",
     author="Rey Abolofia",
     author_email="purple4reina@gmail.com",
     #keywords="gosund,smartlife,tuya,iot,api,sdk,python",
@@ -28,8 +28,8 @@ setup(
     #long_description_content_type="text/markdown",
     license="MIT",
     project_urls={
-        "Source": "https://github.com/purple4reina/automaton",
-        "Bug Tracker": "https://github.com/purple4reina/automaton/issues",
+        "Source": "https://github.com/purple4reina/pydomotic",
+        "Bug Tracker": "https://github.com/purple4reina/pydomotic/issues",
     },
     classifiers=[
         "License :: OSI Approved :: MIT License",

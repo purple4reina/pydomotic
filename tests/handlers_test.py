@@ -1,6 +1,6 @@
 import pytest
 
-from automaton.handlers import LambdaHandler, AutomatonComponentRunError
+from pydomotic.handlers import LambdaHandler, AutomatonComponentRunError
 
 def test_lambda_handler___call___passes(mock_enabled_component,
         mock_disabled_component):

@@ -1,7 +1,7 @@
-from automaton.providers.airthings import AirthingsProvider, AirthingsDevice
-from automaton.providers.fujitsu import FujitsuProvider, FujitsuDevice
-from automaton.providers.gosund import GosundProvider, GosundDevice
-from automaton.providers.noop import NoopProvider, NoopDevice
+from pydomotic.providers.airthings import AirthingsProvider, AirthingsDevice
+from pydomotic.providers.fujitsu import FujitsuProvider, FujitsuDevice
+from pydomotic.providers.gosund import GosundProvider, GosundDevice
+from pydomotic.providers.noop import NoopProvider, NoopDevice
 
 def test_fujitsu_provider(patch_fujitsu):
     patch_provider = patch_fujitsu.provider

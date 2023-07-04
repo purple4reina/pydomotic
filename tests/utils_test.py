@@ -1,7 +1,7 @@
 import pytest
 import time
 
-from automaton.utils import (cache_value, _camel_to_snake, ObjectMetaclass,
+from pydomotic.utils import (cache_value, _camel_to_snake, ObjectMetaclass,
         import_method)
 
 import testdata.custom_code

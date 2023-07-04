@@ -3,10 +3,10 @@ import functools
 import os
 import pytest
 
-from automaton.actions import TurnOnAction, TurnOffAction, ExecuteCodeAction
-from automaton.components import Component
-from automaton.context import Context
-from automaton.parsers import (parse_yaml, _parse_providers,
+from pydomotic.actions import TurnOnAction, TurnOffAction, ExecuteCodeAction
+from pydomotic.components import Component
+from pydomotic.context import Context
+from pydomotic.parsers import (parse_yaml, _parse_providers,
         _parse_gosund_provider, _parse_fujitsu_provider,
         _parse_airthings_provider, _parse_string, _parse_devices,
         _parse_components, _parse_triggers, _parse_aqi_trigger,
@@ -14,14 +14,14 @@ from automaton.parsers import (parse_yaml, _parse_providers,
         _parse_random_trigger, _parse_timedelta, _parse_sunrise_trigger,
         _parse_sunset_trigger, _parse_temp_trigger, _parse_radon_trigger,
        _parse_actions, AutomatonConfigParsingError)
-from automaton.providers.base import Device
-from automaton.providers.airthings import AirthingsProvider
-from automaton.providers.fujitsu import FujitsuProvider
-from automaton.providers.gosund import GosundProvider
-from automaton.providers.noop import NoopProvider, NoopDevice
-from automaton.sensors import (SunSensor, TimeSensor, WeatherSensor, AQISensor,
+from pydomotic.providers.base import Device
+from pydomotic.providers.airthings import AirthingsProvider
+from pydomotic.providers.fujitsu import FujitsuProvider
+from pydomotic.providers.gosund import GosundProvider
+from pydomotic.providers.noop import NoopProvider, NoopDevice
+from pydomotic.sensors import (SunSensor, TimeSensor, WeatherSensor, AQISensor,
         WebhookSensor, DeviceSensor)
-from automaton.triggers import (AQITrigger, TimeTrigger, IsoWeekdayTrigger,
+from pydomotic.triggers import (AQITrigger, TimeTrigger, IsoWeekdayTrigger,
         CronTrigger, RandomTrigger, SunriseTrigger, SunsetTrigger,
         TemperatureTrigger, RadonTrigger, WebhookTrigger)
 
@@ -264,17 +264,17 @@ def test_parse_yaml_sensor_singletons(monkeypatch):
             sensors[self.name] = sensors.get(self.name, 0) + 1
         return __init__
 
-    monkeypatch.setattr('automaton.sensors.AQISensor.__init__',
+    monkeypatch.setattr('pydomotic.sensors.AQISensor.__init__',
             wrap_init(AQISensor.__init__))
-    monkeypatch.setattr('automaton.sensors.SunSensor.__init__',
+    monkeypatch.setattr('pydomotic.sensors.SunSensor.__init__',
             wrap_init(SunSensor.__init__))
-    monkeypatch.setattr('automaton.sensors.TimeSensor.__init__',
+    monkeypatch.setattr('pydomotic.sensors.TimeSensor.__init__',
             wrap_init(TimeSensor.__init__))
-    monkeypatch.setattr('automaton.sensors.WeatherSensor.__init__',
+    monkeypatch.setattr('pydomotic.sensors.WeatherSensor.__init__',
             wrap_init(WeatherSensor.__init__))
-    monkeypatch.setattr('automaton.sensors.WebhookSensor.__init__',
+    monkeypatch.setattr('pydomotic.sensors.WebhookSensor.__init__',
             wrap_init(WebhookSensor.__init__))
-    monkeypatch.setattr('automaton.sensors.DeviceSensor.__init__',
+    monkeypatch.setattr('pydomotic.sensors.DeviceSensor.__init__',
             wrap_init(DeviceSensor.__init__))
 
     config_fullpath = _relative_to_full_path('./testdata/full.yml')

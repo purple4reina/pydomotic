@@ -1,7 +1,7 @@
 import logging
 import pytest
 
-from automaton.components import Component
+from pydomotic.components import Component
 
 def test_component_one_true_if(mock_true_trigger, mock_action_1,
         mock_action_2):
@@ -125,6 +125,6 @@ def test_components_logging(caplog, mock_true_trigger, mock_false_trigger,
 
     assert len(exp_logs) == len(caplog.record_tuples), 'wrong number of logs'
     for exp_log, (logger, level, message) in zip(exp_logs, caplog.record_tuples):
-        assert logger == 'automaton.components', 'wrong logger found'
+        assert logger == 'pydomotic.components', 'wrong logger found'
         assert level == logging.DEBUG, 'wrong level found'
         assert message == exp_log, 'wrong message found'

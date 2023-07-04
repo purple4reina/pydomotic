@@ -1,6 +1,6 @@
 import datetime
 
-from automaton.triggers import (AQITrigger, IsoWeekdayTrigger, TimeTrigger,
+from pydomotic.triggers import (AQITrigger, IsoWeekdayTrigger, TimeTrigger,
         CronTrigger, RandomTrigger, SunriseTrigger, SunsetTrigger,
         TemperatureTrigger)
 

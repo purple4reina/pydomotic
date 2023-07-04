@@ -3,8 +3,8 @@ import pytest
 import random
 import zoneinfo
 
-from automaton.providers.airthings import AirthingsAPI
-from automaton.utils import ObjectMetaclass
+from pydomotic.providers.airthings import AirthingsAPI
+from pydomotic.utils import ObjectMetaclass
 
 class _MockDevice(object):
     name = 'device_name'
@@ -303,5 +303,5 @@ class _MockAirthings(object):
 @pytest.fixture
 def patch_airthings(monkeypatch):
     airthings = _MockAirthings()
-    monkeypatch.setattr('automaton.providers.airthings.AirthingsAPI', airthings)
+    monkeypatch.setattr('pydomotic.providers.airthings.AirthingsAPI', airthings)
     return airthings

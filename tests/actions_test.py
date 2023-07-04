@@ -1,6 +1,6 @@
 import pytest
 
-from automaton.actions import (TurnOnAction, TurnOffAction, SwitchAction,
+from pydomotic.actions import (TurnOnAction, TurnOffAction, SwitchAction,
         ExecuteCodeAction)
 
 import testdata.custom_code

@@ -1,7 +1,7 @@
 import pytest
 import yaml
 
-from automaton.context import Context
+from pydomotic.context import Context
 
 _test_context_sensors = (
         ("", ()),

@@ -1,7 +1,7 @@
 import datetime
 import pytest
 
-from automaton.sensors import AQISensor, AQISensorError, SunSensor, TimeSensor
+from pydomotic.sensors import AQISensor, AQISensorError, SunSensor, TimeSensor
 
 _test_latitude, _test_longitude, _test_tz_pst, _test_tz_utc, _test_tz_est = (
         40.68968910058536, -74.04450029112631,
