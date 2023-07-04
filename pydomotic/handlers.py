@@ -56,3 +56,22 @@ class LambdaHandler(Handler):
         self.webhook_sensor.set_webhook_request(event)
         self.run_components()
         return self.ok_response
+
+class CommandLineHandler(Handler):
+
+    def __init__(self):
+        args = self.parse_args()
+        super().__init__(config_file=args.config_file)
+
+    def parse_args(self):
+        import argparse
+        parser = argparse.ArgumentParser(
+                prog='python -m pydomotic',
+                description='run pydomotic components',
+        )
+        parser.add_argument(
+                '-c', '--config-file',
+                help=('path to config file, will default to pydomotic.yaml '
+                        'if no other config setting is found'),
+        )
+        return parser.parse_args()
