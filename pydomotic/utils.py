@@ -5,7 +5,7 @@ import logging
 import re
 import time
 
-from .exceptions import AutomatonMethodImportError
+from .exceptions import PyDomoticMethodImportError
 
 logger = logging.getLogger(__name__)
 
@@ -79,13 +79,13 @@ class ObjectMetaclass(abc.ABCMeta):
 def import_method(import_path):
     names = import_path.rsplit('.', 1)
     if len(names) == 1:
-        raise AutomatonMethodImportError(
+        raise PyDomoticMethodImportError(
                 f'import path must include module and method name')
     package_name, method_name = names
     try:
         package = importlib.import_module(package_name)
         return getattr(package, method_name)
     except Exception as e:
-        raise AutomatonMethodImportError(
+        raise PyDomoticMethodImportError(
                 f'unable to import code "{import_path}": '
                 f'[{e.__class__.__name__}] {e}')

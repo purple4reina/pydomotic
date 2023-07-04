@@ -1,8 +1,8 @@
-class AutomatonConfigParsingError(Exception):
+class PyDomoticConfigParsingError(Exception):
     pass
 
-class AutomatonComponentRunError(Exception):
+class PyDomoticComponentRunError(Exception):
     pass
 
-class AutomatonMethodImportError(Exception):
+class PyDomoticMethodImportError(Exception):
     pass

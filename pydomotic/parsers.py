@@ -8,7 +8,7 @@ from .actions import (TurnOnAction, TurnOffAction, SwitchAction,
         ExecuteCodeAction)
 from .components import Component
 from .context import Context
-from .exceptions import AutomatonConfigParsingError
+from .exceptions import PyDomoticConfigParsingError
 from .providers.noop import NoopProvider
 from .triggers import (AQITrigger, TimeTrigger, IsoWeekdayTrigger, CronTrigger,
         RandomTrigger, SunriseTrigger, SunsetTrigger, TemperatureTrigger,
@@ -42,7 +42,7 @@ def _get_config_from_s3(s3):
     try:
         bucket, key = s3
     except:
-        raise AutomatonConfigParsingError('malformed s3 object: '
+        raise PyDomoticConfigParsingError('malformed s3 object: '
                 'expecting tuple like (bucket, key)')
 
     try:
@@ -71,13 +71,13 @@ def _parse_providers(providers_conf):
         elif name == 'airthings':
             providers['airthings'] = _parse_airthings_provider(provider)
         else:
-            raise AutomatonConfigParsingError(f'unknown provider "{name}"')
+            raise PyDomoticConfigParsingError(f'unknown provider "{name}"')
     return providers
 
 def _parse_gosund_provider(provider):
     for key in ('username', 'password', 'access_id', 'access_key'):
         if key not in provider:
-            raise AutomatonConfigParsingError(
+            raise PyDomoticConfigParsingError(
                     f'provider gosund requires key "{key}"')
 
     username = _parse_string(provider['username'])
@@ -94,7 +94,7 @@ def _parse_gosund_provider(provider):
 def _parse_fujitsu_provider(provider):
     for key in ('username', 'password'):
         if key not in provider:
-            raise AutomatonConfigParsingError(
+            raise PyDomoticConfigParsingError(
                     f'provider fujitsu requires key "{key}"')
 
     username = _parse_string(provider['username'])
@@ -106,7 +106,7 @@ def _parse_fujitsu_provider(provider):
 def _parse_airthings_provider(provider):
     for key in ('client_id', 'client_secret'):
         if key not in provider:
-            raise AutomatonConfigParsingError(
+            raise PyDomoticConfigParsingError(
                     f'provider airthings requires key "{key}"')
 
     client_id = _parse_string(provider['client_id'])
@@ -123,7 +123,7 @@ def _parse_string(string):
         key = m.group(1)
         val = os.environ.get(m.group(1))
         if val is None:
-            raise AutomatonConfigParsingError(
+            raise PyDomoticConfigParsingError(
                     f'expected environment variable "{key}" not found')
         return val
     return _env_re.sub(_replace_env, string)
@@ -134,22 +134,22 @@ def _parse_devices(devices_conf, providers):
         logger.info(f'preparing device {name}')
         provider_name = device.get('provider')
         if provider_name is None:
-            raise AutomatonConfigParsingError(
+            raise PyDomoticConfigParsingError(
                     f'no provider given for device "{name}"')
         provider = providers.get(provider_name)
         if provider is None:
-            raise AutomatonConfigParsingError(
+            raise PyDomoticConfigParsingError(
                     f'device "{name}" expected provider "{provider_name}" '
                     'not found')
         device_id = device.get('id')
         if device_id is None:
-            raise AutomatonConfigParsingError(
+            raise PyDomoticConfigParsingError(
                     f'no id given for device "{name}"')
         try:
             description = device.get('description')
             devices[name] = provider.get_device(device_id, name, description)
         except Exception as e:
-            raise AutomatonConfigParsingError(
+            raise PyDomoticConfigParsingError(
                     f'unable to get device "{name}": {e}')
     return devices
 
@@ -205,17 +205,17 @@ def _parse_trigger(typ, value, context, sensor=None):
         trigger = _parse_webhook_trigger(value, context, sensor=sensor)
     elif typ in context.devices:
         if sensor:
-            raise AutomatonConfigParsingError('nested sensor confs not allowed')
+            raise PyDomoticConfigParsingError('nested sensor confs not allowed')
         trigger = _parse_sensor(typ, value, context)
     else:
-        raise AutomatonConfigParsingError(f'unknown trigger type "{typ}"')
+        raise PyDomoticConfigParsingError(f'unknown trigger type "{typ}"')
     return trigger
 
 _ranged_value_aqi_re = re.compile(r'(<|>|==|<=|>=)?\s*(\d+\.?\d*)')
 _ranged_value_temp_re = re.compile(r'(<|>|==|<=|>=)?\s*(\d+\.?\d*|\$\{temp\})')
 def _parse_ranged_values(value, typ, context):
     if not isinstance(value, (str, int, float)):
-        raise AutomatonConfigParsingError(
+        raise PyDomoticConfigParsingError(
                 f'invalid {typ} trigger value "{value}", expecting value like '
                 '">100", "<100", or "100"')
 
@@ -251,7 +251,7 @@ def _parse_ranged_values(value, typ, context):
                 return context.weather_sensor.current_temperature
             return _float_value_func(val)
     else:
-        raise AutomatonConfigParsingError(f'unknown ranged trigger type "{typ}"')
+        raise PyDomoticConfigParsingError(f'unknown ranged trigger type "{typ}"')
 
     _check_funcs = []
     for val in str(value).split(','):
@@ -261,7 +261,7 @@ def _parse_ranged_values(value, typ, context):
         if len(ranged_val) == 1:
             m = _ranged_value_re.fullmatch(ranged_val[0].strip())
             if not m:
-                raise AutomatonConfigParsingError(
+                raise PyDomoticConfigParsingError(
                         f'invalid {typ} trigger value "{val}", expecting value like '
                         '">100", "<100", or "100"')
             _check_func =_relative_func(m.group(1), m.group(2))
@@ -272,12 +272,12 @@ def _parse_ranged_values(value, typ, context):
                 end_val = float(ranged_val[1])
                 _check_func = _ranged_func(start_val, end_val)
             except:
-                raise AutomatonConfigParsingError(
+                raise PyDomoticConfigParsingError(
                         f'invalid {typ} trigger value "{val}", expecting value '
                         'like "80-100"')
 
         else:
-            raise AutomatonConfigParsingError(f'unknown {typ} "{val}')
+            raise PyDomoticConfigParsingError(f'unknown {typ} "{val}')
 
         _check_funcs.append(_check_func)
     return lambda a: any(fn(a) for fn in _check_funcs)
@@ -292,7 +292,7 @@ def _parse_time_trigger(value, context, sensor=None):
     def _parse_single_time(time):
         m = _time_re.fullmatch(time)
         if not m:
-            raise AutomatonConfigParsingError(
+            raise PyDomoticConfigParsingError(
                     f'unknown time "{time}", expecting time like "HH:MMam"')
         hour, minute = int(m.group(1)), int(m.group(2))
         if hour == 12:
@@ -311,7 +311,7 @@ def _parse_time_trigger(value, context, sensor=None):
         elif len(ranged_time) == 2:
             end_time = _parse_single_time(ranged_time[1].strip()) + 1
         else:
-            raise AutomatonConfigParsingError(
+            raise PyDomoticConfigParsingError(
                     f'unknown time "{time}", expecting time like '
                     '"HH:MMam-HH:MMam"')
         for minute in range(start_time, end_time):
@@ -342,7 +342,7 @@ def _parse_weekday_trigger(value, context, sensor=None):
     def _parse_single_day(weekday):
         isoweekday = _isoweekdays.get(weekday)
         if isoweekday is None:
-            raise AutomatonConfigParsingError(
+            raise PyDomoticConfigParsingError(
                     f'"{weekday}" is not a valid weekday')
         return isoweekday
 
@@ -358,14 +358,14 @@ def _parse_weekday_trigger(value, context, sensor=None):
             if end_weekday <= start_weekday:
                 end_weekday += 7
         else:
-            raise AutomatonConfigParsingError(f'unknown weekday "{weekday}"')
+            raise PyDomoticConfigParsingError(f'unknown weekday "{weekday}"')
         for isoweekday in range(start_weekday, end_weekday):
             isoweekdays.append(isoweekday % 7 or 7)
     return IsoWeekdayTrigger(isoweekdays, time_sensor=sensor or context.time_sensor)
 
 def _parse_cron_trigger(value, context, sensor=None):
     if not croniter.croniter.is_valid(value):
-        raise AutomatonConfigParsingError(f'invalid cron expression "{value}"')
+        raise PyDomoticConfigParsingError(f'invalid cron expression "{value}"')
     return CronTrigger(value, time_sensor=sensor or context.time_sensor)
 
 def _parse_random_trigger(value, context, sensor=None):
@@ -379,7 +379,7 @@ def _parse_timedelta(value):
     for delta in str(value).split(','):
         m = _ranged_timedelta_re.fullmatch(delta.strip())
         if not m:
-            raise AutomatonConfigParsingError(
+            raise PyDomoticConfigParsingError(
                     f'unknown time delta "{value}", expecting value like '
                     '"60", "60-120", or "2:15"')
         start_delta = int(float(m.group(1)))
@@ -406,7 +406,7 @@ def _parse_temp_trigger(value, context, sensor=None):
 
 def _parse_radon_trigger(value, context, sensor=None):
     if not sensor:
-        raise AutomatonConfigParsingError(
+        raise PyDomoticConfigParsingError(
                 'radon trigger requires a radon sensor')
     _check_func = _parse_ranged_values(value, 'radon', context)
     return RadonTrigger(_check_func, sensor)
@@ -419,7 +419,7 @@ def _parse_sensor(device_name, value, context):
     sensor = context.device_sensor(device_name)
     trigger_type, trigger_value = value.popitem()
     if value:
-        raise AutomatonConfigParsingError(
+        raise PyDomoticConfigParsingError(
                 f'sensor trigger {value} ignored, only one trigger allowed '
                 'per sensor config')
     return _parse_trigger(trigger_type, trigger_value, context=context,
@@ -441,13 +441,13 @@ def _parse_actions(thens, context):
             elif action_type == 'switch':
                 cls = SwitchAction
             else:
-                raise AutomatonConfigParsingError(
+                raise PyDomoticConfigParsingError(
                         f'unknown action type "{action_type}"')
             for device_name in action_value.split(','):
                 device_name = device_name.strip()
                 device = context.devices.get(device_name)
                 if device is None:
-                    raise AutomatonConfigParsingError(
+                    raise PyDomoticConfigParsingError(
                             f'unknown device name "{device_name}"')
                 actions.append(cls(device))
     return actions

@@ -13,7 +13,7 @@ from pydomotic.parsers import (parse_yaml, _parse_providers,
         _parse_time_trigger, _parse_weekday_trigger, _parse_cron_trigger,
         _parse_random_trigger, _parse_timedelta, _parse_sunrise_trigger,
         _parse_sunset_trigger, _parse_temp_trigger, _parse_radon_trigger,
-       _parse_actions, AutomatonConfigParsingError)
+       _parse_actions, PyDomoticConfigParsingError)
 from pydomotic.providers.base import Device
 from pydomotic.providers.airthings import AirthingsProvider
 from pydomotic.providers.fujitsu import FujitsuProvider
@@ -331,7 +331,7 @@ def test__TriggersConf(raw_yml, exp_lat, exp_long, exp_api_key, exp_tz):
         try:
             actual = getattr(context, prop_name)
             assert expect == actual, f'incorrect property {prop_name}'
-        except AutomatonConfigParsingError:
+        except PyDomoticConfigParsingError:
             assert should_raise, 'should not have raised an exception'
         else:
             assert not should_raise, 'should have raised an exception'
@@ -345,7 +345,7 @@ def test__TriggersConf(raw_yml, exp_lat, exp_long, exp_api_key, exp_tz):
             time_sensor_2 = context.time_sensor
             assert time_sensor_1 is time_sensor_2, (
                     'created more than one TimeSensor')
-        except AutomatonConfigParsingError:
+        except PyDomoticConfigParsingError:
             assert should_raise, 'should not have raised an exception'
         else:
             assert not should_raise, 'should have raised an exception'
@@ -406,7 +406,7 @@ def test__parse_providers(providers, expects, raises, monkeypatch):
     monkeypatch.setattr('gosundpy.Gosund.__init__', lambda *a, **k: None)
     try:
         actuals = _parse_providers(providers)
-    except AutomatonConfigParsingError:
+    except PyDomoticConfigParsingError:
         assert raises, 'should not have raised'
         return
     else:
@@ -475,7 +475,7 @@ def test__parse_gosund_provider(provider, raises, monkeypatch):
     try:
         actual = _parse_gosund_provider(provider)
         assert isinstance(actual, GosundProvider)
-    except AutomatonConfigParsingError:
+    except PyDomoticConfigParsingError:
         assert raises, 'should not have raised'
     else:
         assert not raises, 'should have raised'
@@ -492,7 +492,7 @@ def test__parse_fujitsu_provider(provider, raises):
     try:
         actual = _parse_fujitsu_provider(provider)
         assert isinstance(actual, FujitsuProvider)
-    except AutomatonConfigParsingError:
+    except PyDomoticConfigParsingError:
         assert raises, 'should not have raised'
     else:
         assert not raises, 'should have raised'
@@ -509,7 +509,7 @@ def test__parse_airthings_provider(provider, raises):
     try:
         actual = _parse_airthings_provider(provider)
         assert isinstance(actual, AirthingsProvider)
-    except AutomatonConfigParsingError:
+    except PyDomoticConfigParsingError:
         assert raises, 'should not have raised'
     else:
         assert not raises, 'should have raised'
@@ -532,7 +532,7 @@ def test__parse_string(string, expect, raises, monkeypatch):
     monkeypatch.setenv('MY_EXISTING_ENV_2', 'value2')
     try:
         assert expect == _parse_string(string)
-    except AutomatonConfigParsingError:
+    except PyDomoticConfigParsingError:
         assert raises, 'should not have raised'
     else:
         assert not raises, 'should have raised'
@@ -569,7 +569,7 @@ _test__parse_devices_providers = {
 def test__parse_devices(devices, expects, raises):
     try:
         actuals = _parse_devices(devices, _test__parse_devices_providers)
-    except AutomatonConfigParsingError:
+    except PyDomoticConfigParsingError:
         assert raises, 'should not have raised'
         return
     else:
@@ -862,7 +862,7 @@ _test__parse_aqi_trigger_failures = (
 def test__parse_aqi_trigger_failures(value):
     try:
         _parse_aqi_trigger(value, _test_context)
-    except AutomatonConfigParsingError:
+    except PyDomoticConfigParsingError:
         pass
     else:
         raise AssertionError('should have raised an exception')
@@ -889,7 +889,7 @@ _test__parse_radon_trigger_failures = _test__parse_aqi_trigger_failures
 def test__parse_radon_trigger_failures(value):
     try:
         _parse_radon_trigger(value, _test_context)
-    except AutomatonConfigParsingError:
+    except PyDomoticConfigParsingError:
         pass
     else:
         raise AssertionError('should have raised an exception')
@@ -897,7 +897,7 @@ def test__parse_radon_trigger_failures(value):
 def test__parse_radon_trigger_requires_sensor():
     try:
         _parse_radon_trigger('>=100', _test_context)
-    except AutomatonConfigParsingError:
+    except PyDomoticConfigParsingError:
         pass
     else:
         raise AssertionError('should have raised an exception')
@@ -954,7 +954,7 @@ def test__parse_time_trigger(value, expect, raises):
         actual = _parse_time_trigger(value, _test_context)
         assert isinstance(actual, TimeTrigger), 'wrong trigger type'
         assert expect == actual.times, 'wrong times found'+str(actual.times)
-    except AutomatonConfigParsingError:
+    except PyDomoticConfigParsingError:
         assert raises, 'error should not have been raised'
     else:
         assert not raises, 'error not raised'
@@ -986,7 +986,7 @@ def test__parse_cron_trigger(value, raises):
         actual = _parse_cron_trigger(value, _test_context)
         assert isinstance(actual, CronTrigger), 'wrong trigger type'
         assert actual.cron == value, 'wrong cron value'
-    except AutomatonConfigParsingError:
+    except PyDomoticConfigParsingError:
         assert raises, 'error should not have been raised'
     else:
         assert not raises, 'error not raised'
@@ -1033,7 +1033,7 @@ def test__parse_weekday_trigger(value, expect, raises):
         actual = _parse_weekday_trigger(value, _test_context)
         assert isinstance(actual, IsoWeekdayTrigger), 'wrong trigger type'
         assert expect == actual.isoweekdays, 'wrong isoweekdays found'
-    except AutomatonConfigParsingError:
+    except PyDomoticConfigParsingError:
         assert raises, 'error should not have been raised'
     else:
         assert not raises, 'error not raised'
@@ -1089,7 +1089,7 @@ _test__parse_timedelta = (
 def test__parse_timedelta(value, expect, raises):
     try:
         assert expect == _parse_timedelta(value)
-    except AutomatonConfigParsingError:
+    except PyDomoticConfigParsingError:
         raised = True
     else:
         raised = False
@@ -1105,7 +1105,7 @@ def test__parse_sunrise_trigger_raises():
     value = '2hrs'
     try:
         _parse_sunrise_trigger(value, _test_context)
-    except AutomatonConfigParsingError:
+    except PyDomoticConfigParsingError:
         raised = True
     else:
         raised = False
@@ -1121,7 +1121,7 @@ def test__parse_sunset_trigger_raises():
     value = '2hrs'
     try:
         _parse_sunset_trigger(value, _test_context)
-    except AutomatonConfigParsingError:
+    except PyDomoticConfigParsingError:
         raised = True
     else:
         raised = False
@@ -1198,7 +1198,7 @@ _test__parse_temp_trigger_failures = (
 def test__parse_temp_trigger_failures(value):
     try:
         _parse_temp_trigger(value, _test_context)
-    except AutomatonConfigParsingError:
+    except PyDomoticConfigParsingError:
         pass
     else:
         raise AssertionError('should have raised an exception')
@@ -1272,7 +1272,7 @@ _test__parse_actions_tests = (
 def test__parse_actions(thens, expect, raises):
     try:
         actual = _parse_actions(thens, _test_context)
-    except AutomatonConfigParsingError:
+    except PyDomoticConfigParsingError:
         actual = []
         raised = True
     else:

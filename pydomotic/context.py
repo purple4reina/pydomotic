@@ -1,6 +1,6 @@
 import logging
 
-from .exceptions import AutomatonConfigParsingError
+from .exceptions import PyDomoticConfigParsingError
 from .sensors import (TimeSensor, WebhookSensor, DeviceSensor, WeatherSensor,
         AQISensor, SunSensor)
 
@@ -78,10 +78,10 @@ class Context(object):
     @property
     def latitude(self):
         if self._latitude is None:
-            raise AutomatonConfigParsingError(
+            raise PyDomoticConfigParsingError(
                     'latitude value required for location')
         if not isinstance(self._latitude, (int, float)):
-            raise AutomatonConfigParsingError(
+            raise PyDomoticConfigParsingError(
                     'latitude must be a number, not '
                     f'{self._latitude.__class__.__name__}')
         return self._latitude
@@ -89,10 +89,10 @@ class Context(object):
     @property
     def longitude(self):
         if self._longitude is None:
-            raise AutomatonConfigParsingError(
+            raise PyDomoticConfigParsingError(
                     'longitude value required for location')
         if not isinstance(self._longitude, (int, float)):
-            raise AutomatonConfigParsingError(
+            raise PyDomoticConfigParsingError(
                     'longitude must be a number, not '
                     f'{self._longitude.__class__.__name__}')
         return self._longitude
@@ -100,9 +100,9 @@ class Context(object):
     @property
     def timezone(self):
         if self._timezone is None:
-            raise AutomatonConfigParsingError('timezone is required')
+            raise PyDomoticConfigParsingError('timezone is required')
         if not isinstance(self._timezone, str):
-            raise AutomatonConfigParsingError(
+            raise PyDomoticConfigParsingError(
                     'timezone must be a string, not '
                     f'{self._timezone.__class__.__name__}')
         return self._timezone
@@ -110,9 +110,9 @@ class Context(object):
     @property
     def aqi_api_key(self):
         if not self._aqi_api_key:
-            raise AutomatonConfigParsingError('aqi api key required')
+            raise PyDomoticConfigParsingError('aqi api key required')
         if not isinstance(self._aqi_api_key, str):
-            raise AutomatonConfigParsingError(
+            raise PyDomoticConfigParsingError(
                     'aqi api_key must be a string, not '
                     f'{self._aqi_api_key.__class__.__name__}')
         return self._aqi_api_key
@@ -120,9 +120,9 @@ class Context(object):
     @property
     def weather_api_key(self):
         if not self._weather_api_key:
-            raise AutomatonConfigParsingError('weather api key required')
+            raise PyDomoticConfigParsingError('weather api key required')
         if not isinstance(self._weather_api_key, str):
-            raise AutomatonConfigParsingError(
+            raise PyDomoticConfigParsingError(
                     'weather api_key must be a string, not '
                     f'{self._aqi_api_key.__class__.__name__}')
         return self._weather_api_key
@@ -132,7 +132,7 @@ class Context(object):
         if self._weather_data_cache_seconds is None:
             return None
         if not isinstance(self._weather_data_cache_seconds, int):
-            raise AutomatonConfigParsingError(
+            raise PyDomoticConfigParsingError(
                     'weather data_cache_seconds must be an integer, not '
                     f'{self._weather_data_cache_seconds.__class__.__name__}')
         return self._weather_data_cache_seconds
@@ -160,7 +160,7 @@ class Context(object):
                 self._time_sensor = TimeSensor(latitude=self.latitude,
                         longitude=self.longitude)
             else:
-                raise AutomatonConfigParsingError(
+                raise PyDomoticConfigParsingError(
                         'either timezone or latitude/longitude required')
         return self._time_sensor
 
@@ -181,7 +181,7 @@ class Context(object):
     def device_sensor(self, name):
         device = self.devices.get(name, None)
         if device is None:
-            raise AutomatonConfigParsingError(f'sensor device {name} not found')
+            raise PyDomoticConfigParsingError(f'sensor device {name} not found')
         if not self._device_sensors.get(device.name):
             self._device_sensors[device.name] = DeviceSensor(device)
         return self._device_sensors[device.name]

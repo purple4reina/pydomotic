@@ -2,7 +2,7 @@ import logging
 import time
 import traceback
 
-from .exceptions import AutomatonComponentRunError
+from .exceptions import PyDomoticComponentRunError
 from .parsers import parse_yaml
 
 logger = logging.getLogger(__name__)
@@ -46,6 +46,6 @@ class LambdaHandler(object):
             components, failed = failed, []
 
         if components:
-            raise AutomatonComponentRunError(
+            raise PyDomoticComponentRunError(
                     f'one or more components failed after 3 attempts: '
                     f'{", ".join(c.name for c in components)}')

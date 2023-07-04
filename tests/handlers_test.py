@@ -1,6 +1,6 @@
 import pytest
 
-from pydomotic.handlers import LambdaHandler, AutomatonComponentRunError
+from pydomotic.handlers import LambdaHandler, PyDomoticComponentRunError
 
 def test_lambda_handler___call___passes(mock_enabled_component,
         mock_disabled_component):
@@ -27,9 +27,9 @@ def test_lambda_handler___call___fails_thrice(mock_thrice_failing_component,
 
     try:
         handler()
-    except AutomatonComponentRunError:
+    except PyDomoticComponentRunError:
         assert mock_thrice_failing_component.run_called == 3, (
                 'enabled component.run not called three times')
         assert patched_sleep.times_slept == 2, 'wrong number of times slept'
     else:
-        raise AssertionError('should have raised AutomatonComponentRunError')
+        raise AssertionError('should have raised PyDomoticComponentRunError')
