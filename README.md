@@ -409,6 +409,21 @@ automations:
 
 #### Webhook Trigger
 
+Fires when the request path matches the given value. Currently only supported in `LambdaHandler`s. Used to remotely trigger an action based on an external event.
+
+```yaml
+automations:
+  releases:
+    enabled: true
+    components:
+      - if:
+          webhook: /new-release
+        then:
+          turn-on: party-lights
+```
+
+**webhook:** _(optional)_ Request path to match. Path must match exactly and the request must be a `POST` in order to fire.
+
 #### Device (Sensor) Trigger
 
 ### Automations
