@@ -119,6 +119,8 @@ Configuration is grouped into four headings: [providers](#providers), [triggers]
 
 Reading values from environment variables is available in the form of `${env:MY_ENV_VAR}`.
 
+For a complete example configuration file, see [`tests/testdata/full.yml`](./tests/testdata/full.yml).
+
 ### Providers
 
 Currently, four providers are provided out of the box.
@@ -261,8 +263,74 @@ triggers:
 
 **timezone:** _(optional)_ The timezone of the physical location of your home using the [timezone identifier](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones) from the IANA database. When not set, longitude and latitude values are used to determine timezone which can add significant overhead to runtime.
 
-**aqi.api_key:** _(optional)_ Your API key used to access https://docs.airnowapi.org. Required when using [AQI triggers](#aqi).
+**aqi.api_key:** _(optional)_ Your API key used to access https://docs.airnowapi.org. Required when using [AQI triggers](#aqi-trigger).
 
-**weather.api_key:** _(optional)_ Your API key used to access https://openweathermap.org. Required when using [temperature triggers](#temperature).
+**weather.api_key:** _(optional)_ Your API key used to access https://openweathermap.org. Required when using [temperature triggers](#temperature-trigger).
+
+#### AQI Trigger
+
+Fires when the outdoor air quality index matches a given value or range of values.
+
+```yaml
+automations:
+  air-purifier:
+    enabled: true
+    components:
+      - if:
+          aqi: '>100'
+        then:
+          turn-on: switch-A
+```
+
+**aqi:** _(required)_ Air quality index to match. Can be single value (ex: `100`), a relative value (ex: `>=50`), or a range of values (ex: `50-100`). Multiple values can be given separated by a comma (ex: `<50,100-150`).
+
+#### Time Trigger
+
+Fires when the time matches the given value or range of values.
+
+```yaml
+automations:
+  night-light:
+    enabled: true
+    components:
+      - if:
+          time: 6:00pm
+        then:
+          turn-on: switch-A
+```
+
+**time:** _(required)_ Time value to match, in the form of `HH:MMpm`. Can be a single value (ex: `5:00am`) or a range of values (ex: `9:00pm-11:00pm`). Multiple values can be given separated by a comma (ex: `4:00am,5:00am,6:30pm`).
+
+#### Weekday Trigger
+
+Fires when the day of the week matches the given value or range of values.
+
+```yaml
+automations:
+  party-time:
+    enabled: true
+    components:
+      - if:
+          weekday: Friday
+          time: 6:00pm
+        then:
+          turn-on: stereo
+```
+
+**weekday:** _(required)_ The day of the week value to match. Case insensitive and abreviations supported. Can be a single value (ex: `Monday`) or a range of values (ex: `mon-fri`). Multiple values can be given separated by a comma (ex: `mon,wed,fri`).
+
+#### Cron Trigger
+
+#### Random Trigger
+
+#### Sunrise/Sunset Trigger
+
+#### Temperature Trigger
+
+#### Radon Trigger
+
+#### Webhook Trigger
+
+#### Device (Sensor) Trigger
 
 ### Automations
