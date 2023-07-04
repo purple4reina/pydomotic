@@ -282,7 +282,7 @@ automations:
           turn-on: switch-A
 ```
 
-**aqi:** _(required)_ Air quality index to match. Can be single value (ex: `100`), a relative value (ex: `>=50`), or a range of values (ex: `50-100`). Multiple values can be given separated by a comma (ex: `<50,100-150`).
+**aqi:** _(optional)_ Air quality index to match. Can be single value (ex: `100`), a relative value (ex: `>=50`), or a range of values (ex: `50-100`). Multiple values can be given separated by a comma (ex: `<50,100-150`).
 
 #### Time Trigger
 
@@ -299,7 +299,7 @@ automations:
           turn-on: switch-A
 ```
 
-**time:** _(required)_ Time value to match, in the form of `HH:MMpm`. Can be a single value (ex: `5:00am`) or a range of values (ex: `9:00pm-11:00pm`). Multiple values can be given separated by a comma (ex: `4:00am,5:00am,6:30pm`).
+**time:** _(optional)_ Time value to match, in the form of `HH:MMpm`. Can be a single value (ex: `5:00am`) or a range of values (ex: `9:00pm-11:00pm`). Multiple values can be given separated by a comma (ex: `4:00am,5:00am,6:30pm`).
 
 #### Weekday Trigger
 
@@ -317,17 +317,95 @@ automations:
           turn-on: stereo
 ```
 
-**weekday:** _(required)_ The day of the week value to match. Case insensitive and abreviations supported. Can be a single value (ex: `Monday`) or a range of values (ex: `mon-fri`). Multiple values can be given separated by a comma (ex: `mon,wed,fri`).
+**weekday:** _(optional)_ The day of the week value to match. Case insensitive and abreviations supported. Can be a single value (ex: `Monday`) or a range of values (ex: `mon-fri`). Multiple values can be given separated by a comma (ex: `mon,wed,fri`).
 
 #### Cron Trigger
 
+Fires when the given [cron expression](https://en.wikipedia.org/wiki/Cron) matches the current date/time.
+
+```yaml
+automations:
+  fans:
+    enabled: true
+    components:
+      - if:
+          cron: '*/15 * * * *'
+        then:
+          turn-on: socket-A
+```
+
+**cron:** _(optional)_ Cron expression to match the current date/time. Several [predefined shortcuts](https://pypi.org/project/croniter/#keyword-expressions) are supported like `@hourly`, `@daily`, `@weekly`, and `@monthly`.
+
 #### Random Trigger
+
+Fires randomly under the given probability.
+
+```yaml
+automations:
+  vacation:
+    enabled: true
+    components:
+      - if:
+          random: 0.25
+        then:
+          turn-on: socket-A
+        else:
+          turn-off: socket-A
+```
+
+**random:** _(optional)_ The probability between 0 and 1 under which the trigger should fire. The greater the value, the greater the chance the trigger will fire. When `0` the trigger will never fire, when `1` the trigger will always fire, and when `0.5` the trigger will fire one half of the time.
 
 #### Sunrise/Sunset Trigger
 
+Fires relative to sunrise/sunset time at the current location.
+
+```yaml
+automations:
+  wake-up:
+    enabled: true
+    components:
+      - if:
+          weekday: mon-fri
+          sunrise: 60
+        then:
+          turn-on: radio
+```
+
+**sunrise** or **sunset:** _(optional)_ Time relative to sunrise/sunset to match. When a positive integer (ex: `90`) will fire that many minutes after sunrise/sunset. When a negative integer (ex: `-120`) will fire that many minutes before sunrise/sunset. Can be a single value or a range of values (ex: `45-90`). Multiple values can be given separated by a comma (ex: `-15,80`).
+
 #### Temperature Trigger
 
+Fires when the outdoor temperature matches the given value or range of values.
+
+```yaml
+automations:
+  air-conditioner:
+    enabled: true
+    components:
+      - if:
+          temp: '>75'
+        then:
+          turn-on: switch-A
+```
+
+**temp:** _(optional)_ Outdoor temperature value to match. Can be single value (ex: `100`), a relative value (ex: `>=50`), or a range of values (ex: `50-100`). Multiple values can be given separated by a comma (ex: `<50,90-105`).
+
 #### Radon Trigger
+
+Fires when the radon detection level matches the given value or range of values.
+
+```yaml
+automations:
+  air-purifier:
+    enabled: true
+    components:
+      - if:
+          radon: '>4'
+        then:
+          turn-on: switch-A
+```
+
+**radon:** _(optional)_ Radon level to match in pCi/L. Can be single value (ex: `100`), a relative value (ex: `>=50`), or a range of values (ex: `50-100`). Multiple values can be given separated by a comma (ex: `<50,100-150`).
 
 #### Webhook Trigger
 
