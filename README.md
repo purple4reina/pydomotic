@@ -231,7 +231,7 @@ devices:
     id: '789'
 ```
 
-**name:** _(required)_ Any string value, in the example above `my-socket`, `my-bulb`, and `my-sensor` are all device names.
+**\<name\>:** _(required)_ Any string value, in the example above `my-socket`, `my-bulb`, and `my-sensor` are all device names.
 
 **description:** _(optional)_ Any value, used to help identify a device and give it more context.
 
@@ -240,6 +240,8 @@ devices:
 **id:** _(required)_ The identifier for the device as given by its 3rd party API.
 
 If provided, any further options are ignored.
+
+### Automations
 
 ### Triggers
 
@@ -392,20 +394,27 @@ automations:
 
 #### Radon Trigger
 
-Fires when the radon detection level matches the given value or range of values.
+Fires when the radon detection level matches the given value or range of values. Only supported as part of a [device trigger](#device-sensor-trigger).
 
 ```yaml
+devices:
+  radon-sensor:
+    description: radon sensor crawlspace
+    provider: airthings
+    id: '1234567890'
+
 automations:
   air-purifier:
     enabled: true
     components:
       - if:
-          radon: '>4'
+          radon-sensor:
+            radon: '>4'
         then:
           turn-on: switch-A
 ```
 
-**radon:** _(optional)_ Radon level to match in pCi/L. Can be single value (ex: `100`), a relative value (ex: `>=50`), or a range of values (ex: `50-100`). Multiple values can be given separated by a comma (ex: `<50,100-150`).
+**\<name\>.radon:** _(required)_ Radon level to match in pCi/L. Can be single value (ex: `100`), a relative value (ex: `>=50`), or a range of values (ex: `50-100`). Multiple values can be given separated by a comma (ex: `<50,100-150`).
 
 #### Webhook Trigger
 
@@ -426,4 +435,28 @@ automations:
 
 #### Device (Sensor) Trigger
 
-### Automations
+Fires when the result returned by a sensor matches the given value.
+
+```yaml
+devices:
+  thermometer:
+    description: temperature sensor bedroom
+    provider: tuya
+    id: '1234567890'
+
+automations:
+  heatlamp:
+    enabled: true
+    components:
+      - if:
+          thermometer:
+            temp: '<60'
+        then:
+          turn-on: 'socket-A'
+```
+
+**\<name\>:** _(optional)_ The name of the device from which to take the reading.
+
+**\<name\>.\<value\>:** _(required)_ Any of the available triggers as defined above, most commonly `temp` and `radon`.
+
+### Actions
