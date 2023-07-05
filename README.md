@@ -51,7 +51,7 @@ $ python -m pydomotic
 
 For full configuration documentation, see [CONFIGURATION.md](./docs/CONFIGURATION.md).
 
-For more details on deploying, see the [deploying](#deploying) section below.
+For more details on deployment options, see [DEPLOYING.md](./docs/DEPLOYING.md).
 
 ## Glossary
 
@@ -81,17 +81,3 @@ entrypoint to the `pydomotic` system.
 
 **parser:** The code used to read the configuration yaml and transform it into
 a list of components.
-
-## Deploying
-
-Deployment of `pydomotic` simply requires an environment that will execute code once per minute. This lends itself well to strategies such as [cron jobs](#cron) and serverless platforms like [AWS Lambda](#aws-lambda) or Google Cloud Run.
-
-### Cron
-
-On any unix system with cron support, open the crontab file with `crontab -e` and add the following line to install a new cron job to run `pydomotic` once per minute.
-
-```cron
-* * * * * python3 -m pydomotic --config-file /path/to/pydomotic.yml
-```
-
-Ensure that `pydomotic` is installed globally in this case.
