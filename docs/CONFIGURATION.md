@@ -470,6 +470,8 @@ automations:
 **exec:** _(optional)_ The module and method name to execute in the form of `module.method`. Multiple values can be given separated by a comma (ex: `custom_actions.turn_on,custom_actions.send_email`). Method must accept just one argument, the `context` object which holds references to all configured sensors and devices. For example:
 
 ```python
+# custom_actions.py
+
 import boto3
 client = boto3.client('ses')
 
