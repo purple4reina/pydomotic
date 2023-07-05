@@ -241,7 +241,33 @@ devices:
 
 If provided, any further options are ignored.
 
-### Automations and Components
+### Automations
+
+Automations represent logical groupings of triggers and actions.
+
+```yaml
+automations:
+  summer:
+    enabled: true
+    components:
+      - if:
+          temp: '>78'
+        then:
+          turn-on: socket-A
+        else:
+          turn-off: socket-A
+      - if:
+          weekday: saturday,sunday
+          sunset: -60
+        then:
+          turn-on: socket-B
+```
+
+**\<name\>:** _(required)_ Any string value, in the example above `summer` is the automation name.
+
+**\<name\>.enabled:** _(optional)_ When true, the components in this automation will be run, otherwise they will be ignored.
+
+**\<name\>.components:** _(optional)_ A list, each item can optionally include `if`, `then`, and `else` keys. The `if` is an object containing the triggers to run. When all triggers evaluate to true, the actions contained in the `then` object are run. If any of the triggers evaluate to false, the actions contained in the `else` object are run.
 
 ### Triggers
 
