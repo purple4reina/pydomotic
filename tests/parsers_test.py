@@ -963,6 +963,14 @@ def test__parse_radon_trigger_requires_sensor():
     else:
         raise AssertionError('should have raised an exception')
 
+def test__parse_radon_trigger_requires_value():
+    try:
+        _parse_radon_trigger(None, _test_context)
+    except PyDomoticConfigParsingError:
+        pass
+    else:
+        raise AssertionError('should have raised an exception')
+
 _test__parse_time_trigger = (
         ('12:00am', [0], False),
         ('1:00am', [60], False),

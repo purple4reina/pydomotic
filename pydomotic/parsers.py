@@ -452,6 +452,10 @@ def _parse_webhook_trigger(value, context, sensor=None):
     return WebhookTrigger(value, sensor or context.webhook_sensor)
 
 def _parse_sensor(device_name, value, context):
+    # TODO: test value is None
+    if value is None:
+        raise PyDomoticConfigParsingError(
+                f'sensor trigger for {device_name} requires a value')
     sensor = context.device_sensor(device_name)
     trigger_type, trigger_value = value.popitem()
     if value:
