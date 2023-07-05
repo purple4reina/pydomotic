@@ -14,7 +14,7 @@ Install `pydomotic` in your environment.
 $ pip install pydomotic
 ```
 
-Create your `pydomotic.yml `configuration file where you will define your
+Create your `pydomotic.yml` configuration file where you will define your
 devices and automations.
 
 ```yaml
