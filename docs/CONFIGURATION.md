@@ -419,7 +419,7 @@ automations:
     enabled: true
     components:
       - if:
-          time: 10:00am
+          time: 10:00am-12:00pm
         then:
           turn-on: 'socket-A'
         else:
