@@ -1,6 +1,6 @@
 from pydomotic.providers.airthings import AirthingsProvider, AirthingsDevice
 from pydomotic.providers.fujitsu import FujitsuProvider, FujitsuDevice
-from pydomotic.providers.gosund import GosundProvider, GosundDevice
+from pydomotic.providers.tuya import TuyaProvider, TuyaDevice
 from pydomotic.providers.noop import NoopProvider, NoopDevice
 
 def test_fujitsu_provider(patch_fujitsu):
@@ -48,9 +48,9 @@ def test_fujitsu_device(patch_fujitsu):
     device.switch()
     assert not patch_fujitsu.device.switch_called, 'device.switch called'
 
-def test_gosund_provider(patch_gosundpy):
+def test_tuya_provider(patch_gosundpy):
     usr, pwd, a_id, a_key, name, desc = 'usr', 'pwd', 'id', 'key', 'name', 'desc'
-    provider = GosundProvider(usr, pwd, a_id, a_key)
+    provider = TuyaProvider(usr, pwd, a_id, a_key)
     assert patch_gosundpy.username == usr, 'wrong username'
     assert patch_gosundpy.password == pwd, 'wrong password'
     assert patch_gosundpy.access_id == a_id, 'wrong access_id'
@@ -59,7 +59,7 @@ def test_gosund_provider(patch_gosundpy):
 
     device = provider.get_device('id', name, desc)
     assert device.device == patch_gosundpy.provider.device, 'wrong device'
-    assert device.name == f'gosund_device {name}', 'wrong name'
+    assert device.name == f'tuya_device {name}', 'wrong name'
     assert device.device_name == name, 'wrong device_name'
     assert device.device_description == desc, 'wrong device_description'
 
@@ -72,22 +72,22 @@ def test_gosund_provider(patch_gosundpy):
     device.switch()
     assert device.device.switch_called, 'device.switch not called'
 
-def test_gosund_provider_device_status_cache(patch_gosundpy):
+def test_tuya_provider_device_status_cache(patch_gosundpy):
     cache_secs = None
-    provider = GosundProvider('u', 'p', 'ai', 'ak',
+    provider = TuyaProvider('u', 'p', 'ai', 'ak',
             status_cache_seconds=cache_secs)
     assert patch_gosundpy.cache_secs == cache_secs, 'wrong caching value'
 
     cache_secs = 50
-    provider = GosundProvider('u', 'p', 'ai', 'ak',
+    provider = TuyaProvider('u', 'p', 'ai', 'ak',
             status_cache_seconds=cache_secs)
     assert patch_gosundpy.cache_secs == cache_secs, 'wrong caching value'
 
-def test_gosund_device(patch_gosundpy):
+def test_tuya_device(patch_gosundpy):
     name, desc = 'device_name', 'device_description'
-    device = GosundDevice(patch_gosundpy.device, name, desc)
+    device = TuyaDevice(patch_gosundpy.device, name, desc)
     assert device.device == patch_gosundpy.device, 'wrong device'
-    assert device.name == f'gosund_device {name}', 'wrong name'
+    assert device.name == f'tuya_device {name}', 'wrong name'
     assert device.device_name == name, 'wrong device_name'
     assert device.device_description == desc, 'wrong device_description'
 

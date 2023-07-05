@@ -7,7 +7,7 @@ from pydomotic.actions import TurnOnAction, TurnOffAction, ExecuteCodeAction
 from pydomotic.components import Component
 from pydomotic.context import Context
 from pydomotic.parsers import (parse_yaml, _get_config_reader, _file_reader,
-        _s3_reader, _parse_providers, _parse_gosund_provider,
+        _s3_reader, _parse_providers, _parse_tuya_provider,
         _parse_fujitsu_provider, _parse_airthings_provider, _parse_string,
         _parse_devices, _parse_components, _parse_triggers, _parse_aqi_trigger,
         _parse_time_trigger, _parse_weekday_trigger, _parse_cron_trigger,
@@ -17,7 +17,7 @@ from pydomotic.parsers import (parse_yaml, _get_config_reader, _file_reader,
 from pydomotic.providers.base import Device
 from pydomotic.providers.airthings import AirthingsProvider
 from pydomotic.providers.fujitsu import FujitsuProvider
-from pydomotic.providers.gosund import GosundProvider
+from pydomotic.providers.tuya import TuyaProvider
 from pydomotic.providers.noop import NoopProvider, NoopDevice
 from pydomotic.sensors import (SunSensor, TimeSensor, WeatherSensor, AQISensor,
         WebhookSensor, DeviceSensor)
@@ -422,14 +422,14 @@ _test__parse_providers = (
         ({'purple': None}, {}, True),
         (
             {
-                'gosund': {
+                'tuya': {
                     'username': 'username',
                     'password': 'password',
                     'access_id': 'access_id',
                     'access_key': 'access_key',
                 },
             },
-            {'noop': NoopProvider, 'gosund': GosundProvider},
+            {'noop': NoopProvider, 'tuya': TuyaProvider},
             False,
         ),
         (
@@ -439,7 +439,7 @@ _test__parse_providers = (
         ),
         (
             {
-                'gosund': {
+                'tuya': {
                     'username': 'username',
                     'password': 'password',
                     'access_id': 'access_id',
@@ -447,7 +447,7 @@ _test__parse_providers = (
                 },
                 'noop': None,
             },
-            {'noop': NoopProvider, 'gosund': GosundProvider,},
+            {'noop': NoopProvider, 'tuya': TuyaProvider,},
             False,
         ),
         (
@@ -479,7 +479,7 @@ def test__parse_providers(providers, expects, raises, monkeypatch):
         assert act_name == exp_name, 'wrong name returnd for provider'
         assert isinstance(act_prov, exp_prov), 'wrong provider class returned'
 
-_test__parse_gosund_provider = (
+_test__parse_tuya_provider = (
         ({}, True),
         (
             {
@@ -528,14 +528,14 @@ _test__parse_gosund_provider = (
         ),
 )
 
-@pytest.mark.parametrize('provider,raises', _test__parse_gosund_provider)
-def test__parse_gosund_provider(provider, raises, monkeypatch):
+@pytest.mark.parametrize('provider,raises', _test__parse_tuya_provider)
+def test__parse_tuya_provider(provider, raises, monkeypatch):
     def __init__(self, *args, status_cache_seconds=None):
         assert status_cache_seconds == provider.get('device_status_cache_seconds')
     monkeypatch.setattr('gosundpy.Gosund.__init__', __init__)
     try:
-        actual = _parse_gosund_provider(provider)
-        assert isinstance(actual, GosundProvider)
+        actual = _parse_tuya_provider(provider)
+        assert isinstance(actual, TuyaProvider)
     except PyDomoticConfigParsingError:
         assert raises, 'should not have raised'
     else:

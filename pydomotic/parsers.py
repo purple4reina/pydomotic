@@ -98,8 +98,8 @@ def _parse_providers(providers_conf):
     }
     for name, provider in providers_conf.items():
         logging.info(f'preparing provider {name}')
-        if name == 'gosund':
-            providers['gosund'] = _parse_gosund_provider(provider)
+        if name == 'tuya':
+            providers['tuya'] = _parse_tuya_provider(provider)
         elif name == 'noop':
             pass  # already added
         elif name == 'fujitsu':
@@ -110,11 +110,11 @@ def _parse_providers(providers_conf):
             raise PyDomoticConfigParsingError(f'unknown provider "{name}"')
     return providers
 
-def _parse_gosund_provider(provider):
+def _parse_tuya_provider(provider):
     for key in ('username', 'password', 'access_id', 'access_key'):
         if key not in provider:
             raise PyDomoticConfigParsingError(
-                    f'provider gosund requires key "{key}"')
+                    f'provider tuya requires key "{key}"')
 
     username = _parse_string(provider['username'])
     password = _parse_string(provider['password'])
@@ -123,8 +123,8 @@ def _parse_gosund_provider(provider):
 
     cache_secs = provider.get('device_status_cache_seconds')
 
-    from .providers.gosund import GosundProvider
-    return GosundProvider(username, password, access_id, access_key,
+    from .providers.tuya import TuyaProvider
+    return TuyaProvider(username, password, access_id, access_key,
             status_cache_seconds=cache_secs)
 
 def _parse_fujitsu_provider(provider):

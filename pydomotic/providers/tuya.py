@@ -5,18 +5,18 @@ from .base import Provider, Device
 
 logger = logging.getLogger(__name__)
 
-class GosundProvider(Provider):
+class TuyaProvider(Provider):
 
     def __init__(self, username, password, access_id, access_key,
             status_cache_seconds=None):
-        self.gosund = gosundpy.Gosund(username, password, access_id, access_key,
+        self.tuya = gosundpy.Gosund(username, password, access_id, access_key,
                 status_cache_seconds=status_cache_seconds)
 
     def get_device(self, device_id, device_name, device_description):
-        device = self.gosund.get_device(device_id)
-        return GosundDevice(device, device_name, device_description)
+        device = self.tuya.get_device(device_id)
+        return TuyaDevice(device, device_name, device_description)
 
-class GosundDevice(Device):
+class TuyaDevice(Device):
 
     def turn_on(self):
         self.device.turn_on()
