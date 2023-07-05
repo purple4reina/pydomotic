@@ -241,7 +241,7 @@ devices:
 
 If provided, any further options are ignored.
 
-### Automations
+### Automations and Components
 
 ### Triggers
 
@@ -460,3 +460,85 @@ automations:
 **\<name\>.\<value\>:** _(required)_ Any of the available triggers as defined above, most commonly `temp` and `radon`.
 
 ### Actions
+
+Depending on the device and its provider, the following actions are available.
+
+#### Turn On/Off Action
+
+Turns on/off the given device.
+
+```yaml
+automations:
+  bedroom:
+    enabled: true
+    components:
+      - if:
+          time: 10:00am
+        then:
+          turn-on: 'socket-A'
+        else:
+          turn-off: 'socket-A'
+```
+
+**turn-on** and **turn-off:** _(optional)_ Matches device name as defined in the [devices](#devices) section.
+
+#### Switch Action
+
+Switches the state of the given device.
+
+```yaml
+automations:
+  vacation:
+    enabled: true
+    components:
+      - if:
+          random: 0.10
+        then:
+          switch: 'socket-A'
+```
+
+**switch:** _(optional)_ Matches device name as defined in the [devices](#devices) section.
+
+#### Execute Code Action
+
+Lazy loads and executes the given Python method.
+
+```yaml
+devices:
+  radon-sensor:
+    description: basement radon
+    provider: airthings
+    id: '1234567890'
+
+automations:
+  radon-alert:
+    enabled: true
+    components:
+      - if:
+          radon-sensor:
+            radon: '>4'
+        then:
+          exec: custom_actions.send_email
+```
+
+**exec:** _(optional)_ The module and method name to execute in the form of `module.method`. Multiple values can be given separated by a comma (ex: `custom_actions.turn_on,custom_actions.send_email`). Method must accept just one argument, the `context` object which holds references to all configured sensors and devices. For example:
+
+```python
+import boto3
+client = boto3.client('ses')
+
+def send_email(context):
+    radon = context.devices['radon-sensor'].current_radon()
+    client.send_email(
+        Source='me@email.com',
+        Destination={
+            'ToAddresses': ['you@email.com'],
+        },
+        Message={
+            'Subject': {'Data': 'Radon levels too high!'},
+            'Body': {
+                'Text': {'Data': f'The current radon level is {radon}.'},
+            },
+        },
+    )
+```
