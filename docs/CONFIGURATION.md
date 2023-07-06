@@ -267,6 +267,24 @@ automations:
 
 **weekday:** _(optional)_ The day of the week value to match. Case insensitive and abreviations supported. Can be a single value (ex: `Monday`) or a range of values (ex: `mon-fri`). Multiple values can be given separated by a comma (ex: `mon,wed,fri`).
 
+### Date Trigger
+
+Fires when the current date (year, month, day) matches the given value.
+
+```yaml
+automations:
+  vacation:
+    enabled: true
+    components:
+      - if:
+          date: 2020-03-20
+          time: 12:00pm
+        then:
+          switch: lightbulb-B
+```
+
+**date:** _(optional)_ The date value to match, in the form of `YYYY-MM-DD`. Multiple values can be given separated by a comma (ex: `2022-01-15,2022-02-15`).
+
 ### Cron Trigger
 
 Fires when the given [cron expression](https://en.wikipedia.org/wiki/Cron) matches the current date/time.

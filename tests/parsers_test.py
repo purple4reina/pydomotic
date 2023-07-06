@@ -10,10 +10,10 @@ from pydomotic.parsers import (parse_yaml, _get_config_reader, _file_reader,
         _s3_reader, _parse_providers, _parse_tuya_provider,
         _parse_fujitsu_provider, _parse_airthings_provider, _parse_string,
         _parse_devices, _parse_components, _parse_triggers, _parse_aqi_trigger,
-        _parse_time_trigger, _parse_weekday_trigger, _parse_cron_trigger,
-        _parse_random_trigger, _parse_timedelta, _parse_sunrise_trigger,
-        _parse_sunset_trigger, _parse_temp_trigger, _parse_radon_trigger,
-        _parse_actions, PyDomoticConfigParsingError)
+        _parse_time_trigger, _parse_weekday_trigger, _parse_date_trigger,
+        _parse_cron_trigger, _parse_random_trigger, _parse_timedelta,
+        _parse_sunrise_trigger, _parse_sunset_trigger, _parse_temp_trigger,
+        _parse_radon_trigger, _parse_actions, PyDomoticConfigParsingError)
 from pydomotic.providers.base import Device
 from pydomotic.providers.airthings import AirthingsProvider
 from pydomotic.providers.fujitsu import FujitsuProvider
@@ -22,7 +22,7 @@ from pydomotic.providers.noop import NoopProvider, NoopDevice
 from pydomotic.sensors import (SunSensor, TimeSensor, WeatherSensor, AQISensor,
         WebhookSensor, DeviceSensor)
 from pydomotic.triggers import (AQITrigger, TimeTrigger, IsoWeekdayTrigger,
-        CronTrigger, RandomTrigger, SunriseTrigger, SunsetTrigger,
+        DateTrigger, CronTrigger, RandomTrigger, SunriseTrigger, SunsetTrigger,
         TemperatureTrigger, RadonTrigger, WebhookTrigger)
 
 _test_config_file = os.path.join(
@@ -74,7 +74,13 @@ _test_context.weather_sensor.current_temperature = lambda: _test_current_temp
 _test_parse_yaml_expect = [
         Component(
             name='air-purifier 0',
-            ifs=[AQITrigger],
+            ifs=[AQITrigger, DateTrigger],
+            thens=[TurnOnAction],
+            elses=[TurnOffAction],
+        ),
+        Component(
+            name='air-purifier 1',
+            ifs=[AQITrigger, DateTrigger],
             thens=[TurnOnAction],
             elses=[TurnOffAction],
         ),
@@ -825,26 +831,35 @@ _test__parse_triggers = (
         ({'aqi': '==100'}, [AQITrigger]),
         ({'time': '10:00am'}, [TimeTrigger]),
         ({'weekday': 'monday'}, [IsoWeekdayTrigger]),
+        ({'date': '2020-01-01'}, [DateTrigger]),
+        ({'cron': '* * * * *'}, [CronTrigger]),
         ({'random': 0.25}, [RandomTrigger]),
         ({'sunrise': 120}, [SunriseTrigger]),
         ({'sunset': 120}, [SunsetTrigger]),
+        ({'webhook': '/hello'}, [WebhookTrigger]),
 
         (
             {
                 'aqi': '==100',
                 'time': '10:00am',
                 'weekday': 'monday',
+                'date': '2020-01-01',
+                'cron': '* * * * *',
                 'random': 0.25,
                 'sunrise': 120,
                 'sunset': 120,
+                'webhook': '/hello',
             },
             [
                 AQITrigger,
                 TimeTrigger,
                 IsoWeekdayTrigger,
+                DateTrigger,
+                CronTrigger,
                 RandomTrigger,
                 SunriseTrigger,
                 SunsetTrigger,
+                WebhookTrigger,
             ],
         ),
 )
@@ -1102,6 +1117,28 @@ def test__parse_weekday_trigger(value, expect, raises):
         actual = _parse_weekday_trigger(value, _test_context)
         assert isinstance(actual, IsoWeekdayTrigger), 'wrong trigger type'
         assert expect == actual.isoweekdays, 'wrong isoweekdays found'
+    except PyDomoticConfigParsingError:
+        assert raises, 'error should not have been raised'
+    else:
+        assert not raises, 'error not raised'
+
+_test__parse_date_trigger = (
+        ('2015-01-01', [datetime.date(2015, 1, 1)], False),
+        ('2015-01-01,2015-01-02', [datetime.date(2015, 1, 1), datetime.date(2015, 1, 2)], False),
+        ('2015-01-01, 2015-01-02', [datetime.date(2015, 1, 1), datetime.date(2015, 1, 2)], False),
+        ('20150101', [datetime.date(2015, 1, 1)], False),
+
+        ('01-01-2015', None, True),
+        ('2015-02-30', None, True),
+        ('20150101-20151231', None, True),
+)
+
+@pytest.mark.parametrize('value,expect,raises', _test__parse_date_trigger)
+def test__parse_date_trigger(value, expect, raises):
+    try:
+        actual = _parse_date_trigger(value, _test_context)
+        assert isinstance(actual, DateTrigger), 'wrong trigger type'
+        assert expect == actual.dates, 'wrong dates found'
     except PyDomoticConfigParsingError:
         assert raises, 'error should not have been raised'
     else:

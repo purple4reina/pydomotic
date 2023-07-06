@@ -1,3 +1,4 @@
+import datetime
 import croniter
 import logging
 import os
@@ -10,9 +11,9 @@ from .components import Component
 from .context import Context
 from .exceptions import PyDomoticConfigParsingError
 from .providers.noop import NoopProvider
-from .triggers import (AQITrigger, TimeTrigger, IsoWeekdayTrigger, CronTrigger,
-        RandomTrigger, SunriseTrigger, SunsetTrigger, TemperatureTrigger,
-        RadonTrigger, WebhookTrigger)
+from .triggers import (AQITrigger, TimeTrigger, IsoWeekdayTrigger, DateTrigger,
+        CronTrigger, RandomTrigger, SunriseTrigger, SunsetTrigger,
+        TemperatureTrigger, RadonTrigger, WebhookTrigger)
 
 logger = logging.getLogger(__name__)
 
@@ -224,6 +225,8 @@ def _parse_trigger(typ, value, context, sensor=None):
         trigger = _parse_time_trigger(value, context, sensor=sensor)
     elif typ == 'weekday':
         trigger = _parse_weekday_trigger(value, context, sensor=sensor)
+    elif typ == 'date':
+        trigger = _parse_date_trigger(value, context, sensor=sensor)
     elif typ == 'cron':
         trigger = _parse_cron_trigger(value, context, sensor=sensor)
     elif typ == 'random':
@@ -398,6 +401,20 @@ def _parse_weekday_trigger(value, context, sensor=None):
         for isoweekday in range(start_weekday, end_weekday):
             isoweekdays.append(isoweekday % 7 or 7)
     return IsoWeekdayTrigger(isoweekdays, time_sensor=sensor or context.time_sensor)
+
+def _parse_date_trigger(value, context, sensor=None):
+    if isinstance(value, datetime.date):
+        dates = [value]
+    else:
+        dates = []
+        for date in value.split(','):
+            try:
+                date = datetime.date.fromisoformat(date.strip().lower())
+            except:
+                raise PyDomoticConfigParsingError(
+                        f'unknown date "{date}", expecting date like "YYYY-MM-DD"')
+            dates.append(date)
+    return DateTrigger(dates, time_sensor=sensor or context.time_sensor)
 
 def _parse_cron_trigger(value, context, sensor=None):
     if not croniter.croniter.is_valid(value):

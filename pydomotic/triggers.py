@@ -50,6 +50,19 @@ class TimeTrigger(_Trigger):
                 return True
         return False
 
+class DateTrigger(_Trigger):
+
+    def __init__(self, dates, time_sensor):
+        self.dates = dates
+        self.time_sensor = time_sensor
+
+    def check(self):
+        today = self.time_sensor.get_current_datetime().date()
+        for date in self.dates:
+            if date == today:
+                return True
+        return False
+
 class CronTrigger(_Trigger):
 
     def __init__(self, cron, time_sensor):

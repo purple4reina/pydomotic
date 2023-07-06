@@ -1,7 +1,7 @@
 import datetime
 
 from pydomotic.triggers import (AQITrigger, IsoWeekdayTrigger, TimeTrigger,
-        CronTrigger, RandomTrigger, SunriseTrigger, SunsetTrigger,
+        DateTrigger, CronTrigger, RandomTrigger, SunriseTrigger, SunsetTrigger,
         TemperatureTrigger)
 
 def test_aqi_trigger_fires(mock_aqi_sensor):
@@ -50,6 +50,36 @@ def test_time_trigger_does_not_fire_different_hour(mock_time_sensor):
 
 def test_time_trigger_does_not_fire_different_minute(mock_time_sensor):
     trigger = TimeTrigger([630], time_sensor=mock_time_sensor)
+    fires = trigger.check()
+    assert not fires, 'trigger fired'
+
+def test_date_trigger_fires(mock_time_sensor):
+    trigger = DateTrigger([datetime.date(1982, 2, 4)],
+            time_sensor=mock_time_sensor)
+    fires = trigger.check()
+    assert fires, 'trigger did not fire'
+
+def test_date_trigger_fires_multiple_dates_given(mock_time_sensor):
+    trigger = DateTrigger([datetime.date(1982, 1, 1), datetime.date(1982, 2, 4)],
+            time_sensor=mock_time_sensor)
+    fires = trigger.check()
+    assert fires, 'trigger did not fire'
+
+def test_date_trigger_does_not_fire_different_year(mock_time_sensor):
+    trigger = DateTrigger([datetime.date(2020, 2, 4)],
+            time_sensor=mock_time_sensor)
+    fires = trigger.check()
+    assert not fires, 'trigger fired'
+
+def test_date_trigger_does_not_fire_different_month(mock_time_sensor):
+    trigger = DateTrigger([datetime.date(1982, 3, 4)],
+            time_sensor=mock_time_sensor)
+    fires = trigger.check()
+    assert not fires, 'trigger fired'
+
+def test_date_trigger_does_not_fire_different_day(mock_time_sensor):
+    trigger = DateTrigger([datetime.date(1982, 2, 12)],
+            time_sensor=mock_time_sensor)
     fires = trigger.check()
     assert not fires, 'trigger fired'
 

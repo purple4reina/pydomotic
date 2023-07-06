@@ -69,6 +69,14 @@ automations:
     components:
       - if:
           aqi: '>100'
+          date: '2023-02-04'  # yaml parsed to str object
+        then:
+          turn-on: switch-A
+        else:
+          turn-off: switch-A
+      - if:
+          aqi: '>100'
+          date: 2022-02-04  # yaml parsed to datetime.date object
         then:
           turn-on: switch-A
         else:
