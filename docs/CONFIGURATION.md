@@ -1,5 +1,32 @@
 # Configuration
 
+<!-- https://luciopaiva.com/markdown-toc/ -->
+- [Location](#location)
+- [General](#general)
+- [Providers](#providers)
+  - [Tuya](#tuya)
+  - [Airthings](#airthings)
+  - [Fujitsu](#fujitsu)
+  - [Noop](#noop)
+- [Devices](#devices)
+- [Automations](#automations)
+- [Triggers](#triggers)
+  - [AQI Trigger](#aqi-trigger)
+  - [Time Trigger](#time-trigger)
+  - [Weekday Trigger](#weekday-trigger)
+  - [Date Trigger](#date-trigger)
+  - [Cron Trigger](#cron-trigger)
+  - [Random Trigger](#random-trigger)
+  - [Sunrise/Sunset Trigger](#sunrisesunset-trigger)
+  - [Temperature Trigger](#temperature-trigger)
+  - [Radon Trigger](#radon-trigger)
+  - [Webhook Trigger](#webhook-trigger)
+  - [Device (Sensor) Trigger](#device-sensor-trigger)
+- [Actions](#actions)
+  - [Turn On/Off Action](#turn-onoff-action)
+  - [Switch Action](#switch-action)
+  - [Execute Code Action](#execute-code-action)
+
 ## Location
 
 All configuration is written in [yaml](https://yaml.org/). It can be loaded either from a local file or [Amazon S3](https://aws.amazon.com/s3/) bucket.
