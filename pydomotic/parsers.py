@@ -107,6 +107,8 @@ def _parse_providers(providers_conf):
             providers['fujitsu'] = _parse_fujitsu_provider(provider)
         elif name == 'airthings':
             providers['airthings'] = _parse_airthings_provider(provider)
+        elif name == 'moen':
+            providers['moen'] = _parse_moen_provider(provider)
         else:
             raise PyDomoticConfigParsingError(f'unknown provider "{name}"')
     return providers
@@ -153,6 +155,18 @@ def _parse_airthings_provider(provider):
 
     from .providers.airthings import AirthingsProvider
     return AirthingsProvider(client_id, client_secret, data_cache_seconds=cache_secs)
+
+def _parse_moen_provider(provider):
+    for key in ('username', 'password'):
+        if key not in provider:
+            raise PyDomoticConfigParsingError(
+                    f'provider moen requires key "{key}"')
+
+    username = _parse_string(provider['username'])
+    password = _parse_string(provider['password'])
+
+    from .providers.moen import MoenProvider
+    return MoenProvider(username, password)
 
 _env_re = re.compile(r'\$\{env:(.*?)\}')
 def _parse_string(string):

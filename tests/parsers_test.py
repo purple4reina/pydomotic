@@ -8,17 +8,19 @@ from pydomotic.components import Component
 from pydomotic.context import Context
 from pydomotic.parsers import (parse_yaml, _get_config_reader, _file_reader,
         _s3_reader, _parse_providers, _parse_tuya_provider,
-        _parse_fujitsu_provider, _parse_airthings_provider, _parse_string,
-        _parse_devices, _parse_components, _parse_triggers, _parse_aqi_trigger,
-        _parse_time_trigger, _parse_weekday_trigger, _parse_date_trigger,
-        _parse_cron_trigger, _parse_random_trigger, _parse_timedelta,
-        _parse_sunrise_trigger, _parse_sunset_trigger, _parse_temp_trigger,
-        _parse_radon_trigger, _parse_actions, PyDomoticConfigParsingError)
-from pydomotic.providers.base import Device
+        _parse_fujitsu_provider, _parse_airthings_provider,
+        _parse_moen_provider, _parse_string, _parse_devices, _parse_components,
+        _parse_triggers, _parse_aqi_trigger, _parse_time_trigger,
+        _parse_weekday_trigger, _parse_date_trigger, _parse_cron_trigger,
+        _parse_random_trigger, _parse_timedelta, _parse_sunrise_trigger,
+        _parse_sunset_trigger, _parse_temp_trigger, _parse_radon_trigger,
+        _parse_actions, PyDomoticConfigParsingError)
 from pydomotic.providers.airthings import AirthingsProvider
+from pydomotic.providers.base import Device
 from pydomotic.providers.fujitsu import FujitsuProvider
-from pydomotic.providers.tuya import TuyaProvider
+from pydomotic.providers.moen import MoenProvider
 from pydomotic.providers.noop import NoopProvider, NoopDevice
+from pydomotic.providers.tuya import TuyaProvider
 from pydomotic.sensors import (SunSensor, TimeSensor, WeatherSensor, AQISensor,
         WebhookSensor, DeviceSensor)
 from pydomotic.triggers import (AQITrigger, TimeTrigger, IsoWeekdayTrigger,
@@ -466,6 +468,16 @@ _test__parse_providers = (
             {'noop': NoopProvider, 'airthings': AirthingsProvider},
             False,
         ),
+        (
+            {
+                'moen': {
+                    'username': 'username',
+                    'password': 'password',
+                },
+            },
+            {'noop': NoopProvider, 'moen': MoenProvider},
+            False,
+        ),
 )
 
 @pytest.mark.parametrize('providers,expects,raises', _test__parse_providers)
@@ -576,6 +588,23 @@ def test__parse_airthings_provider(provider, raises):
     try:
         actual = _parse_airthings_provider(provider)
         assert isinstance(actual, AirthingsProvider)
+    except PyDomoticConfigParsingError:
+        assert raises, 'should not have raised'
+    else:
+        assert not raises, 'should have raised'
+
+_test__parse_moen_provider = (
+        ({}, True),
+        ({'username': 'username'}, True),
+        ({'password': 'password'}, True),
+        ({'username': 'username', 'password': 'password'}, False),
+)
+
+@pytest.mark.parametrize('provider,raises', _test__parse_moen_provider)
+def test__parse_moen_provider(provider, raises):
+    try:
+        actual = _parse_moen_provider(provider)
+        assert isinstance(actual, MoenProvider)
     except PyDomoticConfigParsingError:
         assert raises, 'should not have raised'
     else:

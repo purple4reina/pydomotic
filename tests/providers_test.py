@@ -1,7 +1,8 @@
 from pydomotic.providers.airthings import AirthingsProvider, AirthingsDevice
 from pydomotic.providers.fujitsu import FujitsuProvider, FujitsuDevice
-from pydomotic.providers.tuya import TuyaProvider, TuyaDevice
+from pydomotic.providers.moen import MoenProvider, MoenDevice
 from pydomotic.providers.noop import NoopProvider, NoopDevice
+from pydomotic.providers.tuya import TuyaProvider, TuyaDevice
 
 def test_fujitsu_provider(patch_fujitsu):
     patch_provider = patch_fujitsu.provider
@@ -146,3 +147,20 @@ def test_airthings_provider_data_cache(patch_airthings):
     cache_secs = 50
     provider = AirthingsProvider('id', 'secret', data_cache_seconds=cache_secs)
     assert patch_airthings.cache_secs == cache_secs, 'wrong caching value'
+
+def test_moen_provider(patch_moen):
+    usr, pwd, name, desc, devid = 'usr', 'pwd', 'name', 'desc', 'devid'
+    provider = MoenProvider(usr, pwd)
+    assert patch_moen.username == usr, 'wrong username'
+    assert patch_moen.password == pwd, 'wrong password'
+
+    device = provider.get_device(devid, name, desc)
+    assert isinstance(device, MoenDevice), 'wrong device type'
+    assert isinstance(device.device, MoenDevice.API), 'wrong device type'
+    assert device.device.device_id == devid, 'wrong device_id'
+    assert device.device.flo == patch_moen.provider, 'wrong flo'
+
+    device.turn_on()
+    assert patch_moen.open_valve_called, 'flo.open_valve not called'
+    device.turn_off()
+    assert patch_moen.close_valve_called, 'flo.close_valve not called'

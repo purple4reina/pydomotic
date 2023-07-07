@@ -305,3 +305,27 @@ def patch_airthings(monkeypatch):
     airthings = _MockAirthings()
     monkeypatch.setattr('pydomotic.providers.airthings.AirthingsAPI', airthings)
     return airthings
+
+class _MockMoen(object):
+    def __init__(self):
+        self.username = None
+        self.password = None
+        self.open_valve_called = False
+        self.close_valve_called = False
+    def __call__(self, username, password):
+        class _MockMoenProvider(object):
+            def __init__(sf, username, password):
+                self.username = username
+                self.password = password
+            def open_valve(sf, device_id):
+                self.open_valve_called = True
+            def close_valve(sf, device_id):
+                self.close_valve_called = True
+        self.provider = _MockMoenProvider(username, password)
+        return self.provider
+
+@pytest.fixture
+def patch_moen(monkeypatch):
+    moen = _MockMoen()
+    monkeypatch.setattr('pyflowater.PyFlo', moen)
+    return moen

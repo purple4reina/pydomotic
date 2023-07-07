@@ -6,6 +6,7 @@
 - [Providers](#providers)
   - [Tuya](#tuya)
   - [Airthings](#airthings)
+  - [Moen](#moen)
   - [Fujitsu](#fujitsu)
   - [Noop](#noop)
 - [Devices](#devices)
@@ -74,6 +75,7 @@ Currently, four providers are provided out of the box.
 
 + [**Tuya:**](#tuya) A device that is supported by the Tuya platform. Many IoT manufacturers rely on Tuya for their device APIs, supported by the [`gosundpy`](https://github.com/purple4reina/gosundpy) Python package.
 + [**Airthings:**](#airthings) Any of the Airthings View devices.
++ [**Moen:**](#moen) The Flo by Moen smart water shutoff valve.
 + [**Fujitsu:**](#fujitsu) Any Fujitsu WiFi enabled home heat pump system, supported by the [`pyfujitseu`](https://github.com/xerxes87/pyfujitseu) Python package.
 + [**Noop:**](#noop) A generic provider which can be assigned to any device, useful for testing.
 
@@ -128,6 +130,25 @@ devices:
 **client_secret:** _(required)_ Your Airthings client secret.
 
 **data_cache_seconds:** _(optional)_ Time in seconds for caching any device statuses. Useful to reduce the number of API calls being made when referencing the same device from multiple components.
+
+### Moen
+
+```yaml
+providers:
+  moen:
+    username: ${env:MOEN_USERNAME}
+    password: ${env:MOEN_PASSWORD}
+
+devices:
+  my-device:
+    description: my cool device
+    provider: moen
+    id: '1234567890'
+```
+
+**username:** _(required)_ Your Moen username.
+
+**password:** _(required)_ Your Moen password.
 
 ### Fujitsu
 
