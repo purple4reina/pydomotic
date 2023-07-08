@@ -34,6 +34,20 @@ class SwitchAction(_DeviceAction):
 
     device_action_method_name = 'switch'
 
+class SetModeAction(_Action):
+
+    def __init__(self, device, mode, extra_params):
+        self.device = device
+        self.mode = mode
+        self.extra_params = extra_params
+
+    def run(self):
+        self.device.set_mode(self.mode, self.extra_params)
+
+    @property
+    def name(self):
+        return f'{super().name} {self.device.name} {self.mode}'
+
 class ExecuteCodeAction(_Action):
 
     def __init__(self, import_path, context):

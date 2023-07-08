@@ -26,6 +26,7 @@
 - [Actions](#actions)
   - [Turn On/Off Action](#turn-onoff-action)
   - [Switch Action](#switch-action)
+  - [Set Mode Action](#set-mode-action)
   - [Execute Code Action](#execute-code-action)
 
 ## Location
@@ -510,6 +511,40 @@ automations:
 ```
 
 **switch:** _(optional)_ Matches device name as defined in the [devices](#devices) section.
+
+### Set Mode Action
+
+Sets the current mode for a Flo by Moen device.
+
+```yaml
+devices:
+  flo:
+    description: Flo by Moen
+    provider: moen
+    id: '1234567890'
+
+automations:
+  vacation:
+    enabled: true
+    components:
+      - if:
+          date: 2020-03-20
+          time: 7:00am
+        then:
+          set-mode:
+            device: flo
+            mode: sleep
+            revert-min: 60
+            revert-mode: away
+```
+
+**set-mode.device:** _(required)_ Name of the device whose mode to change.
+
+**set-mode.mode:** _(required)_ The mode to change to, one of `home`, `away`, or `sleep`.
+
+**set-mode.revert-min:** _(optional)_ When changing to `sleep` mode, minutes to wait before automatically reverting mode. Defaults to 480 minutes (8 hours).
+
+**set-mode.revert-mode:** _(optional)_ When changing to `sleep` mode, mode to revert to after completion of the sleep, one of `home` or `away`. Defaults to `home`.
 
 ### Execute Code Action
 

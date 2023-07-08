@@ -5,7 +5,7 @@ import os
 import re
 import yaml
 
-from .actions import (TurnOnAction, TurnOffAction, SwitchAction,
+from .actions import (TurnOnAction, TurnOffAction, SwitchAction, SetModeAction,
         ExecuteCodeAction)
 from .components import Component
 from .context import Context
@@ -504,6 +504,8 @@ def _parse_actions(thens, context):
             for method_name in action_value.split(','):
                 method_name = method_name.strip()
                 actions.append(ExecuteCodeAction(method_name, context.context))
+        elif action_type == 'set-mode':
+            actions.append(_parse_set_mode_action(action_value, context))
         else:
             if action_type == 'turn-on':
                 cls = TurnOnAction
@@ -522,3 +524,37 @@ def _parse_actions(thens, context):
                             f'unknown device name "{device_name}"')
                 actions.append(cls(device))
     return actions
+
+def _parse_set_mode_action(value, context):
+    if not isinstance(value, dict):
+        raise PyDomoticConfigParsingError(
+                f'set-mode action requires a dict with keys "device" and "mode"')
+
+    for key in ('device', 'mode'):
+        if key not in value:
+            raise PyDomoticConfigParsingError(
+                    f'set-mode action requires key "{key}"')
+
+    device_name = value['device']
+    device = context.devices.get(device_name)
+    if device is None:
+        raise PyDomoticConfigParsingError(
+                f'unknown device name "{device_name}"')
+
+    mode = value['mode']
+    if mode not in ('home', 'away', 'sleep'):
+        raise PyDomoticConfigParsingError(
+                f'unknown mode "{mode}", expecting "home", "away", or "sleep"')
+
+    extra_params = {}
+    if mode == "sleep":
+        if 'revert-min' in value:
+            extra_params['revertMinutes'] = int(value['revert-min'])
+        if 'revert-mode' in value:
+            rmode = value['revert-mode']
+            if rmode not in ('home', 'away'):
+                raise PyDomoticConfigParsingError(
+                        f'unknown mode "{rmode}", expecting "home" or "away"')
+            extra_params['revertMode'] = value['revert-mode']
+
+    return SetModeAction(device, mode, extra_params)

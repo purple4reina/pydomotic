@@ -4,7 +4,7 @@ import os
 import pytest
 
 from pydomotic.actions import (TurnOnAction, TurnOffAction, SwitchAction,
-        ExecuteCodeAction)
+        SetModeAction, ExecuteCodeAction)
 from pydomotic.components import Component
 from pydomotic.context import Context
 from pydomotic.parsers import (parse_yaml, _get_config_reader, _file_reader,
@@ -15,7 +15,7 @@ from pydomotic.parsers import (parse_yaml, _get_config_reader, _file_reader,
         _parse_weekday_trigger, _parse_date_trigger, _parse_cron_trigger,
         _parse_random_trigger, _parse_timedelta, _parse_sunrise_trigger,
         _parse_sunset_trigger, _parse_temp_trigger, _parse_radon_trigger,
-        _parse_actions, PyDomoticConfigParsingError)
+        _parse_actions, _parse_set_mode_action, PyDomoticConfigParsingError)
 from pydomotic.providers.airthings import AirthingsProvider
 from pydomotic.providers.base import Device
 from pydomotic.providers.fujitsu import FujitsuProvider
@@ -196,6 +196,24 @@ _test_parse_yaml_expect = [
             thens=[ExecuteCodeAction, ExecuteCodeAction],
             elses=[],
         ),
+        Component(
+            name='flo-set-mode 0',
+            ifs=[],
+            thens=[SetModeAction],
+            elses=[],
+        ),
+        Component(
+            name='flo-set-mode 1',
+            ifs=[],
+            thens=[SetModeAction],
+            elses=[],
+        ),
+        Component(
+            name='flo-set-mode 2',
+            ifs=[],
+            thens=[SetModeAction],
+            elses=[],
+        ),
 ]
 
 _test_parse_yaml_expect_context_dict = {
@@ -210,6 +228,7 @@ _test_parse_yaml_expect_context_dict = {
             'sensor-D': NoopDevice('789', 'sensor-D', 'motion sensor'),
             'sensor-E': NoopDevice('890', 'sensor-E', 'contact sensor'),
             'sensor-F': NoopDevice('901', 'sensor-F', 'radon sensor'),
+            'sensor-G': NoopDevice('012', 'sensor-G', 'flo by moen'),
         },
         'sensors': {
             'aqi_sensor': AQISensor(
@@ -1377,6 +1396,21 @@ _test__parse_actions_tests = (
             True,
         ),
         (
+            {
+                'set-mode': {
+                    'device': _test_device_name_1,
+                    'mode': 'sleep',
+                    'revert-min': 10,
+                    'revert-mode': 'home',
+                },
+            },
+            [
+                SetModeAction(_test_device_1, 'sleep', {
+                    'revertMinutes': 10, 'revertMode': 'home'}),
+            ],
+            False,
+        ),
+        (
             {'exec': 'testdata.custom_code.custom_function'},
             [ExecuteCodeAction(
                 'testdata.custom_code.custom_function',
@@ -1421,6 +1455,12 @@ def test__parse_actions(thens, expect, raises):
     def assert_turn_on_off_switch_actions(expect, actual):
         assert expect.device == actual.device, 'wrong device found on action'
 
+    def assert_set_mode_action(expect, actual):
+        assert expect.device == actual.device, 'wrong device found on action'
+        assert expect.mode == actual.mode, 'wrong mode found on action'
+        assert expect.extra_params == actual.extra_params, (
+                'wrong extra params found on action')
+
     def assert_execute_code_action(expect, actual):
         assert expect.import_path == actual.import_path, (
                 'wrong execution method on action')
@@ -1429,8 +1469,96 @@ def test__parse_actions(thens, expect, raises):
     for exp, act in zip(expect, actual):
         if isinstance(exp, (TurnOnAction, TurnOffAction, SwitchAction)):
             assert_turn_on_off_switch_actions(exp, act)
+        elif isinstance(exp, SetModeAction):
+            assert_set_mode_action(exp, act)
         elif isinstance(exp, ExecuteCodeAction):
             assert_execute_code_action(exp, act)
         else:
             raise AssertionError(f'expectation {exp} not found')
         assert exp.name == act.name, 'wrong action name'
+
+_test__parse_set_mode_action = (
+        (
+            {
+                'device': _test_device_name_6,
+                'mode': 'home',
+            }, 'home', {}, False,
+        ),
+        (
+            {
+                'device': _test_device_name_6,
+                'mode': 'away',
+            }, 'away', {}, False,
+        ),
+        (
+            {
+                'device': _test_device_name_6,
+                'mode': 'sleep',
+            }, 'sleep', {}, False,
+        ),
+        (
+            {
+                'device': _test_device_name_6,
+                'mode': 'sleep',
+                'revert-min': 10,
+            }, 'sleep', {'revertMinutes': 10}, False,
+        ),
+        (
+            {
+                'device': _test_device_name_6,
+                'mode': 'sleep',
+                'revert-mode': 'home',
+            }, 'sleep', {'revertMode': 'home'}, False,
+        ),
+        (
+            {
+                'device': _test_device_name_6,
+                'mode': 'sleep',
+                'revert-min': 10,
+                'revert-mode': 'home',
+            }, 'sleep', {'revertMinutes': 10, 'revertMode': 'home'}, False,
+        ),
+
+        (
+            {
+                'device': _test_device_name_6,
+            }, None, None, True,
+        ),
+        (
+            {
+                'mode': _test_device_name_6,
+            }, None, None, True,
+        ),
+        (
+            {
+                'device': 'does not exist',
+                'mode': 'home',
+            }, None, None, True,
+        ),
+        (
+            {
+                'device': _test_device_name_6,
+                'mode': 'does not exist',
+            }, None, None, True,
+        ),
+        (
+            {
+                'device': _test_device_name_6,
+                'mode': 'sleep',
+                'revert-mode': 'does not exist',
+            }, None, None, True,
+        ),
+        (_test_device_name_6, None, None, True),
+)
+
+@pytest.mark.parametrize('value,mode,params,raises', _test__parse_set_mode_action)
+def test__parse_set_mode_action(value, mode, params, raises):
+    try:
+        action = _parse_set_mode_action(value, _test_context)
+        assert action.device == _test_device_6, 'wrong device found on action'
+        assert action.mode == mode, 'wrong mode found on action'
+        assert action.extra_params == params, 'wrong params found on action'
+    except:
+        assert raises, 'should not have raised an exception'
+    else:
+        assert not raises, 'should have raised an exception'

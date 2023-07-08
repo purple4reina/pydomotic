@@ -12,12 +12,15 @@ class _MockDevice(object):
         self.turn_on_called = False
         self.turn_off_called = False
         self.switch_called = False
+        self.set_mode_called_args = None
     def turn_on(self):
         self.turn_on_called = True
     def turn_off(self):
         self.turn_off_called = True
     def switch(self):
         self.switch_called = True
+    def set_mode(self, mode, params):
+        self.set_mode_called_args = (mode, params)
 
 @pytest.fixture
 def mock_device():
@@ -307,13 +310,32 @@ def patch_airthings(monkeypatch):
     return airthings
 
 class _MockMoen(object):
+    location_id = 'location_id'
+    device_id = 'device_id'
     def __init__(self):
         self.username = None
         self.password = None
         self.open_valve_called = False
         self.close_valve_called = False
+        self.set_mode_called_args = None
     def __call__(self, username, password):
         class _MockMoenProvider(object):
+            _locations = [
+                {
+                    'id': 'wrong location_id',
+                    'devices': [
+                        {'id': 'wrong device_id', 'macAddress': 'macAddress'},
+                    ],
+                    'account': {'id': 'account_id'},
+                },
+                {
+                    'id': self.location_id,
+                    'devices': [
+                        {'id': self.device_id, 'macAddress': 'macAddress'},
+                    ],
+                    'account': {'id': 'account_id'},
+                },
+            ]
             def __init__(sf, username, password):
                 self.username = username
                 self.password = password
@@ -321,6 +343,10 @@ class _MockMoen(object):
                 self.open_valve_called = True
             def close_valve(sf, device_id):
                 self.close_valve_called = True
+            def set_mode(sf, location_id, mode, additional_params={}):
+                self.set_mode_called_args = (location_id, mode, additional_params)
+            def locations(sf):
+                return sf._locations
         self.provider = _MockMoenProvider(username, password)
         return self.provider
 

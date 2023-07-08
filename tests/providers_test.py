@@ -149,18 +149,23 @@ def test_airthings_provider_data_cache(patch_airthings):
     assert patch_airthings.cache_secs == cache_secs, 'wrong caching value'
 
 def test_moen_provider(patch_moen):
-    usr, pwd, name, desc, devid = 'usr', 'pwd', 'name', 'desc', 'devid'
+    usr, pwd, name, desc = 'usr', 'pwd', 'name', 'desc'
     provider = MoenProvider(usr, pwd)
     assert patch_moen.username == usr, 'wrong username'
     assert patch_moen.password == pwd, 'wrong password'
 
-    device = provider.get_device(devid, name, desc)
+    device = provider.get_device(patch_moen.device_id, name, desc)
     assert isinstance(device, MoenDevice), 'wrong device type'
     assert isinstance(device.device, MoenDevice.API), 'wrong device type'
-    assert device.device.device_id == devid, 'wrong device_id'
+    assert device.device.device_id == patch_moen.device_id, 'wrong device_id'
     assert device.device.flo == patch_moen.provider, 'wrong flo'
 
     device.turn_on()
     assert patch_moen.open_valve_called, 'flo.open_valve not called'
     device.turn_off()
     assert patch_moen.close_valve_called, 'flo.close_valve not called'
+
+    mode, params = 'away', {'param': 'value'}
+    device.set_mode(mode, params)
+    assert patch_moen.set_mode_called_args == (patch_moen.location_id, mode, params), (
+            'flo.set_mode not called with correct args')

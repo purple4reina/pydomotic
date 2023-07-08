@@ -1,7 +1,7 @@
 import pytest
 
 from pydomotic.actions import (TurnOnAction, TurnOffAction, SwitchAction,
-        ExecuteCodeAction)
+        SetModeAction, ExecuteCodeAction)
 
 import testdata.custom_code
 
@@ -34,6 +34,15 @@ def test_switch_action(mock_device):
     action = SwitchAction(mock_device)
     action.run()
     assert action.device.switch_called, 'device.switch not called'
+
+def test_set_mode_action(mock_device):
+    mode, params = 'sleep', {'param': 'value'}
+    action = SetModeAction(mock_device, mode, params)
+    assert action.name == 'set_mode_action device_name sleep', (
+            'wrong name found for action')
+    action.run()
+    assert action.device.set_mode_called_args == (mode, params), (
+            'device.set_mode not called with correct args')
 
 _test_execute_code_action_called = []
 _test_execute_code_action_context = {'hello': True, 'goodbye': False}

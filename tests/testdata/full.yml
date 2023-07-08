@@ -51,6 +51,10 @@ devices:
     provider: noop
     type: radon sensor
     id: '901'
+  sensor-G:
+    description: flo by moen
+    provider: noop
+    id: '012'
 
 triggers:
   location:
@@ -205,3 +209,21 @@ automations:
       - if:
         then:
           exec: testdata.custom_code.custom_function,testdata.custom_code.custom_function
+
+  flo-set-mode:
+    enabled: true
+    components:
+      - then:
+          set-mode:
+            device: sensor-G
+            mode: home
+      - then:
+          set-mode:
+            device: sensor-G
+            mode: away
+      - then:
+          set-mode:
+            device: sensor-G
+            mode: sleep
+            revert-min: 60
+            revert-mode: home
