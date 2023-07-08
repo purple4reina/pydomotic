@@ -3,7 +3,8 @@ import functools
 import os
 import pytest
 
-from pydomotic.actions import TurnOnAction, TurnOffAction, ExecuteCodeAction
+from pydomotic.actions import (TurnOnAction, TurnOffAction, SwitchAction,
+        ExecuteCodeAction)
 from pydomotic.components import Component
 from pydomotic.context import Context
 from pydomotic.parsers import (parse_yaml, _get_config_reader, _file_reader,
@@ -1340,12 +1341,8 @@ def test__parse_temp_trigger_failures(value):
 
 _test__parse_actions_tests = (
         (
-            {
-                'turn-on': _test_device_name_1,
-            },
-            [
-                TurnOnAction(_test_device_1),
-            ],
+            {'turn-on': _test_device_name_1},
+            [TurnOnAction(_test_device_1)],
             False,
         ),
         (
@@ -1362,6 +1359,11 @@ _test__parse_actions_tests = (
                 TurnOnAction(_test_device_1),
                 TurnOffAction(_test_device_2),
             ],
+            False,
+        ),
+        (
+            {'switch': _test_device_name_3},
+            [SwitchAction(_test_device_3)],
             False,
         ),
         (
@@ -1416,7 +1418,7 @@ def test__parse_actions(thens, expect, raises):
     assert len(expect) == len(actual), 'wrong number of actions returned'
     assert raises == raised, 'exception raising was wrong'
 
-    def assert_turn_on_off_actions(expect, actual):
+    def assert_turn_on_off_switch_actions(expect, actual):
         assert expect.device == actual.device, 'wrong device found on action'
 
     def assert_execute_code_action(expect, actual):
@@ -1425,8 +1427,8 @@ def test__parse_actions(thens, expect, raises):
         assert expect.context == actual.context, 'wrong context found on action'
 
     for exp, act in zip(expect, actual):
-        if isinstance(exp, (TurnOnAction, TurnOffAction)):
-            assert_turn_on_off_actions(exp, act)
+        if isinstance(exp, (TurnOnAction, TurnOffAction, SwitchAction)):
+            assert_turn_on_off_switch_actions(exp, act)
         elif isinstance(exp, ExecuteCodeAction):
             assert_execute_code_action(exp, act)
         else:
