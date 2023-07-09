@@ -259,7 +259,7 @@ def _parse_trigger(typ, value, context, sensor=None):
     elif typ in context.devices:
         if sensor:
             raise PyDomoticConfigParsingError('nested sensor confs not allowed')
-        trigger = _parse_sensor(typ, value, context)
+        trigger = _parse_sensor_trigger(typ, value, context)
     else:
         raise PyDomoticConfigParsingError(f'unknown trigger type "{typ}"')
     return trigger
@@ -269,8 +269,8 @@ _ranged_value_temp_re = re.compile(r'(<|>|==|<=|>=)?\s*(\d+\.?\d*|\$\{temp\})')
 def _parse_ranged_values(value, typ, context):
     if not isinstance(value, (str, int, float)):
         raise PyDomoticConfigParsingError(
-                f'invalid {typ} trigger value "{value}", expecting value like '
-                '">100", "<100", or "100"')
+                f'invalid {typ} trigger value "{value}", expecting string or '
+                'number value like ">100", "<100", or "100"')
 
     def _ranged_func(start, end):
         return lambda a: a >= start and a <= end
@@ -326,11 +326,11 @@ def _parse_ranged_values(value, typ, context):
                 _check_func = _ranged_func(start_val, end_val)
             except:
                 raise PyDomoticConfigParsingError(
-                        f'invalid {typ} trigger value "{val}", expecting value '
-                        'like "80-100"')
+                        f'invalid {typ} trigger value "{val}", expecting ranged '
+                        'value like "80-100"')
 
         else:
-            raise PyDomoticConfigParsingError(f'unknown {typ} "{val}')
+            raise PyDomoticConfigParsingError(f'unknown {typ} "{val}"')
 
         _check_funcs.append(_check_func)
     return lambda a: any(fn(a) for fn in _check_funcs)
@@ -482,7 +482,7 @@ def _parse_webhook_trigger(value, context, sensor=None):
     # TODO: test _parse_webhook_trigger
     return WebhookTrigger(value, sensor or context.webhook_sensor)
 
-def _parse_sensor(device_name, value, context):
+def _parse_sensor_trigger(device_name, value, context):
     # TODO: test value is None
     if value is None:
         raise PyDomoticConfigParsingError(

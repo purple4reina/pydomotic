@@ -11,10 +11,11 @@ from pydomotic.parsers import (parse_yaml, _get_config_reader, _file_reader,
         _s3_reader, _parse_providers, _parse_tuya_provider,
         _parse_fujitsu_provider, _parse_airthings_provider,
         _parse_moen_provider, _parse_string, _parse_devices, _parse_components,
-        _parse_triggers, _parse_aqi_trigger, _parse_time_trigger,
-        _parse_weekday_trigger, _parse_date_trigger, _parse_cron_trigger,
-        _parse_random_trigger, _parse_timedelta, _parse_sunrise_trigger,
-        _parse_sunset_trigger, _parse_temp_trigger, _parse_radon_trigger,
+        _parse_triggers, _parse_trigger, _parse_ranged_values,
+        _parse_aqi_trigger, _parse_time_trigger, _parse_weekday_trigger,
+        _parse_date_trigger, _parse_cron_trigger, _parse_random_trigger,
+        _parse_timedelta, _parse_sunrise_trigger, _parse_sunset_trigger,
+        _parse_temp_trigger, _parse_radon_trigger, _parse_sensor_trigger,
         _parse_actions, _parse_set_mode_action, PyDomoticConfigParsingError)
 from pydomotic.providers.airthings import AirthingsProvider
 from pydomotic.providers.base import Device
@@ -916,15 +917,16 @@ def test__parse_components(automations, expects):
             assert isinstance(action, exp_cls), 'wrong elses class'
 
 _test__parse_triggers = (
-        ({'aqi': '==100'}, [AQITrigger]),
-        ({'time': '10:00am'}, [TimeTrigger]),
-        ({'weekday': 'monday'}, [IsoWeekdayTrigger]),
-        ({'date': '2020-01-01'}, [DateTrigger]),
-        ({'cron': '* * * * *'}, [CronTrigger]),
-        ({'random': 0.25}, [RandomTrigger]),
-        ({'sunrise': 120}, [SunriseTrigger]),
-        ({'sunset': 120}, [SunsetTrigger]),
-        ({'webhook': '/hello'}, [WebhookTrigger]),
+        ({'aqi': '==100'}, [AQITrigger], False),
+        ({'time': '10:00am'}, [TimeTrigger], False),
+        ({'weekday': 'monday'}, [IsoWeekdayTrigger], False),
+        ({'date': '2020-01-01'}, [DateTrigger], False),
+        ({'cron': '* * * * *'}, [CronTrigger], False),
+        ({'random': 0.25}, [RandomTrigger], False),
+        ({'sunrise': 120}, [SunriseTrigger], False),
+        ({'sunset': 120}, [SunsetTrigger], False),
+        ({'webhook': '/hello'}, [WebhookTrigger], False),
+        ({'sensor-A': {'temp': '60-65'}}, [TemperatureTrigger], False),
 
         (
             {
@@ -949,15 +951,42 @@ _test__parse_triggers = (
                 SunsetTrigger,
                 WebhookTrigger,
             ],
+            False,
         ),
+
+        ({'purple': 'cookies'}, None, True),
 )
 
-@pytest.mark.parametrize('ifs,expect_classes', _test__parse_triggers)
-def test__parse_triggers(ifs, expect_classes):
-    actual = _parse_triggers(ifs, _test_context)
-    assert len(actual) == len(ifs), 'wrong number of triggers returned'
-    for trigger, expect_class in zip(actual, expect_classes):
-        assert isinstance(trigger, expect_class), 'wrong trigger type returned'
+@pytest.mark.parametrize('ifs,expect_classes,raises', _test__parse_triggers)
+def test__parse_triggers(ifs, expect_classes, raises):
+    try:
+        actual = _parse_triggers(ifs, _test_context)
+    except PyDomoticConfigParsingError as e:
+        assert raises, 'should not have raised'
+    else:
+        assert not raises, 'should have raised'
+        assert len(actual) == len(ifs), 'wrong number of triggers returned'
+        for trigger, expect_class in zip(actual, expect_classes):
+            assert isinstance(trigger, expect_class), 'wrong trigger type returned'
+
+def test__parse_trigger_invalid_sensor():
+    with pytest.raises(PyDomoticConfigParsingError) as excinfo:
+        _parse_trigger('sensor-A', 'temp', _test_context, sensor=_test_device_1)
+    assert str(excinfo.value) == 'nested sensor confs not allowed'
+
+_test__parse_ranged_values_raises = (
+        (None, None, 'expecting string or number value'),
+        (10, 'string', 'unknown ranged trigger type'),
+        ('purple', 'aqi', 'expecting value like'),
+        ('mon-fri', 'aqi', 'expecting ranged value like'),
+        ('1-2-3', 'aqi', 'unknown aqi'),
+)
+
+@pytest.mark.parametrize('value,typ,errstr', _test__parse_ranged_values_raises)
+def test__parse_ranged_values_raises(value, typ, errstr):
+    with pytest.raises(PyDomoticConfigParsingError) as excinfo:
+        _parse_ranged_values(value, typ, _test_context)
+    assert errstr in str(excinfo.value), 'wrong error message'
 
 _test__parse_aqi_trigger = (
         ('<10', lambda a: a < 10),
@@ -1478,6 +1507,17 @@ _test__parse_actions_tests = (
             False,
         ),
 )
+
+_test__parse_sensor_trigger_raises = (
+        (None, 'requires a value'),
+        ({'temp': 32, 'radon': 1}, 'only one trigger allowed'),
+)
+
+@pytest.mark.parametrize('value,errstr', _test__parse_sensor_trigger_raises)
+def test__parse_sensor_trigger_raises(value, errstr):
+    with pytest.raises(PyDomoticConfigParsingError) as excinfo:
+        _parse_sensor_trigger(_test_device_name_1, value, _test_context)
+    assert errstr in str(excinfo.value), 'wrong error string'
 
 @pytest.mark.parametrize('thens,expect,raises', _test__parse_actions_tests)
 def test__parse_actions(thens, expect, raises):
