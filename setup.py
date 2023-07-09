@@ -14,45 +14,50 @@ def get_version(rel_path):
             delim = '"' if '"' in line else "'"
             return line.split(delim)[1]
     else:
-        raise RuntimeError("Unable to find version string.")
+        raise RuntimeError('Unable to find version string.')
 
 setup(
-    name="pydomotic",
-    version=get_version("pydomotic/version.py"),
-    url="https://github.com/purple4reina/pydomotic",
-    author="Rey Abolofia",
-    author_email="purple4reina@gmail.com",
-    #keywords="gosund,smartlife,tuya,iot,api,sdk,python",
-    #description="Python API for controling Gosund smart devices",
-    #long_description=read("README.md"),
-    #long_description_content_type="text/markdown",
-    license="MIT",
+    name='pydomotic',
+    version=get_version('pydomotic/version.py'),
+    url='https://github.com/purple4reina/pydomotic',
+    author='Rey Abolofia',
+    author_email='purple4reina@gmail.com',
+    keywords='iot,python,home,automation,smart,domotic',
+    description=('Python library for home automation execution, enabling '
+            'seamless control and management of your IoT devices'),
+    long_description=read('README.md'),
+    long_description_content_type='text/markdown',
+    license='MIT',
     project_urls={
-        "Source": "https://github.com/purple4reina/pydomotic",
-        "Bug Tracker": "https://github.com/purple4reina/pydomotic/issues",
+        'Source': 'https://github.com/purple4reina/pydomotic',
+        'Bug Tracker': 'https://github.com/purple4reina/pydomotic/issues',
     },
     classifiers=[
-        "License :: OSI Approved :: MIT License",
-        "Operating System :: OS Independent",
-        "Topic :: Software Development",
-        "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.7",
-        "Programming Language :: Python :: 3.8",
-        "Programming Language :: Python :: 3.9",
-        "Programming Language :: Python :: 3.10",
-        "Programming Language :: Python :: Implementation :: PyPy",
+        'License :: OSI Approved :: MIT License',
+        'Operating System :: OS Independent',
+        'Topic :: Software Development',
+        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3.9',
+        'Programming Language :: Python :: 3.10',
+        'Programming Language :: Python :: Implementation :: PyPy',
     ],
     install_requires=[
-        "PyYAML>=6.0,<7.0",
-        "astral>=3.0,<4.0",
-        #"boto3>=1.26.3,<2.0",  # TODO: only if requested
-        "croniter>=1.3.15,<2.0",
-        "gosundpy>=0.6.2,<1.0",  # TODO: only if provider requested
-        "pyflowater>=0.5.2,<1.0",  # TODO: only if provider requested
-        "pyfujitsu>=0.9.0,<1.0",  # TODO: only if provider requested
-        "pyowm>=3.3.0,<4.0",  # TODO: only if requested
-        #"timezonefinder>=6.1.8,<7.0",  # TODO: only if requested
+        'PyYAML>=6.0,<7.0',
+        'astral>=3.0,<4.0',
+        'croniter>=1.3.15,<2.0',
+        'pyowm>=3.3.0,<4.0',
     ],
+    extras_require={
+        # providers
+        'airthings': [],
+        'fujitsu': ['pyfujitsu>=0.9.0,<1.0'],
+        'moen': ['pyflowater>=0.5.2,<1.0'],
+        'tuya': ['gosundpy>=0.6.2,<1.0'],
+        # features
+        's3': ['boto3>=1.26.3,<2.0'],
+        'tz': ['timezonefinder>=6.1.8,<7.0'],
+    },
     packages=find_packages(),
-    python_requires=">=3.7, <4",
+    python_requires='>=3.8,<4',
 )
