@@ -1197,6 +1197,7 @@ _test__parse_weekday_trigger = (
         ('tue-mon', [2, 3, 4, 5, 6, 7, 1], False),
         ('mon-', None, True),
         ('-fri', None, True),
+        ('mon-tue-fri', None, True),
 )
 
 @pytest.mark.parametrize('value,expect,raises', _test__parse_weekday_trigger)
