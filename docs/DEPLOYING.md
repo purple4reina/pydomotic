@@ -91,3 +91,29 @@ This walk through will take you through the steps of deploying `pydomotic` to AW
     ```bash
     $ serverless deploy
     ```
+
+### Advanced
+
+#### Timeout Settings
+
+Since you won't be able to control the behavior of any 3rd party APIs, it is recommended that you set a timeout on your lambda function. Since AWS Lambda will retry any function that ends due to a raised exception. Therefore, it is important that should your function fail due to timeouts, it should not overlap with the next invocation one minute later.
+
+For this reason, no more than a 30-second timeout is recommended. This can be set in the provider section of the `serverless.yml` file.
+
+```yaml
+provider:
+  name: aws
+  timeout: 30  # seconds
+  ...
+```
+
+#### Deploying from Mac M1
+
+When deploying from a computer with Apple's M1 processing chip, you will need to either cross compile dependencies or change the architecture of your deployed lambda function. The easiest way to do this is to add `architecture: arm64` to the provider section of your `serverless.yml` file.
+
+```yaml
+provider:
+  name: aws
+  architecture: arm64  # instruct lambda to use same processor type as your local computer
+  ...
+```
