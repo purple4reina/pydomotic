@@ -49,9 +49,9 @@ devices and automations.
     $ python -m pydomotic
     ```
 
-Note that each configured provider will require separate installation of its specific dependencies. For installing these dependencies and full configuration documentation, see [CONFIGURATION.md](./docs/CONFIGURATION.md).
+Note that each configured provider will require separate installation of its specific dependencies. For installing these dependencies and full configuration documentation, see [CONFIGURATION.md](https://github.com/purple4reina/pydomotic/blob/main/docs/CONFIGURATION.md)
 
-For more details on deployment options, see [DEPLOYING.md](./docs/DEPLOYING.md).
+For more details on deployment options, see [DEPLOYING.md](https://github.com/purple4reina/pydomotic/blob/main/docs/DEPLOYING.md)
 
 ## Glossary
 
