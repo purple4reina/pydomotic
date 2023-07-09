@@ -1,5 +1,7 @@
 # pydomotic
 
+[![PyPI version](https://badge.fury.io/py/pydomotic.svg)](https://badge.fury.io/py/pydomotic)
+
 A Python library for home automation execution, enabling seamless control and
 management of your IoT devices.
 
