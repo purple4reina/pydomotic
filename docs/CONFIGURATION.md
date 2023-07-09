@@ -1,7 +1,6 @@
 # Configuration
 
 <!-- https://luciopaiva.com/markdown-toc/ -->
-- [Location](#location)
 - [General](#general)
 - [Providers](#providers)
   - [Tuya](#tuya)
@@ -29,7 +28,7 @@
   - [Set Mode Action](#set-mode-action)
   - [Execute Code Action](#execute-code-action)
 
-## Location
+## General
 
 All configuration is written in [yaml](https://yaml.org/). It can be loaded either from a local file or [Amazon S3](https://aws.amazon.com/s3/) bucket.
 
@@ -61,8 +60,6 @@ Otherwise, it must be given as a string in the form `bucket/key`.
 ```bash
 $ PYDOMOTIC_CONFIG_S3=my-bucket/my-key python -m pydomotic
 ```
-
-## General
 
 Configuration is grouped into four headings: [providers](#providers), [triggers](#triggers), [devices](#devices), and [automations](#automations).
 
@@ -247,18 +244,17 @@ triggers:
   location:
     latitude: 40.689
     longitude: -74.044
-  timezone: 'America/Los_Angeles'
+  timezone: 'America/New_York'
   aqi:
     api_key: ${env:AQI_API_KEY}
   weather:
-    # https://openweathermap.org/
     api_key: ${env:OPEN_WEATHER_API_KEY}
     data_cache_seconds: 20
 ```
 
-**location.latitude** and **location.longitude:** _(optional)_ The physical location of your home. Required for determining weather, sunrise/sunset times, air quality, and timezone.
+**location.latitude** and **location.longitude:** _(optional)_ The physical location of your home. Required for determining weather, sunrise/sunset times, air quality, and timezone. Either `location` or `timezone` are required.
 
-**timezone:** _(optional)_ The timezone of the physical location of your home using the [timezone identifier](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones) from the IANA database. When not set, longitude and latitude values are used to determine timezone which can add significant overhead to runtime.
+**timezone:** _(optional)_ The timezone of the physical location of your home using the [timezone identifier](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones) from the IANA database. When not set, longitude and latitude values are used to determine timezone which can add significant overhead to runtime. Either `location` or `timezone` are required.
 
 **aqi.api_key:** _(optional)_ Your API key used to access https://docs.airnowapi.org. Required when using [AQI triggers](#aqi-trigger).
 
