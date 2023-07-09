@@ -33,9 +33,11 @@ This walk through will take you through the steps of deploying `pydomotic` to AW
     $ export AWS_SECRET_ACCESS_KEY=<your-secret-key-here>
     ```
 
-1. Create a `serverless.yml` file with the following contents.
+1. Create a `serverless.yml` file with the following contents. Add any required environment variables as described in the [Providers](#providers) section below.
 
     ```yaml
+    # serverless.yml
+
     service: pydomotic
 
     provider:
@@ -94,6 +96,45 @@ This walk through will take you through the steps of deploying `pydomotic` to AW
 
 ### Advanced
 
+#### Providers
+
+As described in [CONFIGURATION.md](./CONFIGURATION.md#providers), each IoT provider requires login credentials. For example, the `tuya` provider requires four credentials. When writing your `pydomotic.yml` file, you can tell `pydomotic` to load these values from plaintext or from environment variables. To load from environment use the `${env:ENV_VAR_NAME}` pattern:
+
+```yaml
+# pydomotic.yml
+
+providers:
+  tuya:
+    username: ${env:TUYA_USERNAME}
+    password: ${env:TUYA_PASSWORD}
+    access_id: ${env:TUYA_ACCESS_ID}
+    access_key: ${env:TUYA_ACCESS_KEY}
+```
+
+These environment variables will then need to be made available to your lambda function by specifying them in your `serverless.yml` file.
+
+```yaml
+# serverless.yml
+
+provider:
+  name: aws
+  environment:
+    TUYA_USERNAME: ${env:TUYA_USERNAME}
+    TUYA_PASSWORD: ${env:TUYA_PASSWORD}
+    TUYA_ACCESS_ID: ${env:TUYA_ACCESS_ID}
+    TUYA_ACCESS_KEY: ${env:TUYA_ACCESS_KEY}
+```
+
+If you are using source control (like git) for your `serverless.yml` file, it is highly recommended for security reasons not to commit these credentials. Instead, it is recommended that these secrets be loaded from local environment variables as shown in the example above. This means you will need to change your deploy command to:
+
+```bash
+$ TUYA_USERNAME='my-username' \
+    TUYA_PASSWORD='my-password' \
+    TUYA_ACCESS_ID='my-access-id' \
+    TUYA_ACCESS_KEY='my-access-key' \
+        serverless deploy
+```
+
 #### Timeout Settings
 
 Since you won't be able to control the behavior of any 3rd party APIs, it is recommended that you set a timeout on your lambda function. Since AWS Lambda will retry any function that ends due to a raised exception. Therefore, it is important that should your function fail due to timeouts, it should not overlap with the next invocation one minute later.
@@ -101,6 +142,8 @@ Since you won't be able to control the behavior of any 3rd party APIs, it is rec
 For this reason, no more than a 30-second timeout is recommended. This can be set in the provider section of the `serverless.yml` file.
 
 ```yaml
+# serverless.yml
+
 provider:
   name: aws
   timeout: 30  # seconds
@@ -112,8 +155,69 @@ provider:
 When deploying from a computer with Apple's M1 processing chip, you will need to either cross compile dependencies or change the architecture of your deployed lambda function. The easiest way to do this is to add `architecture: arm64` to the provider section of your `serverless.yml` file.
 
 ```yaml
+# serverless.yml
+
 provider:
   name: aws
   architecture: arm64  # instruct lambda to use same processor type as your local computer
   ...
+```
+
+#### Loading config from S3
+
+If you wish to store your `pydomotic.yml` file in [AWS S3](https://aws.amazon.com/s3/), you will need to instruct `pydomotic` how to find it.
+
+After uploading your `pydomotic.yml` file to S3, update your `serverless.yml` file to give your lambda permission to read the file and tell `pydomotic` where to find it.
+
+```yaml
+# serverless.yml
+
+provider:
+  name: aws
+  ...
+  environment:
+    # bucket/key for your pydomotic.yml file in S3
+    PYDOMOTIC_CONFIG_S3: home-automations/pydomotic.yml
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - 's3:GetObject'
+          Resource:
+            # arn for your pydomotic.yml file in S3
+            - 'arn:aws:s3:::home-automations/pydomotic.yml'
+
+package:
+  patterns:
+    - '!**'
+    # 'pydomotic.yml' pattern removed
+
+functions:
+  cron:
+    ...
+```
+
+Be sure to change the value `home-automations/pydomotic.yml` to match the bucket and key where you stored your file in S3.
+
+<!--
+  - ${env:ENV_VAR} usage
+  - iam
+  - patterns
+-->
+
+#### Webhooks
+
+If you wish to use the [Webhook Trigger](./CONFIGURATION.md#webhook-trigger), you will need to specify a url for your lambda function.
+
+```yaml
+# serverless.yml
+
+functions:
+  cron:
+    handler: pydomotic.lambda_handler.handler
+    url: true  # required for webhook trigger
+    events:
+      - schedule:
+          rate: rate(1 minute)
 ```
