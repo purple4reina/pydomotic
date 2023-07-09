@@ -498,6 +498,16 @@ _test__parse_providers = (
         ),
         (
             {
+                'fujitsu': {
+                    'username': 'username',
+                    'password': 'password',
+                },
+            },
+            {'noop': NoopProvider, 'fujitsu': FujitsuProvider},
+            False,
+        ),
+        (
+            {
                 'airthings': {
                     'client_id': 'client_id',
                     'client_secret': 'client_secret',
