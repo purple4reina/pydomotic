@@ -39,7 +39,7 @@ This walk through will take you through the steps of deploying `pydomotic` to AW
     $ export AWS_SECRET_ACCESS_KEY=<your-secret-key-here>
     ```
 
-1. Create a `serverless.yml` file with the following contents. Add any required environment variables as described in the [Providers](#providers) section below.
+1. Create a `serverless.yml` file with the following contents. Add any required environment variables as described in the [providers](./CONFIGURATION.md#providers) documentation.
 
     ```yaml
     # serverless.yml
