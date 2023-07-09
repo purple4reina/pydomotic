@@ -80,7 +80,14 @@ This walk through will take you through the steps of deploying `pydomotic` to AW
     $ pip install pydomotic
     ```
 
-    <!-- Include on demand package installation here -->
+    Next, install dependencies for each [provider](./CONFIGURATION.md#providers) you intend to use. Only run the parts of the commands below that apply to your use case.
+
+    ```bash
+    $ pip install pydomotic[tuya]
+    $ pip install pydomotic[airthings]
+    $ pip install pydomotic[moen]
+    $ pip install pydomotic[fujitsu]
+    ```
 
     Lastly, create your `requirements.txt` file by taking a snapshot of your virtual environment.
 

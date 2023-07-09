@@ -71,13 +71,22 @@ For a complete example configuration file, see [`tests/testdata/full.yml`](./tes
 
 Currently, four providers are provided out of the box.
 
-+ [**Tuya:**](#tuya) A device that is supported by the Tuya platform. Many IoT manufacturers rely on Tuya for their device APIs, supported by the [`gosundpy`](https://github.com/purple4reina/gosundpy) Python package.
++ [**Tuya:**](#tuya) Any device that is supported by the Tuya platform. Many IoT manufacturers rely on Tuya for their device APIs. Supported by the [`gosundpy`](https://github.com/purple4reina/gosundpy) Python package.
 + [**Airthings:**](#airthings) Any of the Airthings View devices.
 + [**Moen:**](#moen) The Flo by Moen smart water shutoff valve.
 + [**Fujitsu:**](#fujitsu) Any Fujitsu WiFi enabled home heat pump system, supported by the [`pyfujitseu`](https://github.com/xerxes87/pyfujitseu) Python package.
 + [**Noop:**](#noop) A generic provider which can be assigned to any device, useful for testing.
 
 Contributions and requests for further support are welcome.
+
+Each provider relies on its own dependencies which are not installed by default. This means that for each provider you wish to use (aside from the Noop provider), you must specifically install its dependencies. These are installed as pip extras:
+
+```bash
+$ pip install pydomotic[tuya]
+$ pip install pydomotic[airthings]
+$ pip install pydomotic[moen]
+$ pip install pydomotic[fujitsu]
+```
 
 ### Tuya
 

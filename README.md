@@ -8,48 +8,48 @@ Contraction of domestic robotics, from the Latin domus ("home"), and robotics._
 
 ## Getting Started
 
-Install `pydomotic` in your environment.
+1. Install `pydomotic` in your environment.
 
-```bash
-$ pip install pydomotic
-```
+    ```bash
+    $ pip install pydomotic
+    ```
 
-Create your `pydomotic.yml` configuration file where you will define your
+1. Create your `pydomotic.yml` configuration file where you will define your
 devices and automations.
 
-```yaml
-# pydomotic.yml
+    ```yaml
+    # pydomotic.yml
 
-devices:
-  fan:
-    description: fan switch
-    provider: noop
-    id: '012'
-  thermometer:
-    description: temperature sensor
-    provider: noop
-    id: '345'
+    devices:
+      fan:
+        description: fan switch
+        provider: noop
+        id: '012'
+      thermometer:
+        description: temperature sensor
+        provider: noop
+        id: '345'
 
-automations:
-  fan:
-    enabled: true
-    components:
-      - if:
-          thermometer:
-            temp: '>75'
-        then:
-          turn-on: fan
-        else:
-          turn-off: fan
-```
+    automations:
+      fan:
+        enabled: true
+        components:
+          - if:
+              thermometer:
+                temp: '>75'
+            then:
+              turn-on: fan
+            else:
+              turn-off: fan
+    ```
 
-Running will check each trigger and execute any actions.
+1. Running the following will check each trigger and execute any actions.
 
-```bash
-$ python -m pydomotic
-```
+    ```bash
+    $ python -m pydomotic
+    ```
 
-For full configuration documentation, see [CONFIGURATION.md](./docs/CONFIGURATION.md).
+Note that each configured provider will require separate installation of its specific dependencies. For installing these dependencies and full configuration documentation, see [CONFIGURATION.md](./docs/CONFIGURATION.md).
 
 For more details on deployment options, see [DEPLOYING.md](./docs/DEPLOYING.md).
 
