@@ -12,6 +12,12 @@ On any unix system with cron support, open the crontab file with `crontab -e` an
 
 Ensure that `pydomotic` is installed globally in this case.
 
+Note that if you wish to load configuration from AWS S3 (in addition to installing any required dependencies for [providers](./CONFIGURATION.md#providers)) you must run the following command. This is not required when deploying to AWS Lambda because the runtime already provides required dependencies.
+
+```bash
+$ pip install pydomotic[s3]
+```
+
 ## AWS Lambda
 
 `pydomotic` is well suited for running on AWS Lambda and is the recommended deployment method for anyone looking for serious longterm reliability of their home automations with `pydomotic`.

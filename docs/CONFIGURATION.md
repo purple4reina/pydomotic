@@ -263,7 +263,7 @@ triggers:
 
 **location.latitude** and **location.longitude:** _(optional)_ The physical location of your home. Required for determining weather, sunrise/sunset times, air quality, and timezone. Either `location` or `timezone` are required.
 
-**timezone:** _(optional)_ The timezone of the physical location of your home using the [timezone identifier](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones) from the IANA database. When not set, longitude and latitude values are used to determine timezone which can add significant overhead to runtime. Either `location` or `timezone` are required.
+**timezone:** _(optional)_ The timezone of the physical location of your home using the [timezone identifier](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones) from the IANA database. When not set, `location.longitude` and `location.latitude` values can be used to determine timezone. However doing so requires installing separate dependencies by running `pip install pydomotic[tz]`. These dependencies are not installed by default because they take up significant disk space. Either `location` or `timezone` are required.
 
 **aqi.api_key:** _(optional)_ Your API key used to access https://docs.airnowapi.org. Required when using [AQI triggers](#aqi-trigger).
 
