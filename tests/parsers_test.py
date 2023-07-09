@@ -382,7 +382,17 @@ def test_get_config_reader(conf_file, s3, conf_env, s3_env, exp_type, exp_data, 
         assert isinstance(reader, exp_type), 'wrong reader class returned'
         assert reader.data == exp_data, 'wrong data value'
 
-_test__s3_reader_read = (
+_test__file_reader_read = (
+        (None, False),
+        ('file/does/not/exist', False),
+        (_test_config_file, True),
+)
+
+@pytest.mark.parametrize('data,expect', _test__file_reader_read)
+def test__file_reader_read(data, expect):
+    assert bool(_file_reader(data).read()) is expect, 'wrong return value'
+
+_test__s3_reader_parse = (
         (('bucket', 'key'), ('bucket', 'key')),
         ('bucket/key', ('bucket', 'key')),
         ('bucket/key/key', ('bucket', 'key/key')),
@@ -400,8 +410,8 @@ _test__s3_reader_read = (
         (None, PyDomoticConfigParsingError),
 )
 
-@pytest.mark.parametrize('data,expect', _test__s3_reader_read)
-def test_s3_reader_parse(data, expect):
+@pytest.mark.parametrize('data,expect', _test__s3_reader_parse)
+def test__s3_reader_parse(data, expect):
     try:
         reader = _s3_reader(data)
         parsed = reader.parse()
@@ -409,6 +419,14 @@ def test_s3_reader_parse(data, expect):
         assert expect is e.__class__, 'wrong exception raised'
     else:
         assert expect == parsed, 'wrong parse result'
+
+@pytest.mark.parametrize('exception', (ZeroDivisionError, None))
+def test__s3_reader_read(exception, patch_s3):
+    body = 'hello world'
+    patch_s3(exception, body)
+    actual = _s3_reader('bucket/key').read()
+    expect = None if exception else body
+    assert expect == actual, 'wrong body returned'
 
 @pytest.mark.parametrize('raw_yml,exp_lat,exp_long,exp_api_key,exp_tz',
         _test__TriggersConf)

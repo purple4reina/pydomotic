@@ -20,7 +20,7 @@ def get_extras_require():
     # providers
     airthings = []
     fujitsu = ['pyfujitsu>=0.9.0,<1.0']
-    moen = ['pyflowater>=0.5.2,<1.0']
+    moen = ['pyflowater>=0.5.2,<1.0', 'retry>=0.9.2,<1.0']
     tuya = ['gosundpy>=0.6.2,<1.0']
 
     # features

@@ -26,6 +26,24 @@ class _MockDevice(object):
 def mock_device():
     return _MockDevice()
 
+@pytest.fixture
+def patch_s3(monkeypatch):
+    def patch(exception, body):
+        class _response(dict):
+            def __getitem__(self, key):
+                return self
+            def read(self):
+                return body
+        class _MockS3(object):
+            def __init__(self, service_name):
+                pass
+            def get_object(self, Bucket=None, Key=None):
+                if exception:
+                    raise exception
+                return _response()
+        monkeypatch.setattr('boto3.client', _MockS3)
+    return patch
+
 class _MockTrigger(metaclass=ObjectMetaclass):
     def __init__(self, returns):
         self.returns = returns
