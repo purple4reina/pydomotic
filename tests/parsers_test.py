@@ -725,6 +725,17 @@ def test__parse_devices(devices, expects, raises):
         assert exp_name == act_name, 'wrong device name returned'
         assert isinstance(act_device, exp_device), 'wrong class type returned'
 
+def test__parse_devices_get_device_raises(monkeypatch):
+    def get_device(*args, **kwargs):
+        raise Exception('test exception')
+    monkeypatch.setattr(
+            'pydomotic.providers.noop.NoopProvider.get_device', get_device)
+    with pytest.raises(PyDomoticConfigParsingError) as excinfo:
+        devices_conf = {'switch-A': {'provider': 'noop', 'id': '123abc'}}
+        providers = {'noop': NoopProvider()}
+        _parse_devices(devices_conf, providers)
+    assert 'unable to get device' in str(excinfo.value)
+
 _test__parse_components = (
         ({}, []),
         ({'automation-1': {'enabled': False}}, []),
