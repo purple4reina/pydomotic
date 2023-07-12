@@ -98,6 +98,7 @@ providers:
     access_id: ${env:TUYA_ACCESS_ID}
     access_key: ${env:TUYA_ACCESS_KEY}
     device_status_cache_seconds: 20
+    timeout_seconds: 5
 
 devices:
   my-device:
@@ -115,6 +116,8 @@ devices:
 **access_key:** _(required)_ Your Tuya access key.
 
 **device_status_cache_seconds:** _(optional)_ Time in seconds for caching any device statuses. Useful to reduce the number of API calls being made when referencing the same device from multiple components.
+
+**timeout_seconds:** _(optional)_ Timeout in seconds for all calls to the Tuya API. Defaults to no timeout.
 
 ### Airthings
 

@@ -591,14 +591,25 @@ _test__parse_tuya_provider = (
                 'access_id': 'access_id',
                 'access_key': 'access_key',
                 'device_status_cache_seconds': 100,
+                'timeout_seconds': 200,
+            }, False,
+        ),
+        (
+            {
+                'username': 'username',
+                'password': 'password',
+                'access_id': 'access_id',
+                'access_key': 'access_key',
+                'timeout_seconds': 200,
             }, False,
         ),
 )
 
 @pytest.mark.parametrize('provider,raises', _test__parse_tuya_provider)
 def test__parse_tuya_provider(provider, raises, monkeypatch):
-    def __init__(self, *args, status_cache_seconds=None):
+    def __init__(self, *args, status_cache_seconds=None, timeout=None):
         assert status_cache_seconds == provider.get('device_status_cache_seconds')
+        assert timeout == provider.get('timeout_seconds')
     monkeypatch.setattr('gosundpy.Gosund.__init__', __init__)
     try:
         actual = _parse_tuya_provider(provider)

@@ -125,10 +125,11 @@ def _parse_tuya_provider(provider):
     access_key = _parse_string(provider['access_key'])
 
     cache_secs = provider.get('device_status_cache_seconds')
+    timeout = provider.get('timeout_seconds')
 
     from .providers.tuya import TuyaProvider
     return TuyaProvider(username, password, access_id, access_key,
-            status_cache_seconds=cache_secs)
+            status_cache_seconds=cache_secs, timeout=timeout)
 
 def _parse_fujitsu_provider(provider):
     for key in ('username', 'password'):

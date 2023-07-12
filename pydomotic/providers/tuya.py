@@ -8,9 +8,9 @@ logger = logging.getLogger(__name__)
 class TuyaProvider(Provider):
 
     def __init__(self, username, password, access_id, access_key,
-            status_cache_seconds=None):
+            status_cache_seconds=None, timeout=None):
         self.tuya = gosundpy.Gosund(username, password, access_id, access_key,
-                status_cache_seconds=status_cache_seconds)
+                status_cache_seconds=status_cache_seconds, timeout=timeout)
 
     def get_device(self, device_id, device_name, device_description):
         device = self.tuya.get_device(device_id)

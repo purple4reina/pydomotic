@@ -270,23 +270,25 @@ class _MockGosund(object):
         self.access_id = None
         self.access_key = None
         self.cache_secs = None
+        self.timeout = None
         self.device = _MockDevice()
     def __call__(self, username, password, access_id, access_key,
-            status_cache_seconds=None):
+            status_cache_seconds=None, timeout=None):
         class _MockGosundProvider(object):
             device = self.device
             def __init__(sf, username, password, access_id, access_key,
-                    status_cache_seconds=None):
+                    status_cache_seconds=None, timeout=None):
                 self.username = username
                 self.password = password
                 self.access_id = access_id
                 self.access_key = access_key
                 self.cache_secs = status_cache_seconds
+                self.timeout = timeout
             def get_device(sf, device_id):
                 return sf.device
         self.provider = _MockGosundProvider(
                 username, password, access_id, access_key,
-                status_cache_seconds=status_cache_seconds)
+                status_cache_seconds=status_cache_seconds, timeout=timeout)
         return self.provider
 
 @pytest.fixture

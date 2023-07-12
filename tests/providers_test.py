@@ -57,6 +57,7 @@ def test_tuya_provider(patch_gosundpy):
     assert patch_gosundpy.access_id == a_id, 'wrong access_id'
     assert patch_gosundpy.access_key == a_key, 'wrong access_key'
     assert patch_gosundpy.cache_secs == None, 'wrong caching value'
+    assert patch_gosundpy.timeout == None, 'wrong timeout value'
 
     device = provider.get_device('id', name, desc)
     assert device.device == patch_gosundpy.provider.device, 'wrong device'
@@ -86,6 +87,15 @@ def test_tuya_provider_device_status_cache(patch_gosundpy):
     provider = TuyaProvider('u', 'p', 'ai', 'ak',
             status_cache_seconds=cache_secs)
     assert patch_gosundpy.cache_secs == cache_secs, 'wrong caching value'
+
+def test_tuya_provider_timeout(patch_gosundpy):
+    timeout = None
+    provider = TuyaProvider('u', 'p', 'ai', 'ak', timeout=timeout)
+    assert patch_gosundpy.timeout == timeout, 'wrong timeout value'
+
+    timeout = 50
+    provider = TuyaProvider('u', 'p', 'ai', 'ak', timeout=timeout)
+    assert patch_gosundpy.timeout == timeout, 'wrong timeout value'
 
 def test_tuya_device(patch_gosundpy):
     name, desc = 'device_name', 'device_description'
