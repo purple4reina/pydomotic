@@ -73,6 +73,9 @@ def test_tuya_provider(patch_gosundpy):
     device.switch()
     assert device.device.switch_called, 'device.switch not called'
 
+    device.current_temperature()
+    assert device.device.get_temperature_called, 'device.current_temperature not called'
+
 def test_tuya_provider_device_status_cache(patch_gosundpy):
     cache_secs = None
     provider = TuyaProvider('u', 'p', 'ai', 'ak',

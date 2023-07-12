@@ -12,6 +12,7 @@ class _MockDevice(object):
         self.turn_on_called = False
         self.turn_off_called = False
         self.switch_called = False
+        self.get_temperature_called = False
         self.set_mode_called_args = None
     def turn_on(self):
         self.turn_on_called = True
@@ -19,6 +20,9 @@ class _MockDevice(object):
         self.turn_off_called = True
     def switch(self):
         self.switch_called = True
+    def get_temperature(self):
+        self.get_temperature_called = True
+        return 42
     def set_mode(self, mode, params):
         self.set_mode_called_args = (mode, params)
 
