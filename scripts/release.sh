@@ -4,7 +4,7 @@ CURRENT_VERSION=$(cat pydomotic/version.py | awk '{print $3}')
 echo "current version is ${CURRENT_VERSION}"
 
 if [[ -z $VERSION ]]; then
-    echo "VERSION must be set, ex: VERSION=\"0.2.0\" ./scripts/release.sh"
+    echo "VERSION must be set, ex: VERSION=\"1.1.0\" ./scripts/release.sh"
     exit 1
 fi
 
@@ -13,8 +13,16 @@ echo "version = \"${VERSION}\"" > pydomotic/version.py
 
 rm -rf dist
 
+chng="CHANGELOG.md"
+echo "adding version to changelog"
+echo "# CHANGELOG
+
+## ${VERSION}
+$(tail -n +4 $chng)" > $chng
+
 echo "committing changes"
 git add pydomotic/version.py
+git add CHANGELOG.md
 git cm -m "Updating version to ${VERSION}"
 git push
 git tag "v${VERSION}"
@@ -29,6 +37,17 @@ pip3 install twine
 echo "uploading to PyPI"
 twine upload dist/*
 
+echo "adding unreleased version to changelog"
+echo "# CHANGELOG
+
+## Unreleased
+
+$(tail -n +3 $chng)" > $chng
+git add CHANGELOG.md
+git cm -m "Updating CHANGELOG.md for Unreleased"
+git push
+
 echo "Creating new release in github"
 echo "Release title: v${VERSION}"
-open https://github.com/purple4reina/pydomotic/releases/new
+echo "Content: copy CHANGELOG entry for this version, use two hashes (##) for headers"
+open https://github.com/purple4reina/pydomotic/releases/new?tag=v${VERSION}&title=v${VERSION}
