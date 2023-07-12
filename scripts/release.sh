@@ -50,4 +50,4 @@ git push
 echo "Creating new release in github"
 echo "Release title: v${VERSION}"
 echo "Content: copy CHANGELOG entry for this version, use two hashes (##) for headers"
-open https://github.com/purple4reina/pydomotic/releases/new?tag=v${VERSION}&title=v${VERSION}
+open "https://github.com/purple4reina/pydomotic/releases/new?tag=v${VERSION}&title=v${VERSION}"
