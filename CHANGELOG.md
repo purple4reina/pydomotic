@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## Unreleased
+## 1.2.0
 + Add optional timeout to all Airthings API calls.
 
 ## 1.1.0
