@@ -129,6 +129,7 @@ def test_airthings_provider(patch_airthings):
     provider = AirthingsProvider(client_id, client_secret)
     assert patch_airthings.client_id == client_id, 'wrong client_id'
     assert patch_airthings.client_secret == client_secret, 'wrong client_secret'
+    assert patch_airthings.timeout == None, 'wrong timeout value'
 
     device = provider.get_device('id', name, desc)
     assert device.device == patch_airthings.provider.device, 'wrong device'
@@ -160,6 +161,15 @@ def test_airthings_provider_data_cache(patch_airthings):
     cache_secs = 50
     provider = AirthingsProvider('id', 'secret', data_cache_seconds=cache_secs)
     assert patch_airthings.cache_secs == cache_secs, 'wrong caching value'
+
+def test_airthings_provider_timeout(patch_airthings):
+    timeout = None
+    provider = AirthingsProvider('i', 's', timeout=timeout)
+    assert patch_airthings.timeout == timeout, 'wrong timeout value'
+
+    timeout = 50
+    provider = AirthingsProvider('i', 's', timeout=timeout)
+    assert patch_airthings.timeout == timeout, 'wrong timeout value'
 
 def test_moen_provider(patch_moen):
     usr, pwd, name, desc = 'usr', 'pwd', 'name', 'desc'

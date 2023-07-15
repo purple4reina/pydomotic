@@ -153,9 +153,11 @@ def _parse_airthings_provider(provider):
     client_secret = _parse_string(provider['client_secret'])
 
     cache_secs = provider.get('data_cache_seconds')
+    timeout = provider.get('timeout_seconds')
 
     from .providers.airthings import AirthingsProvider
-    return AirthingsProvider(client_id, client_secret, data_cache_seconds=cache_secs)
+    return AirthingsProvider(client_id, client_secret, data_cache_seconds=cache_secs,
+            timeout=timeout)
 
 def _parse_moen_provider(provider):
     for key in ('username', 'password'):

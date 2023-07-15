@@ -641,6 +641,11 @@ _test__parse_airthings_provider = (
         ({'client_id': 'client_id'}, True),
         ({'client_secret': 'client_secret'}, True),
         ({'client_id': 'client_id', 'client_secret': 'client_secret'}, False),
+        ({
+            'client_id': 'client_id',
+            'client_secret': 'client_secret',
+            'timeout_seconds': 3,
+        }, False),
 )
 
 @pytest.mark.parametrize('provider,raises', _test__parse_airthings_provider)
@@ -648,6 +653,7 @@ def test__parse_airthings_provider(provider, raises):
     try:
         actual = _parse_airthings_provider(provider)
         assert isinstance(actual, AirthingsProvider)
+        assert actual.api._timeout == provider.get('timeout_seconds')
     except PyDomoticConfigParsingError:
         assert raises, 'should not have raised'
     else:

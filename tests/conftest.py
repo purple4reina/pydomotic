@@ -302,6 +302,7 @@ class _MockAirthings(object):
         self.device_id = None
         self.device = self._MockDevice()
         self.cache_secs = None
+        self.timeout = None
     class _MockDevice(AirthingsAPI.device):
         name = 'device_name'
         radon = 123
@@ -315,16 +316,19 @@ class _MockAirthings(object):
             }
         def fetch_data(self):
             return self.data
-    def __call__(self, client_id, client_secret, data_cache_seconds=None):
+    def __call__(self, client_id, client_secret, data_cache_seconds=None, timeout=None):
         class _MockAirthingsProvider(object):
             device = self.device
-            def __init__(sf, client_id, client_secret, data_cache_seconds=None):
+            def __init__(sf, client_id, client_secret, data_cache_seconds=None,
+                    timeout=None):
                 self.client_id = client_id
                 self.client_secret = client_secret
                 self.cache_secs = data_cache_seconds
+                self.timeout = timeout
             def get_device(sf, device_id):
                 return sf.device
-        self.provider = _MockAirthingsProvider(client_id, client_secret, data_cache_seconds=data_cache_seconds)
+        self.provider = _MockAirthingsProvider(client_id, client_secret,
+                data_cache_seconds=data_cache_seconds, timeout=timeout)
         return self.provider
 
 @pytest.fixture

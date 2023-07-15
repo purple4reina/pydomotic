@@ -127,6 +127,7 @@ providers:
     client_id: ${env:AIRTHINGS_CLIENT_ID}
     client_secret: ${env:AIRTHINGS_CLIENT_SECRET}
     data_cache_seconds: 20
+    timeout_seconds: 5
 
 devices:
   my-device:
@@ -140,6 +141,8 @@ devices:
 **client_secret:** _(required)_ Your Airthings client secret.
 
 **data_cache_seconds:** _(optional)_ Time in seconds for caching any device statuses. Useful to reduce the number of API calls being made when referencing the same device from multiple components.
+
+**timeout_seconds:** _(optional)_ Timeout in seconds for all calls to the Airthings API. Defaults to no timeout.
 
 ### Moen
 

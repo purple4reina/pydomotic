@@ -13,8 +13,9 @@ class AirthingsAPI(object):
     _auth_headers = {}
     _samples_url = 'https://ext-api.airthings.com/v1/devices/{}/latest-samples'
 
-    def __init__(self, client_id, client_secret, data_cache_seconds=None):
+    def __init__(self, client_id, client_secret, data_cache_seconds=None, timeout=None):
         self._auth_credentials = (client_id, client_secret)
+        self._timeout = timeout
         if data_cache_seconds:
             self.fetch_data = cache_value(seconds=data_cache_seconds)(self.fetch_data)
 
@@ -23,6 +24,7 @@ class AirthingsAPI(object):
                 self._auth_token_url,
                 data=self._auth_token_data,
                 auth=self._auth_credentials,
+                timeout=self._timeout,
         )
         resp.raise_for_status()
         self._auth_headers['Authorization'] = f'Bearer {resp.json().get("access_token")}'
@@ -32,6 +34,7 @@ class AirthingsAPI(object):
         resp = requests.get(
                 url=self._samples_url.format(device_id),
                 headers=self._get_auth_headers(),
+                timeout=self._timeout,
         )
         resp.raise_for_status()
         return resp.json().get('data')
@@ -62,8 +65,9 @@ class AirthingsAPI(object):
 
 class AirthingsProvider(Provider):
 
-    def __init__(self, client_id, client_secret, data_cache_seconds=None):
-        self.api = AirthingsAPI(client_id, client_secret, data_cache_seconds=data_cache_seconds)
+    def __init__(self, client_id, client_secret, data_cache_seconds=None, timeout=None):
+        self.api = AirthingsAPI(client_id, client_secret,
+                data_cache_seconds=data_cache_seconds, timeout=timeout)
 
     def get_device(self, device_id, device_name, device_description):
         device = self.api.get_device(device_id)
