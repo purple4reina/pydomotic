@@ -163,6 +163,27 @@ provider:
   ...
 ```
 
+To further manage for timeouts, it is also recommended that you configure timeout settings and data caching for providers and 3rd party APIs in your `pydomotic.yml` file.
+
+```yaml
+# pydomotic.yml
+
+triggers:
+  ...
+  weather:
+    data_cache_seconds: 20
+
+providers:
+  tuya:
+    ...
+    device_status_cache_seconds: 20
+    timeout_seconds: 5
+  airthings:
+    ...
+    data_cache_seconds: 20
+    timeout_seconds: 5
+```
+
 #### Deploying from Mac M1
 
 When deploying from a computer with Apple's M1 processing chip, you will need to either cross compile dependencies or change the architecture of your deployed lambda function. The easiest way to do this is to add `architecture: arm64` to the provider section of your `serverless.yml` file.
