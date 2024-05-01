@@ -1,4 +1,5 @@
 from pydomotic.providers.airthings import AirthingsProvider, AirthingsDevice
+from pydomotic.providers.ecobee import EcobeeProvider, EcobeeDevice
 from pydomotic.providers.fujitsu import FujitsuProvider, FujitsuDevice
 from pydomotic.providers.moen import MoenProvider, MoenDevice
 from pydomotic.providers.noop import NoopProvider, NoopDevice
@@ -192,3 +193,41 @@ def test_moen_provider(patch_moen):
     device.set_mode(mode, params)
     assert patch_moen.set_mode_called_args == (patch_moen.location_id, mode, params), (
             'flo.set_mode not called with correct args')
+
+def test_ecobee_provider(patch_ecobee):
+    app_key, refresh_token, name, desc = 'app_key', 'refresh_token', 'name', 'desc'
+    provider = EcobeeProvider(app_key, refresh_token)
+    assert patch_ecobee.app_key == app_key, 'wrong app_key'
+    assert patch_ecobee.refresh_token == refresh_token, 'wrong refresh_token'
+
+    device = provider.get_device('id', name, desc)
+    assert device.device == patch_ecobee.provider.device, 'wrong device'
+    assert device.name == f'ecobee_device {name}', 'wrong name'
+    assert device.device_name == name, 'wrong device_name'
+    assert device.device_description == desc, 'wrong device_description'
+
+    device.turn_on()
+    assert device.device.turn_fan_on_called, 'device.turn_on not called'
+
+    device.turn_off()
+    assert device.device.turn_fan_off_called, 'device.turn_off not called'
+
+    device.current_temperature()
+    assert device.device.get_temperature_called, 'device.current_temperature not called'
+
+def test_ecobee_device(patch_ecobee):
+    name, desc = 'device_name', 'device_description'
+    device = EcobeeDevice(patch_ecobee.device, name, desc)
+    assert device.device == patch_ecobee.device, 'wrong device'
+    assert device.name == f'ecobee_device {name}', 'wrong name'
+    assert device.device_name == name, 'wrong device_name'
+    assert device.device_description == desc, 'wrong device_description'
+
+    device.turn_on()
+    assert patch_ecobee.device.turn_fan_on_called, 'device.turn_on not called'
+
+    device.turn_off()
+    assert patch_ecobee.device.turn_fan_off_called, 'device.turn_off not called'
+
+    device.current_temperature()
+    assert patch_ecobee.device.get_temperature_called, 'device.get_temperature not called'

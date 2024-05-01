@@ -383,3 +383,40 @@ def patch_moen(monkeypatch):
     moen = _MockMoen()
     monkeypatch.setattr('pyflowater.PyFlo', moen)
     return moen
+
+class _MockEcobee(object):
+    def __init__(self):
+        self.app_key = None
+        self.refresh_token = None
+        self.device_id = None
+        self.device = self.device()
+    class device(object):
+        def __init__(self):
+            self.temperature = 0
+            self.humidity = 0
+            self.turn_fan_on_called = False
+            self.turn_fan_off_called = False
+            self.get_temperature_called = False
+        def turn_fan_on(self):
+            self.turn_fan_on_called = True
+        def turn_fan_off(self):
+            self.turn_fan_off_called = True
+        def get_temperature(self):
+            self.get_temperature_called = True
+            return self.temperature
+    def __call__(self, app_key, refresh_token):
+        class _MockEcobeeProvider(object):
+            device = self.device
+            def __init__(sf, app_key, refresh_token):
+                self.app_key = app_key
+                self.refresh_token = refresh_token
+            def get_device(sf, device_id):
+                return sf.device
+        self.provider = _MockEcobeeProvider(app_key, refresh_token)
+        return self.provider
+
+@pytest.fixture
+def patch_ecobee(monkeypatch):
+    ecobee = _MockEcobee()
+    monkeypatch.setattr('pydomotic.providers.ecobee.EcobeeAPI', ecobee)
+    return ecobee
