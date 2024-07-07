@@ -1,5 +1,6 @@
 import logging
 import requests
+import time
 
 from pydomotic.providers.base import Provider, Device
 
