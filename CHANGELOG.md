@@ -1,5 +1,7 @@
 # CHANGELOG
 
+## Unreleased
+
 ## 1.3.0
 ### Features
 + Add support for Ecobee providers.
