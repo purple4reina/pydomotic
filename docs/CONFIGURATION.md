@@ -5,6 +5,7 @@
 - [Providers](#providers)
   - [Tuya](#tuya)
   - [Airthings](#airthings)
+  - [Ecobee](#ecobee)
   - [Moen](#moen)
   - [Fujitsu](#fujitsu)
   - [Noop](#noop)
@@ -73,6 +74,7 @@ Currently, four providers are provided out of the box.
 
 + [**Tuya:**](#tuya) Any device that is supported by the Tuya platform. Many IoT manufacturers rely on Tuya for their device APIs. Supported by the [`gosundpy`](https://github.com/purple4reina/gosundpy) Python package.
 + [**Airthings:**](#airthings) Any of the Airthings View devices.
++ [**Ecobee:**](#ecobee) Any Ecobee smart thermostat and sensors.
 + [**Moen:**](#moen) The Flo by Moen smart water shutoff valve.
 + [**Fujitsu:**](#fujitsu) Any Fujitsu WiFi enabled home heat pump system, supported by the [`pyfujitseu`](https://github.com/xerxes87/pyfujitseu) Python package.
 + [**Noop:**](#noop) A generic provider which can be assigned to any device, useful for testing.
@@ -143,6 +145,25 @@ devices:
 **data_cache_seconds:** _(optional)_ Time in seconds for caching any device statuses. Useful to reduce the number of API calls being made when referencing the same device from multiple components.
 
 **timeout_seconds:** _(optional)_ Timeout in seconds for all calls to the Airthings API. Defaults to no timeout.
+
+### Ecobee
+
+```yaml
+providers:
+  ecobee:
+    app_key: ${env:ECOBEE_APP_KEY}
+    refresh_token: ${env:ECOBEE_REFRESH_TOKEN}
+
+devices:
+  my-device:
+    description: my cool device
+    provider: ecobee
+    id: '1234567890'
+```
+
+**app_key:** _(required)_ Your Ecobee app key.
+
+**refresh_token:** _(required)_ Your Ecobee refresh token.
 
 ### Moen
 
