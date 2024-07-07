@@ -109,6 +109,8 @@ def _parse_providers(providers_conf):
             providers['airthings'] = _parse_airthings_provider(provider)
         elif name == 'moen':
             providers['moen'] = _parse_moen_provider(provider)
+        elif name == 'ecobee':
+            providers['ecobee'] = _parse_ecobee_provider(provider)
         else:
             raise PyDomoticConfigParsingError(f'unknown provider "{name}"')
     return providers
@@ -170,6 +172,18 @@ def _parse_moen_provider(provider):
 
     from .providers.moen import MoenProvider
     return MoenProvider(username, password)
+
+def _parse_ecobee_provider(provider):
+    for key in ('app_key', 'refresh_token'):
+        if key not in provider:
+            raise PyDomoticConfigParsingError(
+                    f'provider ecobee requires key "{key}"')
+
+    app_key = _parse_string(provider['app_key'])
+    refresh_token = _parse_string(provider['refresh_token'])
+
+    from .providers.ecobee import EcobeeProvider
+    return EcobeeProvider(app_key, refresh_token)
 
 _env_re = re.compile(r'\$\{env:(.*?)\}')
 def _parse_string(string):

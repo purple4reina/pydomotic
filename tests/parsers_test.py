@@ -10,15 +10,17 @@ from pydomotic.context import Context
 from pydomotic.parsers import (parse_yaml, _get_config_reader, _file_reader,
         _s3_reader, _parse_providers, _parse_tuya_provider,
         _parse_fujitsu_provider, _parse_airthings_provider,
-        _parse_moen_provider, _parse_string, _parse_devices, _parse_components,
-        _parse_triggers, _parse_trigger, _parse_ranged_values,
-        _parse_aqi_trigger, _parse_time_trigger, _parse_weekday_trigger,
-        _parse_date_trigger, _parse_cron_trigger, _parse_random_trigger,
-        _parse_timedelta, _parse_sunrise_trigger, _parse_sunset_trigger,
-        _parse_temp_trigger, _parse_radon_trigger, _parse_sensor_trigger,
-        _parse_actions, _parse_set_mode_action, PyDomoticConfigParsingError)
+        _parse_moen_provider, _parse_ecobee_provider, _parse_string,
+        _parse_devices, _parse_components, _parse_triggers, _parse_trigger,
+        _parse_ranged_values, _parse_aqi_trigger, _parse_time_trigger,
+        _parse_weekday_trigger, _parse_date_trigger, _parse_cron_trigger,
+        _parse_random_trigger, _parse_timedelta, _parse_sunrise_trigger,
+        _parse_sunset_trigger, _parse_temp_trigger, _parse_radon_trigger,
+        _parse_sensor_trigger, _parse_actions, _parse_set_mode_action,
+        PyDomoticConfigParsingError)
 from pydomotic.providers.airthings import AirthingsProvider
 from pydomotic.providers.base import Device
+from pydomotic.providers.ecobee import EcobeeProvider
 from pydomotic.providers.fujitsu import FujitsuProvider
 from pydomotic.providers.moen import MoenProvider
 from pydomotic.providers.noop import NoopProvider, NoopDevice
@@ -527,6 +529,16 @@ _test__parse_providers = (
             {'noop': NoopProvider, 'moen': MoenProvider},
             False,
         ),
+        (
+            {
+                'ecobee': {
+                    'app_key': 'app_key',
+                    'refresh_token': 'refresh_token',
+                },
+            },
+            {'noop': NoopProvider, 'ecobee': EcobeeProvider},
+            False,
+        ),
 )
 
 @pytest.mark.parametrize('providers,expects,raises', _test__parse_providers)
@@ -671,6 +683,23 @@ def test__parse_moen_provider(provider, raises):
     try:
         actual = _parse_moen_provider(provider)
         assert isinstance(actual, MoenProvider)
+    except PyDomoticConfigParsingError:
+        assert raises, 'should not have raised'
+    else:
+        assert not raises, 'should have raised'
+
+_test__parse_ecobee_provider = (
+        ({}, True),
+        ({'app_key': 'app_key'}, True),
+        ({'refresh_token': 'refresh_token'}, True),
+        ({'app_key': 'app_key', 'refresh_token': 'refresh_token'}, False),
+)
+
+@pytest.mark.parametrize('provider,raises', _test__parse_ecobee_provider)
+def test__parse_ecobee_provider(provider, raises):
+    try:
+        actual = _parse_ecobee_provider(provider)
+        assert isinstance(actual, EcobeeProvider)
     except PyDomoticConfigParsingError:
         assert raises, 'should not have raised'
     else:
