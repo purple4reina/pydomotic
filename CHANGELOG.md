@@ -1,5 +1,7 @@
 # CHANGELOG
 
+## Unreleased
+
 ## 1.3.1
 ### Bug Fixes
 + Add missing time import for ecobee providers.
