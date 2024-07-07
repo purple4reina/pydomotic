@@ -19,6 +19,7 @@ def get_version(rel_path):
 def get_extras_require():
     # providers
     airthings = []
+    ecobee = []
     fujitsu = ['pyfujitsu>=0.9.0,<1.0']
     moen = ['pyflowater>=0.5.2,<1.0', 'retry>=0.9.2,<1.0']
     tuya = ['gosundpy>=0.7.0,<1.0']
@@ -29,12 +30,13 @@ def get_extras_require():
 
     return {
         'airthings': airthings,
+        'ecobee': ecobee,
         'fujitsu': fujitsu,
         'moen': moen,
         'tuya': tuya,
         's3': s3,
         'tz': tz,
-        'all': airthings + fujitsu + moen + tuya + s3 + tz,
+        'all': airthings + ecobee + fujitsu + moen + tuya + s3 + tz,
     }
 
 setup(
