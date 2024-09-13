@@ -1,6 +1,9 @@
 # CHANGELOG
 
 ## Unreleased
+### Bug Fixes
++ Fix issue where devices aliases were not being recognized when parsing
+  components yaml.
 
 ## 1.4.0
 ### Features

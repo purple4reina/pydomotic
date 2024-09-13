@@ -246,3 +246,10 @@ automations:
             mode: sleep
             revert-min: 60
             revert-mode: home
+
+  aliases:
+    enabled: true
+    components:
+      - if:
+        then:
+          turn-on: all-satellites, all-switches, all-bulbs

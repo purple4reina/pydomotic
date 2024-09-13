@@ -217,6 +217,12 @@ _test_parse_yaml_expect = [
             thens=[SetModeAction],
             elses=[],
         ),
+        Component(
+            name='aliases 0',
+            ifs=[],
+            thens=[TurnOnAction, TurnOnAction, TurnOnAction],
+            elses=[],
+        ),
 ]
 
 _test_parse_yaml_expect_context_dict = {

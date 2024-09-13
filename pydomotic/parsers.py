@@ -28,8 +28,8 @@ def parse_raw_yaml(raw_conf):
     context = Context.from_yaml(conf.get('triggers', {}))
     context.providers = _parse_providers(conf.get('providers', {}))
     context.devices = _parse_devices(conf.get('devices', {}), context.providers)
-    components = _parse_components(conf.get('automations', {}), context)
     _parse_aliases(conf.get('aliases', {}), context)
+    components = _parse_components(conf.get('automations', {}), context)
     return components, context
 
 def _get_config_reader(config_file, s3):
