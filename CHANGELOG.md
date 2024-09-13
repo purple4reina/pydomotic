@@ -1,5 +1,7 @@
 # CHANGELOG
 
+## Unreleased
+
 ## 1.4.1
 ### Bug Fixes
 + Fix issue where devices aliases were not being recognized when parsing
