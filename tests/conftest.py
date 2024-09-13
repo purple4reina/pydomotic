@@ -31,6 +31,10 @@ def mock_device():
     return _MockDevice()
 
 @pytest.fixture
+def mock_devices():
+    return _MockDevice(), _MockDevice(), _MockDevice()
+
+@pytest.fixture
 def patch_s3(monkeypatch):
     def patch(exception, body):
         class _response(dict):

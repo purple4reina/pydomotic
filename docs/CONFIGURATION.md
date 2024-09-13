@@ -28,6 +28,8 @@
   - [Switch Action](#switch-action)
   - [Set Mode Action](#set-mode-action)
   - [Execute Code Action](#execute-code-action)
+- [Aliases](#aliases)
+  - [Device Aliases](#device-aliases)
 
 ## General
 
@@ -622,4 +624,86 @@ def send_email(context):
             },
         },
     )
+```
+
+## Aliases
+
+Aliases are a way to group sections of your configuration file under a single
+name to be referenced later.
+
+### Device Aliases
+
+Device aliases allow you to use a custom name to represent a group of devices.
+This is useful if you wish to group devices together and reference them by a
+single name.
+
+For example, consider the following configuration:
+
+```yaml
+automations:
+  lighting:
+    enabled: true
+    components:
+      - if:
+          sunset: -60
+        then:
+          turn-on: light-A, light-B, light-C
+      - if:
+          time: 11:00pm
+        then:
+          turn-off: light-A, light-B, light-C
+
+  fan:
+    enabled: true
+    components:
+      - if:
+          temp: '>78'
+        then:
+          turn-on: fan-A, fan-B, fan-C
+      - if:
+          time: 11:00pm
+        then:
+          turn-off: fan-A, fan-B, fan-C
+```
+
+But now, if you ever wish to add another light to the group, you would need to
+update all the automations that reference the group. Instead, you can use an
+alias and only define the group of devices once:
+
+```yaml
+aliases:
+  devices:
+    lights:
+      - light-A
+      - light-B
+      - light-C
+    fans:
+      - fan-A
+      - fan-B
+      - fan-C
+
+automations:
+  lighting:
+    enabled: true
+    components:
+      - if:
+          sunset: -60
+        then:
+          turn-on: lights
+      - if:
+          time: 11:00pm
+        then:
+          turn-off: lights
+
+  fan:
+    enabled: true
+    components:
+      - if:
+          temp: '>78'
+        then:
+          turn-on: fans
+      - if:
+          time: 11:00pm
+        then:
+          turn-off: fans
 ```

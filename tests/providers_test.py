@@ -1,4 +1,5 @@
 from pydomotic.providers.airthings import AirthingsProvider, AirthingsDevice
+from pydomotic.providers.base import DeviceGroup
 from pydomotic.providers.ecobee import EcobeeProvider, EcobeeDevice
 from pydomotic.providers.fujitsu import FujitsuProvider, FujitsuDevice
 from pydomotic.providers.moen import MoenProvider, MoenDevice
@@ -231,3 +232,46 @@ def test_ecobee_device(patch_ecobee):
 
     device.current_temperature()
     assert patch_ecobee.device.get_temperature_called, 'device.get_temperature not called'
+
+def test_device_group(mock_devices):
+    group = DeviceGroup(mock_devices, 'group_name')
+    assert len(group.devices) == len(mock_devices), 'wrong number of devices'
+    assert group.name == 'device_group group_name', 'wrong name'
+
+    group.turn_on()
+    for device in mock_devices:
+        assert device.turn_on_called, 'device.turn_on not called'
+
+    group.turn_off()
+    for device in mock_devices:
+        assert device.turn_off_called, 'device.turn_off not called'
+
+    group.switch()
+    for device in mock_devices:
+        assert device.switch_called, 'device.switch not called'
+
+    try:
+        group.non_existent_method()
+        assert False, 'non_existent_method should raise AttributeError'
+    except AttributeError:
+        pass
+
+    mock_devices[0].purple_called = False
+    mock_devices[1].purple_called = False
+    mock_devices[2].purple_called = False
+
+    mock_devices[0].purple = lambda: setattr(mock_devices[0], 'purple_called', True)
+
+    try:
+        group.purple()
+        assert False, 'device.purple should raise AttributeError'
+    except AttributeError:
+        for device in mock_devices:
+            assert not device.purple_called, 'device.purple called'
+
+    mock_devices[1].purple = lambda: setattr(mock_devices[1], 'purple_called', True)
+    mock_devices[2].purple = lambda: setattr(mock_devices[2], 'purple_called', True)
+
+    group.purple()
+    for device in mock_devices:
+        assert device.purple_called, 'device.purple not called'

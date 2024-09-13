@@ -67,6 +67,25 @@ triggers:
     data_cache_seconds: 20
   timezone: 'America/Los_Angeles'
 
+aliases:
+  devices:
+    all-satellites:
+    all-switches:
+      - switch-A
+    all-bulbs:
+      - bulb-A
+      - bulb-B
+      - bulb-C
+  # TODO: other alias types
+  #triggers:
+  #  weekend:
+  #    weekday: saturday,sunday
+  #    time: 8:00am-10:00pm
+  #actions:
+  #  welcome-home:
+  #    turn-on: switch-A
+  #    turn-off: switch-B
+
 automations:
   air-purifier:
     enabled: true

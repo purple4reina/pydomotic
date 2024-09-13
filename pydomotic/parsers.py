@@ -10,6 +10,7 @@ from .actions import (TurnOnAction, TurnOffAction, SwitchAction, SetModeAction,
 from .components import Component
 from .context import Context
 from .exceptions import PyDomoticConfigParsingError
+from .providers.base import DeviceGroup
 from .providers.noop import NoopProvider
 from .triggers import (AQITrigger, TimeTrigger, IsoWeekdayTrigger, DateTrigger,
         CronTrigger, RandomTrigger, SunriseTrigger, SunsetTrigger,
@@ -28,6 +29,7 @@ def parse_raw_yaml(raw_conf):
     context.providers = _parse_providers(conf.get('providers', {}))
     context.devices = _parse_devices(conf.get('devices', {}), context.providers)
     components = _parse_components(conf.get('automations', {}), context)
+    _parse_aliases(conf.get('aliases', {}), context)
     return components, context
 
 def _get_config_reader(config_file, s3):
@@ -575,3 +577,25 @@ def _parse_set_mode_action(value, context):
             extra_params['revertMode'] = value['revert-mode']
 
     return SetModeAction(device, mode, extra_params)
+
+def _parse_aliases(aliases, context):
+    if not aliases:
+        return {}
+    return _parse_device_aliases(aliases.get('devices', {}), context)
+
+def _parse_device_aliases(aliases, context):
+    if not aliases:
+        return {}
+    groups = {}
+    for alias, device_names in aliases.items():
+        logger.info(f'adding devie alias {alias} with devices {device_names}')
+        devices = []
+        for device_name in device_names or []:
+            device = context.devices.get(device_name)
+            if device is None:
+                raise PyDomoticConfigParsingError(
+                        f'unknown device name "{device_name}"')
+            devices.append(device)
+        groups[alias] = DeviceGroup(devices, alias)
+    context.devices.update(groups)
+    return groups

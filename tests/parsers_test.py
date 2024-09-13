@@ -17,9 +17,9 @@ from pydomotic.parsers import (parse_yaml, _get_config_reader, _file_reader,
         _parse_random_trigger, _parse_timedelta, _parse_sunrise_trigger,
         _parse_sunset_trigger, _parse_temp_trigger, _parse_radon_trigger,
         _parse_sensor_trigger, _parse_actions, _parse_set_mode_action,
-        PyDomoticConfigParsingError)
+        _parse_aliases, _parse_device_aliases, PyDomoticConfigParsingError)
 from pydomotic.providers.airthings import AirthingsProvider
-from pydomotic.providers.base import Device
+from pydomotic.providers.base import Device, DeviceGroup
 from pydomotic.providers.ecobee import EcobeeProvider
 from pydomotic.providers.fujitsu import FujitsuProvider
 from pydomotic.providers.moen import MoenProvider
@@ -232,6 +232,9 @@ _test_parse_yaml_expect_context_dict = {
             'sensor-E': NoopDevice('890', 'sensor-E', 'contact sensor'),
             'sensor-F': NoopDevice('901', 'sensor-F', 'radon sensor'),
             'sensor-G': NoopDevice('012', 'sensor-G', 'flo by moen'),
+            'all-satellites': DeviceGroup('all-satellites', 'all-satellites'),
+            'all-switches': DeviceGroup('all-switches', 'all-switches'),
+            'all-bulbs': DeviceGroup('all-bulbs', 'all-bulbs'),
         },
         'sensors': {
             'aqi_sensor': AQISensor(
@@ -1688,3 +1691,114 @@ def test__parse_set_mode_action(value, mode, params, raises):
         assert raises, 'should not have raised an exception'
     else:
         assert not raises, 'should have raised an exception'
+
+def _group_to_dict(groups):
+    return {
+            name: [d.name for d in group.devices]
+            for name, group in groups.items()
+    }
+
+_test__parse_aliases = (
+        (
+            None,
+            {},
+            False,
+        ),
+        (
+            {},
+            {},
+            False,
+        ),
+        (
+            {
+                'devices': None,
+                'purple': None,
+            },
+            {},
+            False,
+        ),
+        (
+            {
+                'devices': {
+                    'test_group_1': [],
+                    'test_group_2': [_test_device_name_1],
+                    'test_group_3': [_test_device_name_1, _test_device_name_2],
+                },
+            },
+            {
+                'test_group_1': DeviceGroup([], 'test_group_1'),
+                'test_group_2': DeviceGroup([_test_device_1], 'test_group_2'),
+                'test_group_3': DeviceGroup([_test_device_1, _test_device_2], 'test_group_3'),
+            },
+            False,
+        ),
+        (
+            {
+                'devices': {
+                    'test_group_1': ['fake_device'],
+                },
+            },
+            {},
+            True,
+        ),
+)
+
+@pytest.mark.parametrize('aliases,expect,raises', _test__parse_aliases)
+def test__parse_aliases(aliases, expect, raises):
+    try:
+        actual = _parse_aliases(aliases, _test_context)
+        assert not raises, 'should not have raised an exception'
+        assert _group_to_dict(actual) == _group_to_dict(expect), 'wrong groups returned'
+    except PyDomoticConfigParsingError:
+        assert raises, 'should have raised an exception'
+
+_test__parse_device_aliases = (
+        (
+            None,
+            {},
+            False,
+        ),
+        (
+            {},
+            {},
+            False,
+        ),
+        (
+            {
+                'test_group_1': None,
+            },
+            {
+                'test_group_1': DeviceGroup([], 'test_group_1'),
+            },
+            False,
+        ),
+        (
+            {
+                'test_group_1': [],
+                'test_group_2': [_test_device_name_1],
+                'test_group_3': [_test_device_name_1, _test_device_name_2],
+            },
+            {
+                'test_group_1': DeviceGroup([], 'test_group_1'),
+                'test_group_2': DeviceGroup([_test_device_1], 'test_group_2'),
+                'test_group_3': DeviceGroup([_test_device_1, _test_device_2], 'test_group_3'),
+            },
+            False,
+        ),
+        (
+            {
+                'test_group_1': ['fake_device'],
+            },
+            {},
+            True,
+        ),
+)
+
+@pytest.mark.parametrize('devices,expect,raises', _test__parse_device_aliases)
+def test__parse_device_aliases(devices, expect, raises):
+    try:
+        groups = _parse_device_aliases(devices, _test_context)
+        assert not raises, 'should have raised an exception'
+        assert _group_to_dict(groups) == _group_to_dict(expect), 'wrong groups returned'
+    except PyDomoticConfigParsingError:
+        assert raises, 'should not have raised an exception'

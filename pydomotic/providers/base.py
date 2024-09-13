@@ -18,3 +18,24 @@ class Device(metaclass=ObjectMetaclass):
     @property
     def name(self):
         return f'{super().name} {self.device_name}'
+
+class DeviceGroup(metaclass=ObjectMetaclass):
+
+    def __init__(self, devices, name):
+        self.devices = devices
+        self.group_name = name
+
+    @property
+    def name(self):
+        return f'{super().name} {self.group_name}'
+
+    def __getattr__(self, attr):
+        if attr == 'devices':
+            return self.devices
+        if attr == 'group_name':
+            return self.group_name
+        if attr == 'name':
+            return self.name
+        if all(hasattr(d, attr) for d in self.devices):
+            return lambda *a, **k: [getattr(d, attr)(*a, **k) for d in self.devices]
+        super().__getattr__(attr)

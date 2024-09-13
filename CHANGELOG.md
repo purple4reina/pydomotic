@@ -1,6 +1,30 @@
 # CHANGELOG
 
 ## Unreleased
+### Features
++ Add support for device aliases. This allows you to use a custom name to
+  represent a group of devices. For example, the two components below are
+  equivalent.
+    ```yaml
+    aliases:
+      lights:
+        - light-A
+        - light-B
+        - light-C
+
+    automations:
+      explicit:
+        enabled: true
+        components:
+          - if:
+              time: 12:00pm
+            then:
+              turn-on: light-A, light-B, light-C
+          - if:
+              time: 12:00pm
+            then:
+              turn-on: lights
+    ```
 
 ## 1.3.1
 ### Bug Fixes
