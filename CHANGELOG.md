@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## Unreleased
+## 1.4.0
 ### Features
 + Add support for device aliases. This allows you to use a custom name to
   represent a group of devices. For example, the two components below are
